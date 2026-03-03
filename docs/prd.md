@@ -91,7 +91,7 @@ The website should be simple and lightweight — the primary interface remains S
 | **Social Media API** | Instagram Graph API | Publish posts to Instagram (and future platforms) |
 | **Hosting/Compute** | Vercel | Host the Next.js web application and serverless API routes |
 | **Database** | Supabase (Postgres) | Store customer data, posts, and conversation history |
-| **Domain/DNS** | Vercel DNS | Manage postimp.com |
+| **Domain/DNS** | Namecheap (registrar) + Vercel (DNS) | Manage postimp.com |
 | **Authentication** | Supabase Auth | Customer login and OAuth for connecting social media accounts |
 | **File/Image Storage** | Supabase Storage | Store uploaded images and post media |
 | **Payments** | TBD (future phase) | Per-post billing |
