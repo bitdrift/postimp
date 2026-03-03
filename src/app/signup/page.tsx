@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 
@@ -25,7 +25,7 @@ function SignupForm() {
   const [smsConsent, setSmsConsent] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
+  const [emailSent, setEmailSent] = useState(false);
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
 
@@ -72,19 +72,41 @@ function SignupForm() {
         return;
       }
 
-      // Create profile via API (uses service role to bypass RLS timing)
-      await fetch("/api/auth/create-profile", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token: token || null }),
-      });
-
-      router.push("/onboarding");
+      setEmailSent(true);
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
+  }
+
+  if (emailSent) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+        <div className="w-full max-w-md">
+          <div className="bg-white rounded-2xl shadow-sm border p-8 text-center">
+            <div className="text-4xl mb-4">📬</div>
+            <h1 className="text-2xl font-bold mb-2">Check your email</h1>
+            <p className="text-gray-500 mb-6">
+              We sent a confirmation link to{" "}
+              <span className="font-medium text-gray-900">{email}</span>.
+              <br />
+              Click the link to activate your account.
+            </p>
+            <p className="text-sm text-gray-400">
+              Didn&apos;t get it? Check your spam folder or{" "}
+              <button
+                onClick={() => setEmailSent(false)}
+                className="text-black font-medium hover:underline"
+              >
+                try again
+              </button>
+              .
+            </p>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
