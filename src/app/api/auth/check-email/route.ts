@@ -9,35 +9,31 @@ export async function POST(request: NextRequest) {
   }
 
   const supabase = createAdminClient();
+  const { data, error } = await supabase.auth.admin.listUsers();
 
-  // Query auth.users table directly via admin client
-  const { data, error } = await supabase
-    .from("auth.users")
-    .select("email_confirmed_at")
-    .eq("email", email.toLowerCase())
-    .maybeSingle();
-
-  // If direct table query fails (permissions), fall back to listUsers
   if (error) {
-    const { data: listData } = await supabase.auth.admin.listUsers();
-    const user = listData?.users.find(
-      (u) => u.email?.toLowerCase() === email.toLowerCase()
+    console.error("check-email: listUsers failed", error);
+    return NextResponse.json(
+      { error: "Something went wrong" },
+      { status: 500 }
     );
-
-    if (!user) {
-      return NextResponse.json({ status: "new" });
-    }
-    if (!user.email_confirmed_at) {
-      return NextResponse.json({ status: "unconfirmed" });
-    }
-    return NextResponse.json({ status: "confirmed" });
   }
 
-  if (!data) {
+  const user = data?.users.find(
+    (u) => u.email?.toLowerCase() === email.toLowerCase()
+  );
+
+  if (!user) {
     return NextResponse.json({ status: "new" });
   }
 
-  if (!data.email_confirmed_at) {
+  console.log("check-email: found user", {
+    email: user.email,
+    email_confirmed_at: user.email_confirmed_at,
+    confirmed_at: user.confirmed_at,
+  });
+
+  if (!user.email_confirmed_at) {
     return NextResponse.json({ status: "unconfirmed" });
   }
 
