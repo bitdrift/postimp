@@ -82,21 +82,19 @@ The website should be simple and lightweight — the primary interface remains S
 - Billing implementation deferred to a later phase
 - MVP will operate without billing
 
-## 9. Third-Party Services (TBD)
+## 9. Third-Party Services
 
-The following categories of third-party services will be required. Specific providers to be selected:
-
-| Category | Purpose | Candidates |
+| Category | Provider | Purpose |
 |---|---|---|
-| **SMS/Messaging** | Send and receive SMS with customers | TBD |
-| **AI Model** | Generate draft post captions from images/text | TBD |
-| **Social Media API** | Publish posts to Instagram (and future platforms) | Instagram Graph API |
-| **Hosting/Compute** | Host the web application and backend services | TBD |
-| **Database** | Store customer data, posts, and conversation history | TBD |
-| **Domain/DNS** | Manage postimp.com | TBD |
-| **Authentication** | OAuth for connecting customer social media accounts | TBD |
-| **File/Image Storage** | Store uploaded images and post media | TBD |
-| **Payments** | Per-post billing (future phase) | TBD |
+| **SMS/Messaging** | Twilio | Send and receive SMS/MMS with customers |
+| **AI Model** | OpenAI (GPT-4o) | Generate draft post captions from images/text |
+| **Social Media API** | Instagram Graph API | Publish posts to Instagram (and future platforms) |
+| **Hosting/Compute** | Vercel | Host the Next.js web application and serverless API routes |
+| **Database** | Supabase (Postgres) | Store customer data, posts, and conversation history |
+| **Domain/DNS** | Vercel DNS | Manage postimp.com |
+| **Authentication** | Supabase Auth | Customer login and OAuth for connecting social media accounts |
+| **File/Image Storage** | Supabase Storage | Store uploaded images and post media |
+| **Payments** | TBD (future phase) | Per-post billing |
 
 ## 10. MVP Scope
 
