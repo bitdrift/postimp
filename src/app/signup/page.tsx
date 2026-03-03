@@ -22,6 +22,7 @@ export default function SignupPage() {
 function SignupForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [smsConsent, setSmsConsent] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -143,6 +144,27 @@ function SignupForm() {
               />
             </div>
 
+            <div className="flex items-start gap-3">
+              <input
+                id="sms-consent"
+                type="checkbox"
+                checked={smsConsent}
+                onChange={(e) => setSmsConsent(e.target.checked)}
+                required
+                className="mt-1 h-4 w-4 rounded border-gray-300 text-black focus:ring-black"
+              />
+              <label htmlFor="sms-consent" className="text-xs text-gray-500 leading-relaxed">
+                By signing up, you consent to receive SMS messages from Post Imp
+                (e.g. draft captions, post confirmations, account notifications).
+                Consent is not a condition of purchase. Msg &amp; data rates may
+                apply. Msg frequency varies. Reply STOP to unsubscribe at any
+                time. Reply HELP for assistance.{" "}
+                <Link href="/privacy" className="underline">Privacy Policy</Link>
+                {" "}&amp;{" "}
+                <Link href="/terms" className="underline">Terms of Service</Link>.
+              </label>
+            </div>
+
             {error && (
               <div className="bg-red-50 text-red-700 rounded-lg p-3 text-sm">
                 {error}
@@ -151,7 +173,7 @@ function SignupForm() {
 
             <button
               type="submit"
-              disabled={loading || !token}
+              disabled={loading || !token || !smsConsent}
               className="w-full bg-black text-white rounded-lg py-2.5 font-medium hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {loading ? "Creating account..." : "Sign Up"}

@@ -79,14 +79,26 @@ export default function TermsPage() {
         </ul>
 
         <h2>SMS Messaging</h2>
+        <p>
+          The Post Imp SMS program sends messages related to your Instagram post
+          drafts, revisions, publishing confirmations, and account notifications.
+        </p>
         <ul>
           <li>
-            By using the Service, you consent to receiving SMS messages related
-            to your posts and account.
+            By signing up and using the Service, you consent to receiving SMS
+            messages from Post Imp related to your posts and account.
           </li>
           <li>Message and data rates may apply based on your carrier plan.</li>
-          <li>Text STOP to opt out of messages. Text HELP for assistance.</li>
           <li>Message frequency varies based on your usage of the Service.</li>
+          <li>
+            Text <strong>STOP</strong> at any time to opt out of messages. Text{" "}
+            <strong>HELP</strong> for assistance.
+          </li>
+          <li>
+            For support, contact us at{" "}
+            <a href="mailto:support@postimp.com">support@postimp.com</a>.
+          </li>
+          <li>Consent to receive SMS is not a condition of purchase.</li>
         </ul>
 
         <h2>Disclaimer of Warranties</h2>

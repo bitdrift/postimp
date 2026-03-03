@@ -70,16 +70,17 @@ export async function POST(request: NextRequest) {
     }
 
     const signupUrl = `${process.env.NEXT_PUBLIC_APP_URL}/signup?token=${token}`;
-    await sendSms(
-      from,
-      `Welcome to Post Imp! 🎯 Sign up to get started: ${signupUrl}`
-    );
+    const welcomeMsg =
+      `Post Imp: You're signed up for SMS notifications including draft captions, post confirmations, and account updates. ` +
+      `Sign up to get started: ${signupUrl} ` +
+      `For help, reply HELP. To opt out, reply STOP.`;
+    await sendSms(from, welcomeMsg);
 
     // Log outbound
     await supabase.from("messages").insert({
       phone: from,
       direction: "outbound",
-      body: `Welcome to Post Imp! 🎯 Sign up to get started: ${signupUrl}`,
+      body: welcomeMsg,
     });
   } else {
     // Registered user — route to SMS handler (Phase 7)

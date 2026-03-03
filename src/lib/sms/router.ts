@@ -37,14 +37,16 @@ export async function routeMessage(
     .single();
 
   // HELP command
-  if (normalizedBody === "help") {
+  const helpKeywords = ["help", "info", "support"];
+  if (helpKeywords.includes(normalizedBody)) {
     const reply =
       "Post Imp Help:\n" +
       "📸 Send a photo + description to create a post\n" +
       "✅ Reply APPROVE to publish your draft\n" +
       "✏️ Reply with feedback to revise\n" +
-      "❌ Reply CANCEL to discard draft\n" +
-      "ℹ️ Reply HELP for this message";
+      "❌ Reply CANCEL to discard draft\n\n" +
+      "For support, visit https://postimp.com or email support@postimp.com. " +
+      "To opt out, reply STOP.";
     await sendSms(phone, reply);
     await logOutbound(supabase, profileId, phone, reply);
     return;
