@@ -5,10 +5,6 @@ import { createClient } from "@/lib/supabase/server";
 export async function POST(request: NextRequest) {
   const { token } = await request.json();
 
-  if (!token) {
-    return NextResponse.json({ error: "Token required" }, { status: 400 });
-  }
-
   // Get the current authenticated user
   const serverSupabase = await createClient();
   const {
@@ -21,25 +17,37 @@ export async function POST(request: NextRequest) {
 
   const supabase = createAdminClient();
 
-  // Get phone from pending registration
-  const { data: registration } = await supabase
-    .from("pending_registrations")
-    .select("phone")
-    .eq("token", token)
-    .eq("used", false)
-    .single();
+  let phone: string | null = null;
 
-  if (!registration) {
-    return NextResponse.json(
-      { error: "Invalid or used token" },
-      { status: 400 }
-    );
+  if (token) {
+    // SMS signup: get phone from pending registration
+    const { data: registration } = await supabase
+      .from("pending_registrations")
+      .select("phone")
+      .eq("token", token)
+      .eq("used", false)
+      .single();
+
+    if (!registration) {
+      return NextResponse.json(
+        { error: "Invalid or used token" },
+        { status: 400 }
+      );
+    }
+
+    phone = registration.phone;
+
+    // Mark registration as used
+    await supabase
+      .from("pending_registrations")
+      .update({ used: true })
+      .eq("token", token);
   }
 
   // Create profile
   const { error: profileError } = await supabase.from("profiles").insert({
     id: user.id,
-    phone: registration.phone,
+    phone,
   });
 
   if (profileError) {
@@ -51,12 +59,6 @@ export async function POST(request: NextRequest) {
       );
     }
   }
-
-  // Mark registration as used
-  await supabase
-    .from("pending_registrations")
-    .update({ used: true })
-    .eq("token", token);
 
   return NextResponse.json({ success: true });
 }

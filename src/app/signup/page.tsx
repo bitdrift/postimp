@@ -34,28 +34,27 @@ function SignupForm() {
     setError("");
     setLoading(true);
 
-    if (!token) {
-      setError("Invalid signup link. Please text us to get a new one.");
-      setLoading(false);
-      return;
-    }
-
     try {
-      // Validate token and get phone number
-      const res = await fetch("/api/auth/validate-token", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token }),
-      });
+      let phone: string | null = null;
 
-      if (!res.ok) {
+      // If token provided, validate it and get phone number (SMS signup)
+      if (token) {
+        const res = await fetch("/api/auth/validate-token", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token }),
+        });
+
+        if (!res.ok) {
+          const data = await res.json();
+          setError(data.error || "Invalid or expired signup link.");
+          setLoading(false);
+          return;
+        }
+
         const data = await res.json();
-        setError(data.error || "Invalid or expired signup link.");
-        setLoading(false);
-        return;
+        phone = data.phone;
       }
-
-      const { phone } = await res.json();
 
       // Create Supabase auth user
       const supabase = createClient();
@@ -77,7 +76,7 @@ function SignupForm() {
       await fetch("/api/auth/create-profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token }),
+        body: JSON.stringify({ token: token || null }),
       });
 
       router.push("/onboarding");
@@ -98,13 +97,6 @@ function SignupForm() {
           <p className="text-gray-500 text-center mb-8">
             Create your account to start posting
           </p>
-
-          {!token && (
-            <div className="bg-yellow-50 text-yellow-800 rounded-lg p-4 mb-6 text-sm">
-              You need a signup link to create an account. Text our number to get
-              started!
-            </div>
-          )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
@@ -144,26 +136,28 @@ function SignupForm() {
               />
             </div>
 
-            <div className="flex items-start gap-3">
-              <input
-                id="sms-consent"
-                type="checkbox"
-                checked={smsConsent}
-                onChange={(e) => setSmsConsent(e.target.checked)}
-                required
-                className="mt-1 h-4 w-4 rounded border-gray-300 text-black focus:ring-black"
-              />
-              <label htmlFor="sms-consent" className="text-xs text-gray-500 leading-relaxed">
-                By signing up, you consent to receive SMS messages from Post Imp
-                (e.g. draft captions, post confirmations, account notifications).
-                Consent is not a condition of purchase. Msg &amp; data rates may
-                apply. Msg frequency varies. Reply STOP to unsubscribe at any
-                time. Reply HELP for assistance.{" "}
-                <Link href="/privacy" className="underline">Privacy Policy</Link>
-                {" "}&amp;{" "}
-                <Link href="/terms" className="underline">Terms of Service</Link>.
-              </label>
-            </div>
+            {token && (
+              <div className="flex items-start gap-3">
+                <input
+                  id="sms-consent"
+                  type="checkbox"
+                  checked={smsConsent}
+                  onChange={(e) => setSmsConsent(e.target.checked)}
+                  required
+                  className="mt-1 h-4 w-4 rounded border-gray-300 text-black focus:ring-black"
+                />
+                <label htmlFor="sms-consent" className="text-xs text-gray-500 leading-relaxed">
+                  By signing up, you consent to receive SMS messages from Post Imp
+                  (e.g. draft captions, post confirmations, account notifications).
+                  Consent is not a condition of purchase. Msg &amp; data rates may
+                  apply. Msg frequency varies. Reply STOP to unsubscribe at any
+                  time. Reply HELP for assistance.{" "}
+                  <Link href="/privacy" className="underline">Privacy Policy</Link>
+                  {" "}&amp;{" "}
+                  <Link href="/terms" className="underline">Terms of Service</Link>.
+                </label>
+              </div>
+            )}
 
             {error && (
               <div className="bg-red-50 text-red-700 rounded-lg p-3 text-sm">
@@ -173,7 +167,7 @@ function SignupForm() {
 
             <button
               type="submit"
-              disabled={loading || !token || !smsConsent}
+              disabled={loading || (!!token && !smsConsent)}
               className="w-full bg-black text-white rounded-lg py-2.5 font-medium hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {loading ? "Creating account..." : "Sign Up"}

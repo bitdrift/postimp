@@ -1,6 +1,6 @@
 export interface Profile {
   id: string;
-  phone: string;
+  phone: string | null;
   brand_name: string | null;
   brand_description: string | null;
   tone: string | null;
