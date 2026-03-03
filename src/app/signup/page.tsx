@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 
@@ -33,6 +33,7 @@ function SignupFlow() {
   const [resendSuccess, setResendSuccess] = useState(false);
   const [confirmedMessage, setConfirmedMessage] = useState(false);
   const searchParams = useSearchParams();
+  const router = useRouter();
   const token = searchParams.get("token");
 
   async function handleEmailSubmit(e: React.FormEvent) {
@@ -116,7 +117,20 @@ function SignupFlow() {
         return;
       }
 
-      setStep("emailSent");
+      // Sign in immediately since email confirmation is disabled
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (signInError) {
+        setError(signInError.message);
+        setLoading(false);
+        return;
+      }
+
+      router.push("/onboarding");
+      router.refresh();
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {

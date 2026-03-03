@@ -27,15 +27,5 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ status: "new" });
   }
 
-  console.log("check-email: found user", {
-    email: user.email,
-    email_confirmed_at: user.email_confirmed_at,
-    confirmed_at: user.confirmed_at,
-  });
-
-  if (!user.email_confirmed_at) {
-    return NextResponse.json({ status: "unconfirmed" });
-  }
-
   return NextResponse.json({ status: "confirmed" });
 }
