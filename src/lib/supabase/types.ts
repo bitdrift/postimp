@@ -37,15 +37,17 @@ export interface Post {
 }
 
 export type MessageDirection = "inbound" | "outbound";
+export type MessageChannel = "sms" | "web";
 
 export interface Message {
   id: string;
   profile_id: string | null;
-  phone: string;
+  phone: string | null;
   direction: MessageDirection;
   body: string | null;
   media_url: string | null;
   twilio_sid: string | null;
+  channel: MessageChannel;
   created_at: string;
 }
 

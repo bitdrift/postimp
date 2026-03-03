@@ -1,13 +1,15 @@
 import { createAdminClient } from "@/lib/supabase/admin";
-import { sendSms } from "@/lib/twilio/client";
 import { generateCaption } from "@/lib/openai/generate-caption";
-import type { Post } from "@/lib/supabase/types";
+import { msgStr, msgFn2 } from "./messages";
+import type { Post, MessageChannel } from "@/lib/supabase/types";
+import type { DeliverFn } from "./types";
 
 export async function handleRevise(
   profileId: string,
-  phone: string,
   post: Post,
-  feedback: string
+  feedback: string,
+  channel: MessageChannel,
+  deliver: DeliverFn
 ) {
   const supabase = createAdminClient();
 
@@ -20,21 +22,11 @@ export async function handleRevise(
       .single();
 
     if (!profile) {
-      await sendSmsAndLog(
-        supabase,
-        profileId,
-        phone,
-        "Error loading your profile. Please try again."
-      );
+      await deliver(msgStr("profileError", channel));
       return;
     }
 
-    await sendSmsAndLog(
-      supabase,
-      profileId,
-      phone,
-      "Got it! Working on a revision..."
-    );
+    await deliver(msgStr("revisionAck", channel));
 
     // Generate revised caption
     const newCaption = await generateCaption({
@@ -57,34 +49,9 @@ export async function handleRevise(
         ? newCaption.substring(0, 297) + "..."
         : newCaption;
 
-    const reply =
-      `Revised caption:\n\n${truncatedCaption}\n\n` +
-      `Preview: ${previewUrl}\n\n` +
-      `Reply APPROVE to publish, send more feedback, or CANCEL.`;
-
-    await sendSmsAndLog(supabase, profileId, phone, reply);
+    await deliver(msgFn2("revisedCaption", channel)(truncatedCaption, previewUrl));
   } catch (error) {
     console.error("Error revising post:", error);
-    await sendSmsAndLog(
-      supabase,
-      profileId,
-      phone,
-      "Sorry, something went wrong revising your caption. Please try again."
-    );
+    await deliver(msgStr("reviseError", channel));
   }
-}
-
-async function sendSmsAndLog(
-  supabase: ReturnType<typeof createAdminClient>,
-  profileId: string,
-  phone: string,
-  body: string
-) {
-  await sendSms(phone, body);
-  await supabase.from("messages").insert({
-    profile_id: profileId,
-    phone,
-    direction: "outbound",
-    body,
-  });
 }

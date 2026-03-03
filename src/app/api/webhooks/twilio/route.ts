@@ -43,6 +43,7 @@ export async function POST(request: NextRequest) {
     body,
     media_url: mediaUrl,
     twilio_sid: messageSid,
+    channel: "sms",
   });
 
   // Route the message
@@ -81,6 +82,7 @@ export async function POST(request: NextRequest) {
       phone: from,
       direction: "outbound",
       body: welcomeMsg,
+      channel: "sms",
     });
   } else {
     // Registered user — route to SMS handler (Phase 7)

@@ -1,38 +1,46 @@
 import { createAdminClient } from "@/lib/supabase/admin";
-import { sendSms } from "@/lib/twilio/client";
 import { generateCaption } from "@/lib/openai/generate-caption";
+import { msgStr, msgFn2 } from "./messages";
+import type { MessageChannel } from "@/lib/supabase/types";
+import type { DeliverFn } from "./types";
 
 export async function handleNewPost(
   profileId: string,
-  phone: string,
   description: string,
-  mediaUrl: string
+  channel: MessageChannel,
+  deliver: DeliverFn,
+  source:
+    | { kind: "url"; mediaUrl: string }
+    | { kind: "buffer"; imageBuffer: ArrayBuffer; contentType: string }
 ) {
   const supabase = createAdminClient();
 
   try {
-    // Download image from Twilio (requires Basic auth)
-    const twilioAuth = Buffer.from(
-      `${process.env.TWILIO_ACCOUNT_SID}:${process.env.TWILIO_AUTH_TOKEN}`
-    ).toString("base64");
+    let imageBuffer: ArrayBuffer;
+    let contentType: string;
 
-    const imageResponse = await fetch(mediaUrl, {
-      headers: { Authorization: `Basic ${twilioAuth}` },
-    });
+    if (source.kind === "url") {
+      // Download image from Twilio (requires Basic auth)
+      const twilioAuth = Buffer.from(
+        `${process.env.TWILIO_ACCOUNT_SID}:${process.env.TWILIO_AUTH_TOKEN}`
+      ).toString("base64");
 
-    if (!imageResponse.ok) {
-      await sendSmsAndLog(
-        supabase,
-        profileId,
-        phone,
-        "Sorry, I couldn't download your image. Please try sending it again."
-      );
-      return;
+      const imageResponse = await fetch(source.mediaUrl, {
+        headers: { Authorization: `Basic ${twilioAuth}` },
+      });
+
+      if (!imageResponse.ok) {
+        await deliver(msgStr("imageDownloadError", channel));
+        return;
+      }
+
+      imageBuffer = await imageResponse.arrayBuffer();
+      contentType = imageResponse.headers.get("content-type") || "image/jpeg";
+    } else {
+      imageBuffer = source.imageBuffer;
+      contentType = source.contentType;
     }
 
-    const imageBuffer = await imageResponse.arrayBuffer();
-    const contentType =
-      imageResponse.headers.get("content-type") || "image/jpeg";
     const ext = contentType.includes("png")
       ? "png"
       : contentType.includes("webp")
@@ -49,12 +57,7 @@ export async function handleNewPost(
       });
 
     if (uploadError) {
-      await sendSmsAndLog(
-        supabase,
-        profileId,
-        phone,
-        "Sorry, there was an error uploading your image. Please try again."
-      );
+      await deliver(msgStr("imageUploadError", channel));
       return;
     }
 
@@ -70,12 +73,7 @@ export async function handleNewPost(
       .single();
 
     if (!profile) {
-      await sendSmsAndLog(
-        supabase,
-        profileId,
-        phone,
-        "Error loading your profile. Please try again."
-      );
+      await deliver(msgStr("profileError", channel));
       return;
     }
 
@@ -112,39 +110,14 @@ export async function handleNewPost(
       .select("preview_token")
       .single();
 
-    // Send caption preview via SMS
+    // Send caption preview
     const previewUrl = `${process.env.NEXT_PUBLIC_APP_URL}/preview/${post!.preview_token}`;
     const truncatedCaption =
       caption.length > 300 ? caption.substring(0, 297) + "..." : caption;
 
-    const reply =
-      `Here's your draft caption:\n\n${truncatedCaption}\n\n` +
-      `Preview: ${previewUrl}\n\n` +
-      `Reply APPROVE to publish, send feedback to revise, or CANCEL to discard.`;
-
-    await sendSmsAndLog(supabase, profileId, phone, reply);
+    await deliver(msgFn2("draftCaption", channel)(truncatedCaption, previewUrl));
   } catch (error) {
     console.error("Error creating post:", error);
-    await sendSmsAndLog(
-      supabase,
-      profileId,
-      phone,
-      "Sorry, something went wrong creating your post. Please try again."
-    );
+    await deliver(msgStr("genericError", channel));
   }
-}
-
-async function sendSmsAndLog(
-  supabase: ReturnType<typeof createAdminClient>,
-  profileId: string,
-  phone: string,
-  body: string
-) {
-  await sendSms(phone, body);
-  await supabase.from("messages").insert({
-    profile_id: profileId,
-    phone,
-    direction: "outbound",
-    body,
-  });
 }
