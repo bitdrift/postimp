@@ -129,6 +129,20 @@ function SignupFlow() {
         return;
       }
 
+      // Create the user's profile
+      const profileRes = await fetch("/api/auth/create-profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token }),
+      });
+
+      if (!profileRes.ok) {
+        const data = await profileRes.json();
+        setError(data.error || "Failed to create profile.");
+        setLoading(false);
+        return;
+      }
+
       router.push("/onboarding");
       router.refresh();
     } catch {
