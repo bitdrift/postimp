@@ -80,6 +80,25 @@ function SignupForm() {
     }
   }
 
+  const [resending, setResending] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState(false);
+
+  async function handleResend() {
+    setResending(true);
+    setResendSuccess(false);
+    const supabase = createClient();
+    const { error: resendError } = await supabase.auth.resend({
+      type: "signup",
+      email,
+    });
+    setResending(false);
+    if (resendError) {
+      setError(resendError.message);
+    } else {
+      setResendSuccess(true);
+    }
+  }
+
   if (emailSent) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
@@ -93,13 +112,24 @@ function SignupForm() {
               <br />
               Click the link to activate your account.
             </p>
+            {resendSuccess && (
+              <div className="bg-green-50 text-green-700 rounded-lg p-3 text-sm mb-4">
+                Confirmation email resent!
+              </div>
+            )}
+            {error && (
+              <div className="bg-red-50 text-red-700 rounded-lg p-3 text-sm mb-4">
+                {error}
+              </div>
+            )}
             <p className="text-sm text-gray-400">
               Didn&apos;t get it? Check your spam folder or{" "}
               <button
-                onClick={() => setEmailSent(false)}
-                className="text-black font-medium hover:underline"
+                onClick={handleResend}
+                disabled={resending}
+                className="text-black font-medium hover:underline disabled:opacity-50"
               >
-                try again
+                {resending ? "Sending..." : "resend the email"}
               </button>
               .
             </p>
