@@ -1,11 +1,25 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import type { Profile, InstagramConnection } from "@/lib/supabase/types";
 
 export default function AccountPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+          <p className="text-gray-500">Loading...</p>
+        </div>
+      }
+    >
+      <AccountContent />
+    </Suspense>
+  );
+}
+
+function AccountContent() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [instagram, setInstagram] = useState<InstagramConnection | null>(null);
   const [brandName, setBrandName] = useState("");
@@ -17,8 +31,24 @@ export default function AccountPage() {
   const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(true);
   const [editing, setEditing] = useState(false);
+  const [igError, setIgError] = useState("");
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createClient();
+
+  useEffect(() => {
+    const urlError = searchParams.get("error");
+    if (urlError) {
+      const detail = searchParams.get("detail");
+      if (urlError === "instagram_denied") {
+        setIgError("Instagram connection was cancelled.");
+      } else if (urlError === "instagram_failed") {
+        setIgError(detail || "Failed to connect Instagram. Please try again.");
+      } else if (urlError === "invalid_state") {
+        setIgError("Invalid session. Please try connecting again.");
+      }
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     async function load() {
@@ -241,6 +271,11 @@ export default function AccountPage() {
 
         <div className="bg-white rounded-2xl shadow-sm border p-8">
           <h2 className="text-lg font-semibold mb-4">Instagram Connection</h2>
+          {igError && (
+            <div className="bg-red-50 text-red-700 rounded-lg p-3 text-sm mb-4">
+              {igError}
+            </div>
+          )}
           {instagram ? (
             <div className="flex items-center justify-between">
               <div>
