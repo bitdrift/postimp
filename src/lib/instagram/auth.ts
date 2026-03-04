@@ -74,7 +74,7 @@ export async function exchangeCodeForToken(
   }
 
   if (!pagesData.data || pagesData.data.length === 0) {
-    throw new Error("No Facebook Pages found. Please connect a Facebook Page first.");
+    throw new Error(`No Facebook Pages found. API response: ${JSON.stringify(pagesData)}`);
   }
 
   const pageId = pagesData.data[0].id;
