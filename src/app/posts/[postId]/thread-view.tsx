@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import type { Message, Post } from "@/lib/supabase/types";
@@ -25,6 +25,20 @@ export default function ThreadView({
   const chatScrollRef = useRef<HTMLDivElement>(null);
   const savedScrollPos = useRef<number>(0);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  // Extract the latest draft caption from messages for the preview tab
+  const latestCaption = useMemo(() => {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const msg = messages[i];
+      if (msg.direction === "outbound" && msg.body) {
+        const draft = parseDraftMessage(msg.body);
+        if (draft) return draft.caption;
+      }
+    }
+    return null;
+  }, [messages]);
+
+  const previewCaption = latestCaption || currentPost.caption;
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -317,7 +331,7 @@ export default function ThreadView({
             />
             <div className="p-4">
               <p className="text-sm whitespace-pre-wrap break-words">
-                {currentPost.caption || "Caption pending..."}
+                {previewCaption || "Caption pending..."}
               </p>
             </div>
           </div>
