@@ -7,7 +7,7 @@ export function getAuthorizationUrl(state: string): string {
     client_id: INSTAGRAM_APP_ID,
     redirect_uri: REDIRECT_URI,
     scope:
-      "instagram_content_publish,pages_show_list,pages_read_engagement",
+      "instagram_content_publish,pages_show_list,pages_read_engagement,pages_manage_metadata",
     response_type: "code",
     state,
   });
@@ -66,6 +66,12 @@ export async function exchangeCodeForToken(
     `https://graph.facebook.com/v21.0/me/accounts?access_token=${longLivedData.access_token}`
   );
   const pagesData = await pagesResponse.json();
+
+  console.log("Facebook Pages response:", JSON.stringify(pagesData));
+
+  if (pagesData.error) {
+    throw new Error(pagesData.error.message || "Failed to fetch Facebook Pages.");
+  }
 
   if (!pagesData.data || pagesData.data.length === 0) {
     throw new Error("No Facebook Pages found. Please connect a Facebook Page first.");
