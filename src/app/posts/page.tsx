@@ -31,6 +31,7 @@ export default async function ChatPage() {
     .from("posts")
     .select("*")
     .eq("profile_id", user.id)
+    .neq("status", "cancelled")
     .order("created_at", { ascending: false });
 
   return <PostsList posts={posts || []} />;
