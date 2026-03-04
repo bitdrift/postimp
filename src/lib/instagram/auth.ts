@@ -42,7 +42,6 @@ export async function exchangeCodeForToken(
   }
 
   const shortLivedToken = tokenData.access_token;
-  const igUserId = String(tokenData.user_id);
 
   // Exchange for long-lived token (60 days)
   const longLivedResponse = await fetch(
@@ -62,9 +61,21 @@ export async function exchangeCodeForToken(
     );
   }
 
+  // Fetch the correct user_id from /me to avoid JS number precision issues
+  const meResponse = await fetch(
+    `https://graph.instagram.com/v21.0/me?fields=user_id&access_token=${longLivedData.access_token}`
+  );
+  const meData = await meResponse.json();
+
+  if (meData.error) {
+    throw new Error(
+      meData.error.message || "Failed to fetch Instagram user info"
+    );
+  }
+
   return {
     accessToken: longLivedData.access_token,
-    userId: igUserId,
+    userId: meData.user_id,
   };
 }
 
