@@ -20,7 +20,7 @@ export async function handleApprove(
     .single();
 
   if (!connection) {
-    await deliver(msgStr("noInstagram", channel));
+    await deliver(msgStr("noInstagram", channel), post.id);
     return;
   }
 
@@ -29,11 +29,11 @@ export async function handleApprove(
     connection.token_expires_at &&
     new Date(connection.token_expires_at) < new Date()
   ) {
-    await deliver(msgStr("instagramExpired", channel));
+    await deliver(msgStr("instagramExpired", channel), post.id);
     return;
   }
 
-  await deliver(msgStr("publishStarted", channel));
+  await deliver(msgStr("publishStarted", channel), post.id);
 
   const result = await publishToInstagram(
     connection.instagram_user_id,
@@ -52,8 +52,8 @@ export async function handleApprove(
       })
       .eq("id", post.id);
 
-    await deliver(msgStr("publishSuccess", channel));
+    await deliver(msgStr("publishSuccess", channel), post.id);
   } else {
-    await deliver(msgFn1("publishFailed", channel)(result.error || "Unknown error"));
+    await deliver(msgFn1("publishFailed", channel)(result.error || "Unknown error"), post.id);
   }
 }

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { makeWebDeliver } from "@/lib/core/deliver";
-import { routeMessage } from "@/lib/core/router";
+import { handleNewPost } from "@/lib/core/handle-new-post";
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
@@ -24,41 +24,41 @@ export async function POST(request: NextRequest) {
 
   const admin = createAdminClient();
 
-  // Log inbound message (post_id set after routing)
-  const { data: inboundMsg } = await admin
-    .from("messages")
-    .insert({
-      profile_id: user.id,
-      direction: "inbound",
-      body: body || "(photo)",
-      channel: "web",
-    })
-    .select("id")
-    .single();
+  // Cancel any existing draft
+  await admin
+    .from("posts")
+    .update({ status: "cancelled" })
+    .eq("profile_id", user.id)
+    .eq("status", "draft");
 
   const imageBuffer = await file.arrayBuffer();
   const contentType = file.type || "image/jpeg";
 
   const deliver = makeWebDeliver(admin, user.id);
-  const result = await routeMessage(
-    {
-      profileId: user.id,
-      body,
-      mediaUrl: null,
-      channel: "web",
-      imageBuffer,
-      contentType,
-    },
-    deliver
+
+  const postId = await handleNewPost(
+    user.id,
+    body,
+    "web",
+    deliver,
+    { kind: "buffer", imageBuffer, contentType }
   );
 
-  // Tag inbound message with post_id
-  if (result.postId && inboundMsg) {
-    await admin
-      .from("messages")
-      .update({ post_id: result.postId })
-      .eq("id", inboundMsg.id);
+  if (!postId) {
+    return NextResponse.json(
+      { error: "Failed to create post" },
+      { status: 500 }
+    );
   }
 
-  return NextResponse.json({ ok: true });
+  // Log inbound message with post_id
+  await admin.from("messages").insert({
+    profile_id: user.id,
+    direction: "inbound",
+    body: body || "(photo)",
+    channel: "web",
+    post_id: postId,
+  });
+
+  return NextResponse.json({ postId });
 }

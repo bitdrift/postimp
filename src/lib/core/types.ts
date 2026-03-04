@@ -1,6 +1,6 @@
 import type { MessageChannel } from "@/lib/supabase/types";
 
-export type DeliverFn = (reply: string) => Promise<void>;
+export type DeliverFn = (reply: string, postId?: string) => Promise<void>;
 
 export interface MessageContext {
   profileId: string;
@@ -9,4 +9,5 @@ export interface MessageContext {
   channel: MessageChannel;
   imageBuffer?: ArrayBuffer;
   contentType?: string;
+  postId?: string;
 }

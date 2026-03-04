@@ -21,19 +21,31 @@ export async function POST(request: NextRequest) {
 
   const admin = createAdminClient();
 
-  // Log inbound message
-  await admin.from("messages").insert({
-    profile_id: user.id,
-    direction: "inbound",
-    body,
-    channel: "web",
-  });
+  // Log inbound message (post_id set after routing)
+  const { data: inboundMsg } = await admin
+    .from("messages")
+    .insert({
+      profile_id: user.id,
+      direction: "inbound",
+      body,
+      channel: "web",
+    })
+    .select("id")
+    .single();
 
   const deliver = makeWebDeliver(admin, user.id);
-  await routeMessage(
+  const result = await routeMessage(
     { profileId: user.id, body, mediaUrl: null, channel: "web" },
     deliver
   );
+
+  // Tag inbound message with post_id
+  if (result.postId && inboundMsg) {
+    await admin
+      .from("messages")
+      .update({ post_id: result.postId })
+      .eq("id", inboundMsg.id);
+  }
 
   return NextResponse.json({ ok: true });
 }

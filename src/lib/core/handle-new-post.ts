@@ -12,7 +12,7 @@ export async function handleNewPost(
   source:
     | { kind: "url"; mediaUrl: string }
     | { kind: "buffer"; imageBuffer: ArrayBuffer; contentType: string }
-) {
+): Promise<string | null> {
   const supabase = createAdminClient();
 
   try {
@@ -31,7 +31,7 @@ export async function handleNewPost(
 
       if (!imageResponse.ok) {
         await deliver(msgStr("imageDownloadError", channel));
-        return;
+        return null;
       }
 
       imageBuffer = await imageResponse.arrayBuffer();
@@ -58,7 +58,7 @@ export async function handleNewPost(
 
     if (uploadError) {
       await deliver(msgStr("imageUploadError", channel));
-      return;
+      return null;
     }
 
     const {
@@ -74,7 +74,7 @@ export async function handleNewPost(
 
     if (!profile) {
       await deliver(msgStr("profileError", channel));
-      return;
+      return null;
     }
 
     // Get recent captions for consistency
@@ -107,7 +107,7 @@ export async function handleNewPost(
         caption,
         status: "draft",
       })
-      .select("preview_token")
+      .select("id, preview_token")
       .single();
 
     // Send caption preview
@@ -115,9 +115,11 @@ export async function handleNewPost(
     const truncatedCaption =
       caption.length > 300 ? caption.substring(0, 297) + "..." : caption;
 
-    await deliver(msgFn2("draftCaption", channel)(truncatedCaption, previewUrl));
+    await deliver(msgFn2("draftCaption", channel)(truncatedCaption, previewUrl), post!.id);
+    return post!.id;
   } catch (error) {
     console.error("Error creating post:", error);
     await deliver(msgStr("genericError", channel));
+    return null;
   }
 }

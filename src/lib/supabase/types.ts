@@ -48,6 +48,7 @@ export interface Message {
   media_url: string | null;
   twilio_sid: string | null;
   channel: MessageChannel;
+  post_id: string | null;
   created_at: string;
 }
 

@@ -22,11 +22,11 @@ export async function handleRevise(
       .single();
 
     if (!profile) {
-      await deliver(msgStr("profileError", channel));
+      await deliver(msgStr("profileError", channel), post.id);
       return;
     }
 
-    await deliver(msgStr("revisionAck", channel));
+    await deliver(msgStr("revisionAck", channel), post.id);
 
     // Generate revised caption
     const newCaption = await generateCaption({
@@ -49,9 +49,9 @@ export async function handleRevise(
         ? newCaption.substring(0, 297) + "..."
         : newCaption;
 
-    await deliver(msgFn2("revisedCaption", channel)(truncatedCaption, previewUrl));
+    await deliver(msgFn2("revisedCaption", channel)(truncatedCaption, previewUrl), post.id);
   } catch (error) {
     console.error("Error revising post:", error);
-    await deliver(msgStr("reviseError", channel));
+    await deliver(msgStr("reviseError", channel), post.id);
   }
 }

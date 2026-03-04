@@ -5,7 +5,7 @@ const templates = {
     sms: (caption: string, url: string) =>
       `Here's your draft caption:\n\n${caption}\n\nPreview: ${url}\n\nReply APPROVE to publish, send feedback to revise, or CANCEL to discard.`,
     web: (caption: string, url: string) =>
-      `Here's your draft caption:\n\n${caption}\n\nPreview: ${url}`,
+      `Here's your draft caption:\n\nCAPTION_START\n${caption}\nCAPTION_END\nPREVIEW:${url}`,
   },
   revisionAck: {
     sms: "Got it! Working on a revision...",
@@ -15,7 +15,7 @@ const templates = {
     sms: (caption: string, url: string) =>
       `Revised caption:\n\n${caption}\n\nPreview: ${url}\n\nReply APPROVE to publish, send more feedback, or CANCEL.`,
     web: (caption: string, url: string) =>
-      `Revised caption:\n\n${caption}\n\nPreview: ${url}`,
+      `Revised caption:\n\nCAPTION_START\n${caption}\nCAPTION_END\nPREVIEW:${url}`,
   },
   publishStarted: {
     sms: "Publishing to Instagram... this may take a moment.",
@@ -44,6 +44,7 @@ const templates = {
       "📸 Send a photo + description to create a post\n" +
       "✅ Reply APPROVE to publish your draft\n" +
       "✏️ Reply with feedback to revise\n" +
+      '📝 Reply CAPTION: your text to set exact caption\n' +
       "❌ Reply CANCEL to discard draft\n\n" +
       "For support, visit https://postimp.com or email support@postimp.com. " +
       "To opt out, reply STOP.",
@@ -85,6 +86,11 @@ const templates = {
   reviseError: {
     sms: "Sorry, something went wrong revising your caption. Please try again.",
     web: "Sorry, something went wrong revising your caption. Please try again.",
+  },
+  captionSet: {
+    sms: (url: string) =>
+      `Caption updated! Preview: ${url}\n\nReply APPROVE to publish, send more feedback, or CANCEL.`,
+    web: "Caption updated.",
   },
 } as const;
 

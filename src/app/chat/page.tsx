@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import ChatView from "./chat-view";
+import PostsList from "./posts-list";
 
 export default async function ChatPage() {
   const supabase = await createClient();
@@ -26,19 +26,12 @@ export default async function ChatPage() {
     redirect("/onboarding");
   }
 
-  // Fetch recent web messages
-  const { data: messages } = await admin
-    .from("messages")
+  // Fetch all posts for the user
+  const { data: posts } = await admin
+    .from("posts")
     .select("*")
     .eq("profile_id", user.id)
-    .eq("channel", "web")
-    .order("created_at", { ascending: false })
-    .limit(50);
+    .order("created_at", { ascending: false });
 
-  return (
-    <ChatView
-      initialMessages={(messages || []).reverse()}
-      profileId={user.id}
-    />
-  );
+  return <PostsList posts={posts || []} />;
 }

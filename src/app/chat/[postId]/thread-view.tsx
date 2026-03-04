@@ -2,21 +2,25 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
-import type { Message } from "@/lib/supabase/types";
+import type { Message, Post } from "@/lib/supabase/types";
 
-interface ChatViewProps {
+interface ThreadViewProps {
+  post: Post;
   initialMessages: Message[];
   profileId: string;
 }
 
-export default function ChatView({ initialMessages, profileId }: ChatViewProps) {
+export default function ThreadView({
+  post,
+  initialMessages,
+  profileId,
+}: ThreadViewProps) {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"chat" | "preview">("chat");
+  const [currentPost, setCurrentPost] = useState(post);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const scrollToBottom = useCallback(() => {
@@ -27,24 +31,23 @@ export default function ChatView({ initialMessages, profileId }: ChatViewProps) 
     scrollToBottom();
   }, [messages, scrollToBottom]);
 
-  // Subscribe to realtime outbound messages
+  // Subscribe to realtime messages for this post
   useEffect(() => {
     const supabase = createClient();
     const channel = supabase
-      .channel("web-messages")
+      .channel(`thread-${post.id}`)
       .on(
         "postgres_changes",
         {
           event: "INSERT",
           schema: "public",
           table: "messages",
-          filter: `profile_id=eq.${profileId}`,
+          filter: `post_id=eq.${post.id}`,
         },
         (payload) => {
           const newMsg = payload.new as Message;
           if (newMsg.channel === "web" && newMsg.direction === "outbound") {
             setMessages((prev) => {
-              // Deduplicate by id
               if (prev.some((m) => m.id === newMsg.id)) return prev;
               return [...prev, newMsg];
             });
@@ -56,76 +59,61 @@ export default function ChatView({ initialMessages, profileId }: ChatViewProps) 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [profileId]);
+  }, [post.id]);
 
-  function handleImageSelect(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setImageFile(file);
-    const url = URL.createObjectURL(file);
-    blobUrlsRef.current.add(url);
-    setImagePreview(url);
-  }
-
-  // Track blob URLs so we can revoke them on unmount
-  const blobUrlsRef = useRef<Set<string>>(new Set());
-
-  function clearImage(revoke = true) {
-    setImageFile(null);
-    if (imagePreview && revoke) {
-      URL.revokeObjectURL(imagePreview);
-      blobUrlsRef.current.delete(imagePreview);
-    }
-    setImagePreview(null);
-    if (fileInputRef.current) fileInputRef.current.value = "";
-  }
-
-  // Revoke all blob URLs on unmount
+  // Subscribe to post updates (caption changes, status changes)
   useEffect(() => {
+    const supabase = createClient();
+    const channel = supabase
+      .channel(`post-${post.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "posts",
+          filter: `id=eq.${post.id}`,
+        },
+        (payload) => {
+          setCurrentPost(payload.new as Post);
+        }
+      )
+      .subscribe();
+
     return () => {
-      blobUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
+      supabase.removeChannel(channel);
     };
-  }, []);
+  }, [post.id]);
 
   async function handleSend(e: React.FormEvent) {
     e.preventDefault();
     const body = input.trim();
-    if (!body && !imageFile) return;
+    if (!body) return;
 
     setSending(true);
-
-    // Optimistic UI: add user message immediately
     const optimisticMsg: Message = {
       id: `temp-${Date.now()}`,
       profile_id: profileId,
       phone: null,
       direction: "inbound",
-      body: body || (imageFile ? "(photo)" : ""),
-      media_url: imagePreview,
+      body,
+      media_url: null,
       twilio_sid: null,
       channel: "web",
-      post_id: null,
+      post_id: post.id,
       created_at: new Date().toISOString(),
     };
     setMessages((prev) => [...prev, optimisticMsg]);
     setInput("");
 
     try {
-      if (imageFile) {
-        const formData = new FormData();
-        formData.append("image", imageFile);
-        formData.append("body", body);
-        clearImage(false); // Keep blob URL alive for optimistic message
-        await fetch("/api/chat/upload", { method: "POST", body: formData });
-      } else {
-        await fetch("/api/chat/send", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ body }),
-        });
-      }
+      await fetch("/api/chat/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ body }),
+      });
     } catch {
-      // Error state could be added here
+      // Error handling could be added
     } finally {
       setSending(false);
       inputRef.current?.focus();
@@ -144,7 +132,7 @@ export default function ChatView({ initialMessages, profileId }: ChatViewProps) 
       media_url: null,
       twilio_sid: null,
       channel: "web",
-      post_id: null,
+      post_id: post.id,
       created_at: new Date().toISOString(),
     };
     setMessages((prev) => [...prev, optimisticMsg]);
@@ -164,121 +152,149 @@ export default function ChatView({ initialMessages, profileId }: ChatViewProps) 
   return (
     <div className="flex flex-col h-[100dvh] bg-gray-100">
       {/* Header */}
-      <div className="bg-white border-b px-4 py-3 flex items-center justify-between shrink-0">
-        <h1 className="font-semibold text-lg">Post Imp</h1>
-        <a
-          href="/account"
-          className="text-sm text-gray-500 hover:text-gray-700"
-        >
-          Account
-        </a>
-      </div>
-
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
-        {messages.length === 0 && (
-          <div className="text-center text-gray-400 mt-20">
-            <p className="text-lg mb-1">Welcome to Post Imp</p>
-            <p className="text-sm">
-              Send a photo with a description to create a post.
+      <div className="bg-white border-b shrink-0">
+        <div className="px-4 py-3 flex items-center gap-3">
+          <a
+            href="/chat"
+            className="shrink-0 text-gray-500 hover:text-gray-700"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="w-5 h-5"
+            >
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+          </a>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium truncate">
+              {currentPost.caption
+                ? currentPost.caption.slice(0, 50) +
+                  (currentPost.caption.length > 50 ? "..." : "")
+                : "New Post"}
             </p>
+            <span
+              className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                currentPost.status === "published"
+                  ? "bg-green-100 text-green-800"
+                  : currentPost.status === "cancelled"
+                    ? "bg-gray-100 text-gray-500"
+                    : "bg-yellow-100 text-yellow-800"
+              }`}
+            >
+              {currentPost.status}
+            </span>
           </div>
-        )}
-        {messages.map((msg) => (
-          <MessageBubble
-            key={msg.id}
-            message={msg}
-            onSend={handleQuickSend}
-            onFillInput={(text) => {
-              setInput(text);
-              inputRef.current?.focus();
-            }}
-          />
-        ))}
-        <div ref={messagesEndRef} />
+        </div>
+
+        {/* Tabs */}
+        <div className="flex border-t">
+          <button
+            onClick={() => setActiveTab("chat")}
+            className={`flex-1 py-2 text-sm font-medium text-center border-b-2 transition-colors ${
+              activeTab === "chat"
+                ? "border-black text-black"
+                : "border-transparent text-gray-400 hover:text-gray-600"
+            }`}
+          >
+            Chat
+          </button>
+          <button
+            onClick={() => setActiveTab("preview")}
+            className={`flex-1 py-2 text-sm font-medium text-center border-b-2 transition-colors ${
+              activeTab === "preview"
+                ? "border-black text-black"
+                : "border-transparent text-gray-400 hover:text-gray-600"
+            }`}
+          >
+            Preview
+          </button>
+        </div>
       </div>
 
-      {/* Image preview */}
-      {imagePreview && (
-        <div className="px-4 pb-2 shrink-0">
-          <div className="relative inline-block">
-            <img
-              src={imagePreview}
-              alt="Selected"
-              className="h-20 w-20 object-cover rounded-lg border"
+      {activeTab === "chat" ? (
+        <>
+          {/* Messages */}
+          <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+            {messages.length === 0 && (
+              <div className="text-center text-gray-400 mt-20">
+                <p className="text-sm">Generating your caption...</p>
+              </div>
+            )}
+            {messages.map((msg) => (
+              <ThreadMessageBubble
+                key={msg.id}
+                message={msg}
+                onSend={handleQuickSend}
+                onFillInput={(text) => {
+                  setInput(text);
+                  inputRef.current?.focus();
+                }}
+              />
+            ))}
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* Input bar (no photo picker) */}
+          <form
+            onSubmit={handleSend}
+            className="bg-white border-t px-4 py-3 flex items-center gap-2 shrink-0"
+            style={{
+              paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))",
+            }}
+          >
+            <input
+              ref={inputRef}
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Type a message..."
+              className="flex-1 bg-gray-100 rounded-full px-4 py-2.5 text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-black/10"
+              disabled={sending}
             />
             <button
-              onClick={() => clearImage()}
-              className="absolute -top-2 -right-2 bg-gray-800 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+              type="submit"
+              disabled={sending || !input.trim()}
+              className="shrink-0 w-10 h-10 rounded-full bg-black text-white flex items-center justify-center disabled:opacity-30 transition-opacity"
             >
-              &times;
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                className="w-5 h-5"
+              >
+                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+              </svg>
             </button>
+          </form>
+        </>
+      ) : (
+        /* Preview tab */
+        <div className="flex-1 overflow-y-auto px-4 py-4">
+          <div className="bg-white rounded-xl border overflow-hidden">
+            <img
+              src={currentPost.image_url}
+              alt=""
+              className="w-full aspect-square object-cover"
+            />
+            <div className="p-4">
+              <p className="text-sm whitespace-pre-wrap break-words">
+                {currentPost.caption || "Caption pending..."}
+              </p>
+            </div>
           </div>
         </div>
       )}
-
-      {/* Input bar */}
-      <form
-        onSubmit={handleSend}
-        className="bg-white border-t px-4 py-3 flex items-center gap-2 shrink-0"
-        style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
-      >
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          onChange={handleImageSelect}
-          className="hidden"
-        />
-        <button
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
-          className="shrink-0 w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 hover:bg-gray-200 transition-colors"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="w-5 h-5"
-          >
-            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-            <circle cx="8.5" cy="8.5" r="1.5" />
-            <polyline points="21 15 16 10 5 21" />
-          </svg>
-        </button>
-        <input
-          ref={inputRef}
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder={imageFile ? "Add a description..." : "Type a message..."}
-          className="flex-1 bg-gray-100 rounded-full px-4 py-2.5 text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-black/10"
-          disabled={sending}
-        />
-        <button
-          type="submit"
-          disabled={sending || (!input.trim() && !imageFile)}
-          className="shrink-0 w-10 h-10 rounded-full bg-black text-white flex items-center justify-center disabled:opacity-30 transition-opacity"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-            className="w-5 h-5"
-          >
-            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
-          </svg>
-        </button>
-      </form>
     </div>
   );
 }
 
-/** Parse structured caption messages (CAPTION_START...CAPTION_END + PREVIEW:url) */
+/** Parse structured caption messages */
 function parseDraftMessage(body: string) {
   const captionMatch = body.match(/CAPTION_START\n([\s\S]*?)\nCAPTION_END/);
   const previewMatch = body.match(/PREVIEW:(https?:\/\/\S+)/);
@@ -291,11 +307,10 @@ function parseDraftMessage(body: string) {
   };
 }
 
-/** Render text with clickable URLs */
-function LinkifiedText({ text, className }: { text: string; className?: string }) {
+function LinkifiedText({ text }: { text: string }) {
   const parts = text.split(/(https?:\/\/[^\s]+)/g);
   return (
-    <span className={className}>
+    <span>
       {parts.map((part, i) =>
         /^https?:\/\//.test(part) ? (
           <a
@@ -315,7 +330,7 @@ function LinkifiedText({ text, className }: { text: string; className?: string }
   );
 }
 
-function MessageBubble({
+function ThreadMessageBubble({
   message,
   onSend,
   onFillInput,
@@ -325,7 +340,8 @@ function MessageBubble({
   onFillInput?: (text: string) => void;
 }) {
   const isUser = message.direction === "inbound";
-  const draft = !isUser && message.body ? parseDraftMessage(message.body) : null;
+  const draft =
+    !isUser && message.body ? parseDraftMessage(message.body) : null;
 
   return (
     <div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>

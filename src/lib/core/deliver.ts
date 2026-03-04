@@ -6,12 +6,13 @@ export function makeWebDeliver(
   supabase: ReturnType<typeof createAdminClient>,
   profileId: string
 ): DeliverFn {
-  return async (reply: string) => {
+  return async (reply: string, postId?: string) => {
     await supabase.from("messages").insert({
       profile_id: profileId,
       direction: "outbound",
       body: reply,
       channel: "web",
+      ...(postId && { post_id: postId }),
     });
   };
 }
@@ -21,7 +22,7 @@ export function makeSmsDeliver(
   profileId: string,
   phone: string
 ): DeliverFn {
-  return async (reply: string) => {
+  return async (reply: string, postId?: string) => {
     await sendSms(phone, reply);
     await supabase.from("messages").insert({
       profile_id: profileId,
@@ -29,6 +30,7 @@ export function makeSmsDeliver(
       direction: "outbound",
       body: reply,
       channel: "sms",
+      ...(postId && { post_id: postId }),
     });
   };
 }
