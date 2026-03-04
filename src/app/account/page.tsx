@@ -304,9 +304,12 @@ function AccountContent() {
           )}
         </div>
 
-        <p className="text-center text-sm text-gray-400">
-          Phone: {profile?.phone}
-        </p>
+        {profile?.phone && (
+          <div className="bg-white rounded-2xl shadow-sm border p-8">
+            <h2 className="text-lg font-semibold mb-2">Phone</h2>
+            <p className="text-gray-600">{profile.phone}</p>
+          </div>
+        )}
       </div>
     </div>
   );
