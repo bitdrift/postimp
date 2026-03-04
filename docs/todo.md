@@ -1,0 +1,3 @@
+- disable post tile and show loading indicator while post is being deleted.
+- make sure delete action completes before removing from the posts list
+- display error message if post could not be deleted
