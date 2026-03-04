@@ -6,13 +6,12 @@ export function getAuthorizationUrl(state: string): string {
   const params = new URLSearchParams({
     client_id: INSTAGRAM_APP_ID,
     redirect_uri: REDIRECT_URI,
-    scope:
-      "instagram_content_publish,pages_show_list,pages_read_engagement",
+    scope: "instagram_business_basic,instagram_business_content_publish",
     response_type: "code",
     state,
   });
 
-  return `https://www.facebook.com/v21.0/dialog/oauth?${params.toString()}`;
+  return `https://api.instagram.com/oauth/authorize?${params.toString()}`;
 }
 
 export async function exchangeCodeForToken(
@@ -20,7 +19,7 @@ export async function exchangeCodeForToken(
 ): Promise<{ accessToken: string; userId: string }> {
   // Exchange code for short-lived token
   const tokenResponse = await fetch(
-    "https://graph.facebook.com/v21.0/oauth/access_token",
+    "https://api.instagram.com/oauth/access_token",
     {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -36,20 +35,22 @@ export async function exchangeCodeForToken(
 
   const tokenData = await tokenResponse.json();
 
-  if (tokenData.error) {
+  if (tokenData.error_type || tokenData.error) {
     throw new Error(
-      tokenData.error.message || "Failed to exchange code for token"
+      tokenData.error_message || tokenData.error?.message || "Failed to exchange code for token"
     );
   }
 
+  const shortLivedToken = tokenData.access_token;
+  const igUserId = String(tokenData.user_id);
+
   // Exchange for long-lived token (60 days)
   const longLivedResponse = await fetch(
-    `https://graph.facebook.com/v21.0/oauth/access_token?` +
+    `https://graph.instagram.com/access_token?` +
       new URLSearchParams({
-        grant_type: "fb_exchange_token",
-        client_id: INSTAGRAM_APP_ID,
+        grant_type: "ig_exchange_token",
         client_secret: INSTAGRAM_APP_SECRET,
-        fb_exchange_token: tokenData.access_token,
+        access_token: shortLivedToken,
       })
   );
 
@@ -61,50 +62,9 @@ export async function exchangeCodeForToken(
     );
   }
 
-  // Try with short-lived token first, then long-lived
-  const shortLivedPages = await fetch(
-    `https://graph.facebook.com/v21.0/me/accounts?fields=id,name,access_token,instagram_business_account&access_token=${tokenData.access_token}`
-  );
-  const shortLivedPagesData = await shortLivedPages.json();
-
-  console.log("Pages (short-lived token):", JSON.stringify(shortLivedPagesData));
-
-  const longLivedPages = await fetch(
-    `https://graph.facebook.com/v21.0/me/accounts?fields=id,name,access_token,instagram_business_account&access_token=${longLivedData.access_token}`
-  );
-  const longLivedPagesData = await longLivedPages.json();
-
-  console.log("Pages (long-lived token):", JSON.stringify(longLivedPagesData));
-
-  // Use whichever has data
-  const pagesData = (shortLivedPagesData.data?.length > 0) ? shortLivedPagesData : longLivedPagesData;
-
-  if (pagesData.error) {
-    throw new Error(pagesData.error.message || "Failed to fetch Facebook Pages.");
-  }
-
-  if (!pagesData.data || pagesData.data.length === 0) {
-    throw new Error(`No Facebook Pages found. Short: ${JSON.stringify(shortLivedPagesData)} Long: ${JSON.stringify(longLivedPagesData)}`);
-  }
-
-  const pageId = pagesData.data[0].id;
-  const pageAccessToken = pagesData.data[0].access_token;
-
-  // Get Instagram Business Account
-  const igResponse = await fetch(
-    `https://graph.facebook.com/v21.0/${pageId}?fields=instagram_business_account&access_token=${pageAccessToken}`
-  );
-  const igData = await igResponse.json();
-
-  if (!igData.instagram_business_account) {
-    throw new Error(
-      "No Instagram Business Account linked to your Facebook Page."
-    );
-  }
-
   return {
     accessToken: longLivedData.access_token,
-    userId: igData.instagram_business_account.id,
+    userId: igUserId,
   };
 }
 
@@ -114,7 +74,7 @@ export async function getInstagramUsername(
 ): Promise<string | null> {
   try {
     const response = await fetch(
-      `https://graph.facebook.com/v21.0/${userId}?fields=username&access_token=${accessToken}`
+      `https://graph.instagram.com/v21.0/${userId}?fields=username&access_token=${accessToken}`
     );
     const data = await response.json();
     return data.username || null;
