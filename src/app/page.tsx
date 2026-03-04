@@ -5,7 +5,7 @@ export default function HomePage() {
     <div className="min-h-screen bg-white">
       {/* Nav */}
       <nav className="flex items-center justify-between px-6 py-4 max-w-5xl mx-auto">
-        <span className="text-xl font-bold">Post Imp</span>
+        <span className="text-xl font-[family-name:var(--font-logo)]">Post Imp</span>
         <div className="flex gap-4">
           <Link
             href="/login"
@@ -85,7 +85,7 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="border-t py-8 px-6">
         <div className="max-w-5xl mx-auto flex items-center justify-between text-sm text-gray-400">
-          <span>Post Imp</span>
+          <span className="font-[family-name:var(--font-logo)]">Post Imp</span>
           <span>postimp.com</span>
         </div>
       </footer>

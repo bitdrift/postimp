@@ -60,7 +60,7 @@ export default async function PreviewPage({ params }: Props) {
               <div className="w-8 h-8 rounded-full bg-black flex items-center justify-center">
                 <span className="text-white text-xs font-bold">PI</span>
               </div>
-              <span className="font-semibold text-sm">Post Imp</span>
+              <span className="text-sm font-[family-name:var(--font-logo)]">Post Imp</span>
             </div>
             <span
               className={`text-xs font-medium px-2.5 py-1 rounded-full capitalize ${statusColors[post.status] || statusColors.draft}`}

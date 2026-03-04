@@ -34,7 +34,7 @@ export default function PostsList({ posts: initialPosts }: { posts: Post[] }) {
     <div className="flex flex-col h-[100dvh] bg-gray-100">
       {/* Header */}
       <div className="bg-white border-b px-4 py-3 flex items-center justify-between shrink-0">
-        <h1 className="font-semibold text-lg">Post Imp</h1>
+        <h1 className="text-lg font-[family-name:var(--font-logo)]">Post Imp</h1>
         <button
           onClick={() => setMenuOpen(true)}
           className="p-1 text-gray-500 hover:text-gray-700"
