@@ -50,7 +50,7 @@ export async function middleware(request: NextRequest) {
   // If authenticated, check if onboarding is complete
   if (user && (pathname === "/login" || pathname === "/signup")) {
     const url = request.nextUrl.clone();
-    url.pathname = "/onboarding";
+    url.pathname = "/chat";
     return NextResponse.redirect(url);
   }
 

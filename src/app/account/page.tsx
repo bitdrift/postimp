@@ -133,12 +133,20 @@ function AccountContent() {
         <div className="bg-white rounded-2xl shadow-sm border p-8">
           <div className="flex items-center justify-between mb-6">
             <h1 className="text-2xl font-bold">Account</h1>
-            <button
-              onClick={handleLogout}
-              className="text-sm text-gray-500 hover:text-gray-700"
-            >
-              Log out
-            </button>
+            <div className="flex items-center gap-4">
+              <a
+                href="/chat"
+                className="text-sm text-gray-500 hover:text-gray-700"
+              >
+                Chat
+              </a>
+              <button
+                onClick={handleLogout}
+                className="text-sm text-gray-500 hover:text-gray-700"
+              >
+                Log out
+              </button>
+            </div>
           </div>
 
           {editing ? (
