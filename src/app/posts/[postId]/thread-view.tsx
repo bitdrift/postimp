@@ -24,7 +24,7 @@ export default function ThreadView({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatScrollRef = useRef<HTMLDivElement>(null);
   const savedScrollPos = useRef<number>(0);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -124,6 +124,7 @@ export default function ThreadView({
     };
     setMessages((prev) => [...prev, optimisticMsg]);
     setInput("");
+    if (inputRef.current) inputRef.current.style.height = "auto";
 
     try {
       await fetch("/api/chat/send", {
@@ -263,18 +264,30 @@ export default function ThreadView({
           {/* Input bar (no photo picker) */}
           <form
             onSubmit={handleSend}
-            className="bg-white border-t px-4 py-3 flex items-center gap-2 shrink-0"
+            className="bg-white border-t px-4 py-3 flex items-end gap-2 shrink-0"
             style={{
               paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))",
             }}
           >
-            <input
+            <textarea
               ref={inputRef}
-              type="text"
               value={input}
-              onChange={(e) => setInput(e.target.value)}
+              onChange={(e) => {
+                setInput(e.target.value);
+                // Auto-resize
+                e.target.style.height = "auto";
+                e.target.style.height = e.target.scrollHeight + "px";
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSend(e);
+                }
+              }}
               placeholder="Type a message..."
-              className="flex-1 bg-gray-100 rounded-full px-4 py-2.5 text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-black/10"
+              rows={1}
+              className="flex-1 bg-gray-100 rounded-2xl px-4 py-2.5 text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-black/10 resize-none overflow-hidden"
+              style={{ maxHeight: 120 }}
               disabled={sending}
             />
             <button
