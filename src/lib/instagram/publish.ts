@@ -13,7 +13,7 @@ export async function publishToInstagram(
   try {
     // Step 1: Create media container
     const containerResponse = await fetch(
-      `https://graph.facebook.com/v21.0/${igUserId}/media`,
+      `https://graph.instagram.com/v21.0/${igUserId}/media`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -46,7 +46,7 @@ export async function publishToInstagram(
       attempts++;
 
       const statusResponse = await fetch(
-        `https://graph.facebook.com/v21.0/${containerId}?fields=status_code&access_token=${accessToken}`
+        `https://graph.instagram.com/v21.0/${containerId}?fields=status_code&access_token=${accessToken}`
       );
       const statusData = await statusResponse.json();
       status = statusData.status_code;
@@ -68,7 +68,7 @@ export async function publishToInstagram(
 
     // Step 3: Publish the container
     const publishResponse = await fetch(
-      `https://graph.facebook.com/v21.0/${igUserId}/media_publish`,
+      `https://graph.instagram.com/v21.0/${igUserId}/media_publish`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
