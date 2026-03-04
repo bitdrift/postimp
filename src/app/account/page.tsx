@@ -129,26 +129,30 @@ function AccountContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 px-4 py-12">
+    <div className="min-h-screen bg-gray-50 px-4 py-6">
       <div className="w-full max-w-lg mx-auto space-y-6">
-        <div className="bg-white rounded-2xl shadow-sm border p-8">
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-bold">Account</h1>
-            <div className="flex items-center gap-4">
-              <Link
-                href="/chat"
-                className="text-sm text-gray-500 hover:text-gray-700"
-              >
-                Chat
-              </Link>
-              <button
-                onClick={handleLogout}
-                className="text-sm text-gray-500 hover:text-gray-700"
-              >
-                Log out
-              </button>
-            </div>
+        {/* Header bar */}
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold">Account</h1>
+          <div className="flex items-center gap-4">
+            <Link
+              href="/posts"
+              className="text-sm text-gray-500 hover:text-gray-700"
+            >
+              Posts
+            </Link>
+            <button
+              onClick={handleLogout}
+              className="text-sm text-gray-500 hover:text-gray-700"
+            >
+              Log out
+            </button>
           </div>
+        </div>
+
+        {/* Profile card */}
+        <div className="bg-white rounded-2xl shadow-sm border p-8">
+          <h2 className="text-lg font-semibold mb-4">Profile</h2>
 
           {editing ? (
             <form onSubmit={handleSave} className="space-y-5">

@@ -50,7 +50,7 @@ export async function middleware(request: NextRequest) {
   // Redirect authenticated users away from public landing pages
   if (user && (pathname === "/" || pathname === "/login" || pathname === "/signup")) {
     const url = request.nextUrl.clone();
-    url.pathname = "/chat";
+    url.pathname = "/posts";
     return NextResponse.redirect(url);
   }
 

@@ -32,7 +32,7 @@ export default function OnboardingPage() {
         .single();
 
       if (profile?.onboarding_completed) {
-        router.push("/chat");
+        router.push("/posts");
         return;
       }
 
@@ -77,7 +77,7 @@ export default function OnboardingPage() {
       return;
     }
 
-    router.push("/chat");
+    router.push("/posts");
   }
 
   if (checking) {

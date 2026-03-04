@@ -292,6 +292,41 @@ function parseDraftMessage(body: string) {
   };
 }
 
+function CopyButton({ url }: { url: string }) {
+  const [copied, setCopied] = useState(false);
+
+  return (
+    <button
+      onClick={(e) => {
+        e.preventDefault();
+        navigator.clipboard.writeText(url);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1500);
+      }}
+      className="inline-flex items-center ml-1 text-gray-400 hover:text-gray-600 align-middle"
+      title="Copy link"
+    >
+      {copied ? (
+        <span className="text-xs text-green-600">Copied!</span>
+      ) : (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="w-3.5 h-3.5"
+        >
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+          <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+        </svg>
+      )}
+    </button>
+  );
+}
+
 /** Render text with clickable URLs */
 function LinkifiedText({ text, className }: { text: string; className?: string }) {
   const parts = text.split(/(https?:\/\/[^\s]+)/g);
@@ -299,15 +334,17 @@ function LinkifiedText({ text, className }: { text: string; className?: string }
     <span className={className}>
       {parts.map((part, i) =>
         /^https?:\/\//.test(part) ? (
-          <a
-            key={i}
-            href={part}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline break-all"
-          >
-            {part}
-          </a>
+          <span key={i} className="inline">
+            <a
+              href={part}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline break-all"
+            >
+              {part}
+            </a>
+            <CopyButton url={part} />
+          </span>
         ) : (
           <span key={i}>{part}</span>
         )
@@ -354,14 +391,17 @@ function MessageBubble({
               </p>
             </div>
             {draft.previewUrl && (
-              <a
-                href={draft.previewUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium"
-              >
-                View Preview &rarr;
-              </a>
+              <span className="inline-flex items-center gap-1">
+                <a
+                  href={draft.previewUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium"
+                >
+                  View Preview &rarr;
+                </a>
+                <CopyButton url={draft.previewUrl} />
+              </span>
             )}
             <p className="text-xs text-gray-500">
               What do you think? Suggest changes, or approve to publish.

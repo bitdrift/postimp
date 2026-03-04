@@ -22,6 +22,8 @@ export default function ThreadView({
   const [activeTab, setActiveTab] = useState<"chat" | "preview">("chat");
   const [currentPost, setCurrentPost] = useState(post);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatScrollRef = useRef<HTMLDivElement>(null);
+  const savedScrollPos = useRef<number>(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const scrollToBottom = useCallback(() => {
@@ -85,6 +87,22 @@ export default function ThreadView({
       supabase.removeChannel(channel);
     };
   }, [post.id]);
+
+  function switchTab(tab: "chat" | "preview") {
+    if (tab === activeTab) return;
+    // Save scroll position when leaving chat
+    if (activeTab === "chat" && chatScrollRef.current) {
+      savedScrollPos.current = chatScrollRef.current.scrollTop;
+    }
+    setActiveTab(tab);
+  }
+
+  // Restore scroll position when switching back to chat
+  useEffect(() => {
+    if (activeTab === "chat" && chatScrollRef.current && savedScrollPos.current > 0) {
+      chatScrollRef.current.scrollTop = savedScrollPos.current;
+    }
+  }, [activeTab]);
 
   async function handleSend(e: React.FormEvent) {
     e.preventDefault();
@@ -156,7 +174,7 @@ export default function ThreadView({
       <div className="bg-white border-b shrink-0">
         <div className="px-4 py-3 flex items-center gap-3">
           <Link
-            href="/chat"
+            href="/posts"
             className="shrink-0 text-gray-500 hover:text-gray-700"
           >
             <svg
@@ -196,7 +214,7 @@ export default function ThreadView({
         {/* Tabs */}
         <div className="flex border-t">
           <button
-            onClick={() => setActiveTab("chat")}
+            onClick={() => switchTab("chat")}
             className={`flex-1 py-2 text-sm font-medium text-center border-b-2 transition-colors ${
               activeTab === "chat"
                 ? "border-black text-black"
@@ -206,7 +224,7 @@ export default function ThreadView({
             Chat
           </button>
           <button
-            onClick={() => setActiveTab("preview")}
+            onClick={() => switchTab("preview")}
             className={`flex-1 py-2 text-sm font-medium text-center border-b-2 transition-colors ${
               activeTab === "preview"
                 ? "border-black text-black"
@@ -221,7 +239,7 @@ export default function ThreadView({
       {activeTab === "chat" ? (
         <>
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+          <div ref={chatScrollRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
             {messages.length === 0 && (
               <div className="text-center text-gray-400 mt-20">
                 <p className="text-sm">Generating your caption...</p>
@@ -289,6 +307,18 @@ export default function ThreadView({
               </p>
             </div>
           </div>
+          {currentPost.status === "draft" && (
+            <button
+              onClick={() => {
+                handleQuickSend("Approve");
+                switchTab("chat");
+              }}
+              disabled={sending}
+              className="w-full mt-4 py-3 bg-black text-white rounded-full font-medium hover:bg-gray-800 disabled:opacity-50 transition-colors"
+            >
+              Approve &amp; Post
+            </button>
+          )}
         </div>
       )}
     </div>
@@ -308,21 +338,58 @@ function parseDraftMessage(body: string) {
   };
 }
 
+function CopyButton({ url }: { url: string }) {
+  const [copied, setCopied] = useState(false);
+
+  return (
+    <button
+      onClick={(e) => {
+        e.preventDefault();
+        navigator.clipboard.writeText(url);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1500);
+      }}
+      className="inline-flex items-center ml-1 text-gray-400 hover:text-gray-600 align-middle"
+      title="Copy link"
+    >
+      {copied ? (
+        <span className="text-xs text-green-600">Copied!</span>
+      ) : (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="w-3.5 h-3.5"
+        >
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+          <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+        </svg>
+      )}
+    </button>
+  );
+}
+
 function LinkifiedText({ text }: { text: string }) {
   const parts = text.split(/(https?:\/\/[^\s]+)/g);
   return (
     <span>
       {parts.map((part, i) =>
         /^https?:\/\//.test(part) ? (
-          <a
-            key={i}
-            href={part}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline break-all"
-          >
-            {part}
-          </a>
+          <span key={i} className="inline">
+            <a
+              href={part}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline break-all"
+            >
+              {part}
+            </a>
+            <CopyButton url={part} />
+          </span>
         ) : (
           <span key={i}>{part}</span>
         )
@@ -370,14 +437,17 @@ function ThreadMessageBubble({
               </p>
             </div>
             {draft.previewUrl && (
-              <a
-                href={draft.previewUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium"
-              >
-                View Preview &rarr;
-              </a>
+              <span className="inline-flex items-center gap-1">
+                <a
+                  href={draft.previewUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium"
+                >
+                  View Preview &rarr;
+                </a>
+                <CopyButton url={draft.previewUrl} />
+              </span>
             )}
             <p className="text-xs text-gray-500">
               What do you think? Suggest changes, or approve to publish.
