@@ -53,9 +53,10 @@ export async function GET(request: NextRequest) {
       `${baseUrl}/account?instagram=connected`
     );
   } catch (err) {
-    console.error("Instagram OAuth error:", err);
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("Instagram OAuth error:", message);
     return NextResponse.redirect(
-      `${baseUrl}/account?error=instagram_failed`
+      `${baseUrl}/account?error=instagram_failed&detail=${encodeURIComponent(message)}`
     );
   }
 }
