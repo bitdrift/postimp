@@ -7,7 +7,7 @@ export function getAuthorizationUrl(state: string): string {
     client_id: INSTAGRAM_APP_ID,
     redirect_uri: REDIRECT_URI,
     scope:
-      "instagram_content_publish,pages_show_list,pages_read_engagement,pages_manage_metadata",
+      "instagram_content_publish,pages_show_list,pages_read_engagement",
     response_type: "code",
     state,
   });
