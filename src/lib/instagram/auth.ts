@@ -61,20 +61,30 @@ export async function exchangeCodeForToken(
     );
   }
 
-  // Get Instagram Business Account ID via pages
-  const pagesResponse = await fetch(
-    `https://graph.facebook.com/v21.0/me/accounts?access_token=${longLivedData.access_token}`
+  // Try with short-lived token first, then long-lived
+  const shortLivedPages = await fetch(
+    `https://graph.facebook.com/v21.0/me/accounts?fields=id,name,access_token,instagram_business_account&access_token=${tokenData.access_token}`
   );
-  const pagesData = await pagesResponse.json();
+  const shortLivedPagesData = await shortLivedPages.json();
 
-  console.log("Facebook Pages response:", JSON.stringify(pagesData));
+  console.log("Pages (short-lived token):", JSON.stringify(shortLivedPagesData));
+
+  const longLivedPages = await fetch(
+    `https://graph.facebook.com/v21.0/me/accounts?fields=id,name,access_token,instagram_business_account&access_token=${longLivedData.access_token}`
+  );
+  const longLivedPagesData = await longLivedPages.json();
+
+  console.log("Pages (long-lived token):", JSON.stringify(longLivedPagesData));
+
+  // Use whichever has data
+  const pagesData = (shortLivedPagesData.data?.length > 0) ? shortLivedPagesData : longLivedPagesData;
 
   if (pagesData.error) {
     throw new Error(pagesData.error.message || "Failed to fetch Facebook Pages.");
   }
 
   if (!pagesData.data || pagesData.data.length === 0) {
-    throw new Error(`No Facebook Pages found. API response: ${JSON.stringify(pagesData)}`);
+    throw new Error(`No Facebook Pages found. Short: ${JSON.stringify(shortLivedPagesData)} Long: ${JSON.stringify(longLivedPagesData)}`);
   }
 
   const pageId = pagesData.data[0].id;
