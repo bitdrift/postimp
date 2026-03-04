@@ -254,6 +254,7 @@ export default function ThreadView({
                   setInput(text);
                   inputRef.current?.focus();
                 }}
+                onViewPreview={() => switchTab("preview")}
               />
             ))}
             <div ref={messagesEndRef} />
@@ -402,10 +403,12 @@ function ThreadMessageBubble({
   message,
   onSend,
   onFillInput,
+  onViewPreview,
 }: {
   message: Message;
   onSend?: (text: string) => void;
   onFillInput?: (text: string) => void;
+  onViewPreview?: () => void;
 }) {
   const isUser = message.direction === "inbound";
   const draft =
@@ -438,14 +441,12 @@ function ThreadMessageBubble({
             </div>
             {draft.previewUrl && (
               <span className="inline-flex items-center gap-1">
-                <a
-                  href={draft.previewUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <button
+                  onClick={() => onViewPreview?.()}
                   className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium"
                 >
                   View Preview &rarr;
-                </a>
+                </button>
                 <CopyButton url={draft.previewUrl} />
               </span>
             )}
