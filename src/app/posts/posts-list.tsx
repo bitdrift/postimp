@@ -157,72 +157,71 @@ export default function PostsList({ posts: initialPosts }: { posts: Post[] }) {
         {posts.map((post) => {
           const isDeleting = deletingId === post.id;
           return (
-            <div
+            <button
               key={post.id}
-              className={`w-full bg-white rounded-xl border p-3 flex items-start gap-3 text-left transition-colors relative ${
+              onClick={() => router.push(`/posts/${post.id}`)}
+              className={`w-full bg-white rounded-xl border p-3 flex items-start gap-3 text-left transition-colors ${
                 isDeleting ? "opacity-50 pointer-events-none" : "hover:bg-gray-50"
               }`}
             >
-              <button
-                onClick={() => router.push(`/posts/${post.id}`)}
-                className="flex items-start gap-3 flex-1 min-w-0"
-              >
-                <img
-                  src={post.image_url}
-                  alt=""
-                  className="w-16 h-16 rounded-lg object-cover shrink-0"
-                />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-gray-900 line-clamp-2">
-                    {post.caption || "Generating caption..."}
-                  </p>
-                  <div className="flex items-center gap-2 mt-1.5">
-                    <span
-                      className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusColors[post.status] || statusColors.draft}`}
-                    >
-                      {isDeleting ? "deleting..." : post.status}
-                    </span>
-                    <span className="text-xs text-gray-400">
-                      {new Date(post.created_at).toLocaleDateString([], {
-                        month: "short",
-                        day: "numeric",
-                      })}
-                    </span>
-                  </div>
-                </div>
-              </button>
-              {isDeleting ? (
-                <div className="shrink-0 p-1.5">
-                  <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
-                </div>
-              ) : (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDelete(post.id);
-                  }}
-                  className="shrink-0 p-1.5 text-gray-300 hover:text-red-500 transition-colors"
-                  title="Delete post"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="w-4 h-4"
+              <img
+                src={post.image_url}
+                alt=""
+                className="w-16 h-16 rounded-lg object-cover shrink-0"
+              />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm text-gray-900 line-clamp-2">
+                  {post.caption || "Generating caption..."}
+                </p>
+                <div className="flex items-center gap-2 mt-1.5">
+                  <span
+                    className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusColors[post.status] || statusColors.draft}`}
                   >
-                    <polyline points="3 6 5 6 21 6" />
-                    <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" />
-                    <path d="M10 11v6" />
-                    <path d="M14 11v6" />
-                    <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2" />
-                  </svg>
-                </button>
-              )}
-            </div>
+                    {isDeleting ? "deleting..." : post.status}
+                  </span>
+                  <span className="text-xs text-gray-400">
+                    {new Date(post.created_at).toLocaleDateString([], {
+                      month: "short",
+                      day: "numeric",
+                    })}
+                  </span>
+                  <span className="flex-1" />
+                  {isDeleting ? (
+                    <span className="shrink-0">
+                      <span className="block w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+                    </span>
+                  ) : (
+                    <span
+                      role="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleDelete(post.id);
+                      }}
+                      className="shrink-0 p-0.5 text-gray-300 hover:text-red-500 transition-colors"
+                      title="Delete post"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="w-4 h-4"
+                      >
+                        <polyline points="3 6 5 6 21 6" />
+                        <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" />
+                        <path d="M10 11v6" />
+                        <path d="M14 11v6" />
+                        <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2" />
+                      </svg>
+                    </span>
+                  )}
+                </div>
+              </div>
+            </button>
           );
         })}
       </div>
