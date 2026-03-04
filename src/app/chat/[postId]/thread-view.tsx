@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import type { Message, Post } from "@/lib/supabase/types";
 
@@ -154,7 +155,7 @@ export default function ThreadView({
       {/* Header */}
       <div className="bg-white border-b shrink-0">
         <div className="px-4 py-3 flex items-center gap-3">
-          <a
+          <Link
             href="/chat"
             className="shrink-0 text-gray-500 hover:text-gray-700"
           >
@@ -170,7 +171,7 @@ export default function ThreadView({
             >
               <polyline points="15 18 9 12 15 6" />
             </svg>
-          </a>
+          </Link>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium truncate">
               {currentPost.caption

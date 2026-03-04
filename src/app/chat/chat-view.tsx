@@ -82,8 +82,9 @@ export default function ChatView({ initialMessages, profileId }: ChatViewProps) 
 
   // Revoke all blob URLs on unmount
   useEffect(() => {
+    const urls = blobUrlsRef.current;
     return () => {
-      blobUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
+      urls.forEach((url) => URL.revokeObjectURL(url));
     };
   }, []);
 
