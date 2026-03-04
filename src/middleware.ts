@@ -47,8 +47,8 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // If authenticated, check if onboarding is complete
-  if (user && (pathname === "/login" || pathname === "/signup")) {
+  // Redirect authenticated users away from public landing pages
+  if (user && (pathname === "/" || pathname === "/login" || pathname === "/signup")) {
     const url = request.nextUrl.clone();
     url.pathname = "/chat";
     return NextResponse.redirect(url);
