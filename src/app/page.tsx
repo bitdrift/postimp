@@ -33,9 +33,9 @@ export default function HomePage() {
                 className="rounded-2xl shrink-0"
               />
               <h1 className="text-5xl sm:text-6xl font-bold tracking-tight leading-[1.1]">
-                Big agency prices?
+                Better social posts.
                 <br />
-                <span className="text-gray-400">Send in the Imp.</span>
+                <span className="text-gray-400">A fraction of the cost.</span>
               </h1>
             </div>
             <p className="mt-6 text-lg text-gray-500 leading-relaxed">
