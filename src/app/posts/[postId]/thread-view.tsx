@@ -15,7 +15,7 @@ export default function ThreadView({ post, initialMessages, profileId }: ThreadV
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
-  const [activeTab, setActiveTab] = useState<"chat" | "preview">("chat");
+  const [activeTab, setActiveTab] = useState<"chat" | "preview" | "stats">("chat");
   const [currentPost, setCurrentPost] = useState(post);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatScrollRef = useRef<HTMLDivElement>(null);
@@ -98,7 +98,7 @@ export default function ThreadView({ post, initialMessages, profileId }: ThreadV
     };
   }, [post.id]);
 
-  function switchTab(tab: "chat" | "preview") {
+  function switchTab(tab: "chat" | "preview" | "stats") {
     if (tab === activeTab) return;
     // Save scroll position when leaving chat
     if (activeTab === "chat" && chatScrollRef.current) {
@@ -240,10 +240,22 @@ export default function ThreadView({ post, initialMessages, profileId }: ThreadV
           >
             Preview
           </button>
+          <button
+            onClick={() => switchTab("stats")}
+            className={`flex-1 py-2 text-sm font-medium text-center border-b-2 transition-colors ${
+              activeTab === "stats"
+                ? "border-pink text-pink"
+                : "border-transparent text-gray-400 hover:text-gray-600"
+            }`}
+          >
+            Stats
+          </button>
         </div>
       </div>
 
-      {activeTab === "chat" ? (
+      {activeTab === "stats" ? (
+        <StatsTab postId={post.id} isPublished={currentPost.status === "published"} />
+      ) : activeTab === "chat" ? (
         <>
           {/* Messages */}
           <div ref={chatScrollRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
@@ -337,6 +349,102 @@ export default function ThreadView({ post, initialMessages, profileId }: ThreadV
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+function StatsTab({ postId, isPublished }: { postId: string; isPublished: boolean }) {
+  const [stats, setStats] = useState<{ likes?: number; comments?: number } | null>(null);
+  const [fetchedAt, setFetchedAt] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchStats = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/posts/${postId}/stats`);
+      const data = await res.json();
+      if (data.stats) {
+        setStats(data.stats);
+        setFetchedAt(data.fetched_at);
+      } else if (data.reason === "not_published") {
+        setStats(null);
+      } else if (data.error) {
+        setError("Could not load stats.");
+      }
+    } catch {
+      setError("Could not load stats.");
+    } finally {
+      setLoading(false);
+    }
+  }, [postId]);
+
+  useEffect(() => {
+    if (isPublished) fetchStats();
+  }, [isPublished, fetchStats]);
+
+  if (!isPublished) {
+    return (
+      <div className="flex-1 flex items-center justify-center px-4">
+        <div className="text-center text-gray-400">
+          <p className="text-lg mb-1">No stats yet</p>
+          <p className="text-sm">Stats will appear here once the post is published to Instagram.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (loading && !stats) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-gray-200 border-t-black rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (error && !stats) {
+    return (
+      <div className="flex-1 flex items-center justify-center px-4">
+        <div className="text-center">
+          <p className="text-gray-500 mb-3">{error}</p>
+          <button
+            onClick={fetchStats}
+            className="text-sm text-pink font-medium hover:underline"
+          >
+            Try again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex-1 overflow-y-auto px-4 py-4">
+      <div className="grid grid-cols-2 gap-3">
+        <div className="bg-white rounded-xl border p-4 text-center">
+          <p className="text-2xl font-bold">{stats?.likes ?? "—"}</p>
+          <p className="text-xs text-gray-500 mt-1">Likes</p>
+        </div>
+        <div className="bg-white rounded-xl border p-4 text-center">
+          <p className="text-2xl font-bold">{stats?.comments ?? "—"}</p>
+          <p className="text-xs text-gray-500 mt-1">Comments</p>
+        </div>
+      </div>
+      <div className="flex items-center justify-between mt-4">
+        <p className="text-xs text-gray-400">
+          {fetchedAt
+            ? `Updated ${new Date(fetchedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`
+            : ""}
+        </p>
+        <button
+          onClick={fetchStats}
+          disabled={loading}
+          className="text-xs text-pink font-medium hover:underline disabled:opacity-50"
+        >
+          {loading ? "Refreshing..." : "Refresh"}
+        </button>
+      </div>
     </div>
   );
 }

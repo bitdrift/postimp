@@ -28,9 +28,10 @@ The primary web interface is a mobile-first chat-style app at `/posts`.
 - Upload spinner, then redirect to thread view on success
 
 **Thread View** (`/posts/[postId]`):
-- Two tabs: Chat and Preview
+- Three tabs: Chat, Preview, Stats
 - Chat tab: conversational message bubbles with the AI, text input (auto-expanding textarea), quick action buttons (Approve, Edit, View Preview)
 - Preview tab: full post preview (image + latest draft caption), "Approve & Post" button for drafts
+- Stats tab: engagement metrics (likes, comments) for published posts, auto-refreshes if data is older than 10 minutes, placeholder for unpublished posts
 - Scroll position preserved when switching between tabs
 - Real-time updates via Supabase Realtime subscriptions
 - Copy-to-clipboard icon next to URLs in messages
@@ -143,6 +144,7 @@ Users can interact with the full post creation workflow via SMS/MMS:
 | `profiles` | User info: brand_name, brand_description, tone, caption_style, target_audience, phone, onboarding_completed |
 | `posts` | Draft/published posts: status, caption, image_url, instagram_post_id, preview_token |
 | `messages` | All conversation messages: direction, body, channel (sms/web), phone, post_id, media_url |
+| `post_stats` | Cached engagement metrics: data (JSONB), fetched_at |
 | `instagram_connections` | OAuth credentials: access_token, token_expires_at, instagram_user_id, instagram_username |
 | `pending_registrations` | SMS signup tokens: phone, token, used, expires_at |
 
@@ -181,7 +183,7 @@ The product currently includes:
 - AI-generated draft captions with vision analysis
 - Conversational revision loop (approve, edit, cancel)
 - Automated publishing to Instagram
-- Thread-per-post architecture with chat and preview tabs
+- Thread-per-post architecture with chat, preview, and stats tabs
 - Real-time message updates
 - Post management (list, view, delete)
 - User onboarding and profile management
@@ -192,7 +194,7 @@ The product currently includes:
 
 **Not yet implemented:**
 - Token refresh (long-lived tokens expire after 60 days)
+- Richer post insights (reach, impressions, saves, shares — requires `instagram_business_manage_insights` scope)
 - Billing/payments
 - Multi-platform publishing (beyond Instagram)
 - Scheduled/queued posts
-- Analytics or reporting
