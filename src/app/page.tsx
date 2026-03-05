@@ -25,6 +25,11 @@ export default function HomePage() {
         <div className="max-w-5xl mx-auto w-full">
           <div className="text-left max-w-2xl">
             <div className="flex items-center gap-6 sm:gap-8">
+              <h1 className="text-3xl sm:text-5xl font-bold tracking-tight leading-[1.1]">
+                Better social posts.
+                <br />
+                <span className="text-gray-400">A fraction of the cost.</span>
+              </h1>
               <Image
                 src="/postimp_logo.png"
                 alt=""
@@ -32,11 +37,6 @@ export default function HomePage() {
                 height={140}
                 className="rounded-2xl shrink-0"
               />
-              <h1 className="text-3xl sm:text-5xl font-bold tracking-tight leading-[1.1]">
-                Better social posts.
-                <br />
-                <span className="text-gray-400">A fraction of the cost.</span>
-              </h1>
             </div>
             <p className="mt-6 text-lg text-gray-500 leading-relaxed">
               An AI powered Social Media Manager that sounds like you, posts for you, and never asks
