@@ -23,23 +23,23 @@ export default function HomePage() {
           </div>
         </div>
         <div className="max-w-2xl">
-            <h1 className="text-3xl sm:text-5xl font-bold tracking-tight leading-[1.1]">
-              Better social posts.
-              <br />
-              <span className="text-gray-400">A fraction of the cost.</span>
-            </h1>
-            <p className="mt-6 text-lg text-gray-500 leading-relaxed">
-              An AI powered Social Media Manager that sounds like you, posts for you, and never asks
-              for a raise.
-            </p>
-            <div className="mt-10">
-              <Link
-                href="/signup"
-                className="inline-block bg-black text-white px-8 py-3.5 rounded-full font-medium hover:bg-gray-800 transition-colors text-base"
-              >
-                Get Started
-              </Link>
-            </div>
+          <h1 className="text-3xl sm:text-5xl font-bold tracking-tight leading-[1.1]">
+            Better social posts.
+            <br />
+            <span className="text-gray-400">A fraction of the cost.</span>
+          </h1>
+          <p className="mt-6 text-lg text-gray-500 leading-relaxed">
+            An AI powered Social Media Manager that sounds like you, posts for you, and never asks
+            for a raise.
+          </p>
+          <div className="mt-10">
+            <Link
+              href="/signup"
+              className="inline-block bg-black text-white px-8 py-3.5 rounded-full font-medium hover:bg-gray-800 transition-colors text-base"
+            >
+              Get Started
+            </Link>
+          </div>
         </div>
       </main>
     </div>

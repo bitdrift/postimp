@@ -430,10 +430,7 @@ function StatsTab({ postId, isPublished }: { postId: string; isPublished: boolea
       <div className="flex-1 flex items-center justify-center px-4">
         <div className="text-center">
           <p className="text-gray-500 mb-3">{error}</p>
-          <button
-            onClick={fetchStats}
-            className="text-sm text-pink font-medium hover:underline"
-          >
+          <button onClick={fetchStats} className="text-sm text-pink font-medium hover:underline">
             Try again
           </button>
         </div>
