@@ -17,6 +17,8 @@ Post Imp is an AI-powered social media manager. Users create Instagram posts thr
 npm run dev          # Start dev server (port 3000)
 npm run build        # Production build
 npm run lint         # ESLint
+npm run format       # Format all files (Biome)
+npm run format:check # Check formatting without writing
 npm run test:docker  # Run tests in isolated Docker container
 ```
 
@@ -37,6 +39,13 @@ npm run test:docker  # Run tests in isolated Docker container
 - **Supabase client tiers.** Use `client.ts` in browser, `server.ts` in server components, `admin.ts` (service role) in API routes. API routes bypass RLS; browser/server clients respect it.
 - **One active draft.** Users can only have one draft post at a time. New uploads cancel existing drafts.
 - **Realtime chat.** Thread views subscribe to Supabase Postgres Changes for live message updates.
+
+## Formatting & Linting
+
+- **Biome** handles code formatting (2-space indent, double quotes, semicolons, 100 line width)
+- **ESLint** handles linting (Next.js rules)
+- A pre-commit hook (Husky + lint-staged) runs both automatically on staged files
+- **Before committing**, always run `npm run format` to format changed files. The pre-commit hook enforces this, but running it proactively avoids hook failures.
 
 ## Conventions
 
