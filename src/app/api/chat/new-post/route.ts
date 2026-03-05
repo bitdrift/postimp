@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createDbClient } from "@/lib/db/client";
+import { cancelDrafts } from "@/lib/db/posts";
+import { insertMessage } from "@/lib/db/messages";
 import { makeWebDeliver } from "@/lib/core/deliver";
 import { handleNewPost } from "@/lib/core/handle-new-post";
 
@@ -22,19 +24,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "image is required" }, { status: 400 });
   }
 
-  const admin = createAdminClient();
+  const db = createDbClient();
 
   // Cancel any existing draft
-  await admin
-    .from("posts")
-    .update({ status: "cancelled" })
-    .eq("profile_id", user.id)
-    .eq("status", "draft");
+  await cancelDrafts(db, user.id);
 
   const imageBuffer = await file.arrayBuffer();
   const contentType = file.type || "image/jpeg";
 
-  const deliver = makeWebDeliver(admin, user.id);
+  const deliver = makeWebDeliver(db, user.id);
 
   const postId = await handleNewPost(user.id, body, "web", deliver, {
     kind: "buffer",
@@ -47,7 +45,7 @@ export async function POST(request: NextRequest) {
   }
 
   // Log inbound message with post_id
-  await admin.from("messages").insert({
+  await insertMessage(db, {
     profile_id: user.id,
     direction: "inbound",
     body: body || "(photo)",

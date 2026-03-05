@@ -1,4 +1,6 @@
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createDbClient } from "@/lib/db/client";
+import { getProfile } from "@/lib/db/profiles";
+import { getActiveDraft, updatePost } from "@/lib/db/posts";
 import { msgStr, msgFn1 } from "./messages";
 import type { MessageContext, DeliverFn } from "./types";
 
@@ -7,15 +9,11 @@ export interface RouteResult {
 }
 
 export async function routeMessage(ctx: MessageContext, deliver: DeliverFn): Promise<RouteResult> {
-  const supabase = createAdminClient();
+  const db = createDbClient();
   const normalizedBody = ctx.body.toLowerCase().trim();
 
   // Check if user has completed onboarding
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("onboarding_completed, brand_name")
-    .eq("id", ctx.profileId)
-    .single();
+  const profile = await getProfile(db, ctx.profileId);
 
   if (!profile?.onboarding_completed) {
     await deliver(msgStr("onboardingIncomplete", ctx.channel));
@@ -23,14 +21,7 @@ export async function routeMessage(ctx: MessageContext, deliver: DeliverFn): Pro
   }
 
   // Check for active draft
-  const { data: activeDraft } = await supabase
-    .from("posts")
-    .select("*")
-    .eq("profile_id", ctx.profileId)
-    .eq("status", "draft")
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .single();
+  const activeDraft = await getActiveDraft(db, ctx.profileId);
 
   // HELP command
   const helpKeywords = ["help", "info", "support"];
@@ -46,7 +37,7 @@ export async function routeMessage(ctx: MessageContext, deliver: DeliverFn): Pro
     if (matchedPrefix) {
       const newCaption = ctx.body.slice(matchedPrefix.length).trim();
       if (newCaption) {
-        await supabase.from("posts").update({ caption: newCaption }).eq("id", activeDraft.id);
+        await updatePost(db, activeDraft.id, { caption: newCaption });
 
         const previewUrl = `${process.env.NEXT_PUBLIC_APP_URL}/preview/${activeDraft.preview_token}`;
         await deliver(
@@ -62,7 +53,7 @@ export async function routeMessage(ctx: MessageContext, deliver: DeliverFn): Pro
   const hasMedia = ctx.mediaUrl || ctx.imageBuffer;
   if (hasMedia) {
     if (activeDraft) {
-      await supabase.from("posts").update({ status: "cancelled" }).eq("id", activeDraft.id);
+      await updatePost(db, activeDraft.id, { status: "cancelled" });
     }
 
     const { handleNewPost } = await import("@/lib/core/handle-new-post");
@@ -97,7 +88,7 @@ export async function routeMessage(ctx: MessageContext, deliver: DeliverFn): Pro
 
     const cancelKeywords = ["cancel", "discard", "delete", "nevermind", "nvm"];
     if (cancelKeywords.some((kw) => normalizedBody.includes(kw))) {
-      await supabase.from("posts").update({ status: "cancelled" }).eq("id", activeDraft.id);
+      await updatePost(db, activeDraft.id, { status: "cancelled" });
       await deliver(msgStr("draftCancelled", ctx.channel), activeDraft.id);
       return { postId: activeDraft.id };
     }

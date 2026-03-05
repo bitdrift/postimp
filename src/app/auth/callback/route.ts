@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createDbClient } from "@/lib/db/client";
+import { getProfile, insertProfile } from "@/lib/db/profiles";
+import { markRegistrationUsed } from "@/lib/db/registrations";
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
@@ -12,29 +14,19 @@ export async function GET(request: NextRequest) {
     const { error, data } = await supabase.auth.exchangeCodeForSession(code);
     if (!error && data.user) {
       // Create profile if it doesn't exist yet (first email confirmation)
-      const admin = createAdminClient();
-      const { data: existing } = await admin
-        .from("profiles")
-        .select("id")
-        .eq("id", data.user.id)
-        .single();
+      const db = createDbClient();
+      const existing = await getProfile(db, data.user.id);
 
       if (!existing) {
         const metadata = data.user.user_metadata;
         const phone = metadata?.phone || null;
         const registrationToken = metadata?.registration_token || null;
 
-        await admin.from("profiles").insert({
-          id: data.user.id,
-          phone,
-        });
+        await insertProfile(db, { id: data.user.id, phone });
 
         // Mark registration token as used if present
         if (registrationToken) {
-          await admin
-            .from("pending_registrations")
-            .update({ used: true })
-            .eq("token", registrationToken);
+          await markRegistrationUsed(db, registrationToken);
         }
       }
 

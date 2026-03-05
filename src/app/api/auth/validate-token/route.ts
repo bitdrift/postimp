@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createDbClient } from "@/lib/db/client";
+import { getRegistrationByToken } from "@/lib/db/registrations";
 
 export async function POST(request: NextRequest) {
   const { token } = await request.json();
@@ -8,13 +9,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Token required" }, { status: 400 });
   }
 
-  const supabase = createAdminClient();
+  const db = createDbClient();
 
-  const { data: registration } = await supabase
-    .from("pending_registrations")
-    .select("phone, expires_at, used")
-    .eq("token", token)
-    .single();
+  const registration = await getRegistrationByToken(db, token);
 
   if (!registration) {
     return NextResponse.json({ error: "Invalid signup link" }, { status: 400 });

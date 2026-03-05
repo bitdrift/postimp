@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { validateTwilioRequest } from "@/lib/twilio/validate";
 import { sendSms } from "@/lib/twilio/client";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createDbClient } from "@/lib/db/client";
+import { getProfileByPhone } from "@/lib/db/profiles";
+import { getValidRegistration, insertRegistration } from "@/lib/db/registrations";
+import { insertMessage } from "@/lib/db/messages";
 
 export async function POST(request: NextRequest) {
   const formData = await request.formData();
@@ -25,13 +28,13 @@ export async function POST(request: NextRequest) {
   const mediaUrl = params.MediaUrl0 || null;
   const messageSid = params.MessageSid || null;
 
-  const supabase = createAdminClient();
+  const db = createDbClient();
 
   // Log inbound message
   // First, check if this phone has a profile
-  const { data: profile } = await supabase.from("profiles").select("id").eq("phone", from).single();
+  const profile = await getProfileByPhone(db, from);
 
-  await supabase.from("messages").insert({
+  await insertMessage(db, {
     profile_id: profile?.id || null,
     phone: from,
     direction: "inbound",
@@ -45,24 +48,14 @@ export async function POST(request: NextRequest) {
   if (!profile) {
     // Unregistered user — send signup link
     // Check for existing pending registration
-    const { data: existing } = await supabase
-      .from("pending_registrations")
-      .select("token")
-      .eq("phone", from)
-      .eq("used", false)
-      .gt("expires_at", new Date().toISOString())
-      .single();
+    const existing = await getValidRegistration(db, from);
 
     let token: string;
     if (existing) {
       token = existing.token;
     } else {
-      const { data: registration } = await supabase
-        .from("pending_registrations")
-        .insert({ phone: from })
-        .select("token")
-        .single();
-      token = registration!.token;
+      const registration = await insertRegistration(db, from);
+      token = registration.token;
     }
 
     const signupUrl = `${process.env.NEXT_PUBLIC_APP_URL}/signup?token=${token}`;
@@ -73,7 +66,8 @@ export async function POST(request: NextRequest) {
     await sendSms(from, welcomeMsg);
 
     // Log outbound
-    await supabase.from("messages").insert({
+    await insertMessage(db, {
+      profile_id: null,
       phone: from,
       direction: "outbound",
       body: welcomeMsg,

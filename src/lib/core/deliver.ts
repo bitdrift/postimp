@@ -1,13 +1,11 @@
-import { createAdminClient } from "@/lib/supabase/admin";
 import { sendSms } from "@/lib/twilio/client";
+import { insertMessage } from "@/lib/db/messages";
+import type { DbClient } from "@/lib/db/client";
 import type { DeliverFn } from "./types";
 
-export function makeWebDeliver(
-  supabase: ReturnType<typeof createAdminClient>,
-  profileId: string,
-): DeliverFn {
+export function makeWebDeliver(db: DbClient, profileId: string): DeliverFn {
   return async (reply: string, postId?: string) => {
-    await supabase.from("messages").insert({
+    await insertMessage(db, {
       profile_id: profileId,
       direction: "outbound",
       body: reply,
@@ -17,14 +15,10 @@ export function makeWebDeliver(
   };
 }
 
-export function makeSmsDeliver(
-  supabase: ReturnType<typeof createAdminClient>,
-  profileId: string,
-  phone: string,
-): DeliverFn {
+export function makeSmsDeliver(db: DbClient, profileId: string, phone: string): DeliverFn {
   return async (reply: string, postId?: string) => {
     await sendSms(phone, reply);
-    await supabase.from("messages").insert({
+    await insertMessage(db, {
       profile_id: profileId,
       phone,
       direction: "outbound",

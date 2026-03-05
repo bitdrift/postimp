@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import type { Post } from "@/lib/supabase/types";
+import type { Post } from "@/lib/db/posts";
 
 const statusColors: Record<string, string> = {
   draft: "bg-yellow-100 text-yellow-800",

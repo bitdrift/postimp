@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createDbClient } from "@/lib/db/client";
+import { getProfile } from "@/lib/db/profiles";
+import { getPostsByProfile } from "@/lib/db/posts";
 import PostsList from "./posts-list";
 
 export default async function ChatPage() {
@@ -13,26 +15,17 @@ export default async function ChatPage() {
     redirect("/login");
   }
 
-  const admin = createAdminClient();
+  const db = createDbClient();
 
   // Check onboarding
-  const { data: profile } = await admin
-    .from("profiles")
-    .select("onboarding_completed")
-    .eq("id", user.id)
-    .single();
+  const profile = await getProfile(db, user.id);
 
   if (!profile?.onboarding_completed) {
     redirect("/onboarding");
   }
 
   // Fetch all posts for the user
-  const { data: posts } = await admin
-    .from("posts")
-    .select("*")
-    .eq("profile_id", user.id)
-    .neq("status", "cancelled")
-    .order("created_at", { ascending: false });
+  const posts = await getPostsByProfile(db, user.id);
 
-  return <PostsList posts={posts || []} />;
+  return <PostsList posts={posts} />;
 }

@@ -1,4 +1,4 @@
-import type { MessageChannel } from "@/lib/supabase/types";
+import type { MessageChannel } from "@/lib/db/messages";
 
 export type DeliverFn = (reply: string, postId?: string) => Promise<void>;
 

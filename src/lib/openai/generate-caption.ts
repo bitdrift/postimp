@@ -1,7 +1,13 @@
 import OpenAI from "openai";
-import type { Profile } from "@/lib/supabase/types";
+import type { Profile } from "@/lib/db/profiles";
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+let _openai: OpenAI | null = null;
+function getOpenAI(): OpenAI {
+  if (!_openai) {
+    _openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  }
+  return _openai;
+}
 
 interface GenerateCaptionParams {
   imageUrl: string;
@@ -70,7 +76,7 @@ ${guidelines}
     ? "Please revise the caption based on the feedback provided."
     : `The user sent this photo with the description: "${userDescription}"\n\nWrite an Instagram caption for this image.`;
 
-  const response = await openai.chat.completions.create({
+  const response = await getOpenAI().chat.completions.create({
     model: "gpt-4o",
     messages: [
       { role: "system", content: systemPrompt },

@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
-import type { Message } from "@/lib/supabase/types";
+import type { Message } from "@/lib/db/messages";
 
 interface ChatViewProps {
   initialMessages: Message[];
