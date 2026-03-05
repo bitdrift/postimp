@@ -1,0 +1,13 @@
+services:
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    networks:
+      - test-net
+
+networks:
+  test-net:
+    # internal: true blocks runtime egress (no external API calls during tests).
+    # Build stage still has network access to download dependencies.
+    internal: true
