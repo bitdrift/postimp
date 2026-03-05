@@ -185,7 +185,9 @@ function AccountContent() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Caption Style</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Caption Style
+                </label>
                 <div className="grid grid-cols-3 gap-3">
                   {(
                     [

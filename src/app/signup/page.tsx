@@ -1,11 +1,60 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 
 type Step = "email" | "password" | "emailSent";
+
+let zxcvbnInitialized = false;
+
+const STRENGTH_CONFIG = [
+  { label: "Weak", color: "bg-red-500" },
+  { label: "Weak", color: "bg-red-500" },
+  { label: "Fair", color: "bg-orange-400" },
+  { label: "Strong", color: "bg-green-500" },
+  { label: "Strong", color: "bg-green-500" },
+] as const;
+
+type Score = 0 | 1 | 2 | 3 | 4;
+
+function PasswordStrengthMeter({ score }: { score: Score }) {
+  const { label, color } = STRENGTH_CONFIG[score];
+  const filledSegments = score === 0 ? 1 : score;
+
+  return (
+    <div className="mt-2">
+      <div
+        className="flex gap-1"
+        role="meter"
+        aria-valuenow={score}
+        aria-valuemin={0}
+        aria-valuemax={4}
+        aria-label={`Password strength: ${label}`}
+      >
+        {[0, 1, 2, 3].map((i) => (
+          <div
+            key={i}
+            className={`h-1.5 flex-1 rounded-full transition-colors duration-300 ${
+              i < filledSegments ? color : "bg-gray-200"
+            }`}
+          />
+        ))}
+      </div>
+      <p className="mt-1 text-xs text-gray-500">
+        Password strength:{" "}
+        <span
+          className={
+            score <= 1 ? "text-red-600" : score === 2 ? "text-orange-500" : "text-green-600"
+          }
+        >
+          {label}
+        </span>
+      </p>
+    </div>
+  );
+}
 
 export default function SignupPage() {
   return (
@@ -32,9 +81,50 @@ function SignupFlow() {
   const [resending, setResending] = useState(false);
   const [resendSuccess, setResendSuccess] = useState(false);
   const [confirmedMessage, setConfirmedMessage] = useState(false);
+  const [strength, setStrength] = useState<Score | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchParams = useSearchParams();
   const router = useRouter();
   const token = searchParams.get("token");
+
+  useEffect(() => {
+    if (!password) {
+      setStrength(null);
+      return;
+    }
+
+    let cancelled = false;
+
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(async () => {
+      const [{ zxcvbn, zxcvbnOptions }, commonPkg, enPkg] = await Promise.all([
+        import("@zxcvbn-ts/core"),
+        import("@zxcvbn-ts/language-common"),
+        import("@zxcvbn-ts/language-en"),
+      ]);
+
+      if (!zxcvbnInitialized) {
+        zxcvbnOptions.setOptions({
+          translations: enPkg.translations,
+          graphs: commonPkg.adjacencyGraphs,
+          dictionary: {
+            ...commonPkg.dictionary,
+            ...enPkg.dictionary,
+          },
+        });
+        zxcvbnInitialized = true;
+      }
+
+      if (!cancelled) {
+        setStrength(zxcvbn(password).score as Score);
+      }
+    }, 150);
+
+    return () => {
+      cancelled = true;
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [password]);
 
   async function handleEmailSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -276,6 +366,7 @@ function SignupFlow() {
                   className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 focus:ring-2 focus:ring-pink focus:border-transparent outline-none"
                   placeholder="At least 6 characters"
                 />
+                {strength !== null && <PasswordStrengthMeter score={strength} />}
               </div>
 
               <div>
@@ -343,6 +434,7 @@ function SignupFlow() {
                   setPassword("");
                   setConfirmPassword("");
                   setError("");
+                  setStrength(null);
                 }}
                 className="w-full text-sm text-gray-500 hover:text-gray-700 transition-colors"
               >
