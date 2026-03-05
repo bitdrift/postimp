@@ -23,19 +23,21 @@ export default function HomePage() {
       {/* Hero */}
       <main className="flex-1 flex items-center justify-start px-6 pb-20">
         <div className="max-w-5xl mx-auto w-full">
-          <div className="text-left max-w-xl">
-            <Image
-              src="/postimp_logo.png"
-              alt=""
-              width={120}
-              height={120}
-              className="rounded-2xl mb-8"
-            />
-            <h1 className="text-5xl sm:text-6xl font-bold tracking-tight leading-[1.1]">
-              Big agency prices?
-              <br />
-              <span className="text-gray-400">Send in the Imp.</span>
-            </h1>
+          <div className="text-left max-w-2xl">
+            <div className="flex items-center gap-6 sm:gap-8">
+              <Image
+                src="/postimp_logo.png"
+                alt=""
+                width={140}
+                height={140}
+                className="rounded-2xl shrink-0"
+              />
+              <h1 className="text-5xl sm:text-6xl font-bold tracking-tight leading-[1.1]">
+                Big agency prices?
+                <br />
+                <span className="text-gray-400">Send in the Imp.</span>
+              </h1>
+            </div>
             <p className="mt-6 text-lg text-gray-500 leading-relaxed">
               An AI powered Social Media Manager that sounds like you, posts for you, and never asks
               for a raise.
