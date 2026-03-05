@@ -58,24 +58,37 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ post
   }
 
   try {
-    const response = await fetch(
+    // Fetch basic fields (likes, comments)
+    const basicResponse = await fetch(
       `https://graph.instagram.com/v21.0/${post.instagram_post_id}?fields=like_count,comments_count,timestamp&access_token=${ig.access_token}`,
     );
-    const data = await response.json();
+    const basicData = await basicResponse.json();
 
-    if (data.error) {
-      // Return stale cache if available, otherwise error
+    if (basicData.error) {
       if (cached) {
         return NextResponse.json({ stats: cached.data, fetched_at: cached.fetched_at });
       }
       return NextResponse.json({ error: "Failed to fetch stats" }, { status: 502 });
     }
 
-    const statsData = {
-      likes: data.like_count ?? 0,
-      comments: data.comments_count ?? 0,
-      posted_at: data.timestamp || null,
+    const statsData: Record<string, unknown> = {
+      likes: basicData.like_count ?? 0,
+      comments: basicData.comments_count ?? 0,
+      posted_at: basicData.timestamp || null,
     };
+
+    // Fetch insights (reach, impressions, saved, shares, profile visits, follows)
+    const insightsResponse = await fetch(
+      `https://graph.instagram.com/v21.0/${post.instagram_post_id}/insights?metric=impressions,reach,saved,shares,profile_visits,follows&access_token=${ig.access_token}`,
+    );
+    const insightsData = await insightsResponse.json();
+
+    if (insightsData.data && Array.isArray(insightsData.data)) {
+      for (const metric of insightsData.data) {
+        statsData[metric.name] = metric.values?.[0]?.value ?? 0;
+      }
+    }
+    // If insights fail (missing scope/permission), we still have basic stats
 
     // Upsert cached stats
     await admin.from("post_stats").upsert(

@@ -126,7 +126,7 @@ Users can interact with the full post creation workflow via SMS/MMS:
 ## 6. Instagram Integration
 
 **OAuth Flow:**
-- Scopes: `instagram_business_basic`, `instagram_business_content_publish`
+- Scopes: `instagram_business_basic`, `instagram_business_content_publish`, `instagram_business_manage_insights`
 - Short-lived token exchanged for long-lived token (60 days)
 - User ID fetched from `/me` endpoint (avoids JS number precision issues)
 - Credentials stored in `instagram_connections` table

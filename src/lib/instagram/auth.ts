@@ -6,7 +6,7 @@ export function getAuthorizationUrl(state: string): string {
   const params = new URLSearchParams({
     client_id: INSTAGRAM_APP_ID,
     redirect_uri: REDIRECT_URI,
-    scope: "instagram_business_basic,instagram_business_content_publish",
+    scope: "instagram_business_basic,instagram_business_content_publish,instagram_business_manage_insights",
     response_type: "code",
     state,
   });

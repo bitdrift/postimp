@@ -353,8 +353,30 @@ export default function ThreadView({ post, initialMessages, profileId }: ThreadV
   );
 }
 
+interface StatsData {
+  likes?: number;
+  comments?: number;
+  impressions?: number;
+  reach?: number;
+  saved?: number;
+  shares?: number;
+  profile_visits?: number;
+  follows?: number;
+  posted_at?: string;
+  [key: string]: unknown;
+}
+
+function StatCard({ value, label }: { value: number | undefined; label: string }) {
+  return (
+    <div className="bg-white rounded-xl border p-4 text-center">
+      <p className="text-2xl font-bold">{value ?? "—"}</p>
+      <p className="text-xs text-gray-500 mt-1">{label}</p>
+    </div>
+  );
+}
+
 function StatsTab({ postId, isPublished }: { postId: string; isPublished: boolean }) {
-  const [stats, setStats] = useState<{ likes?: number; comments?: number } | null>(null);
+  const [stats, setStats] = useState<StatsData | null>(null);
   const [fetchedAt, setFetchedAt] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -419,19 +441,38 @@ function StatsTab({ postId, isPublished }: { postId: string; isPublished: boolea
     );
   }
 
+  const hasInsights = stats?.reach !== undefined;
+
   return (
-    <div className="flex-1 overflow-y-auto px-4 py-4">
+    <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+      {/* Engagement */}
       <div className="grid grid-cols-2 gap-3">
-        <div className="bg-white rounded-xl border p-4 text-center">
-          <p className="text-2xl font-bold">{stats?.likes ?? "—"}</p>
-          <p className="text-xs text-gray-500 mt-1">Likes</p>
-        </div>
-        <div className="bg-white rounded-xl border p-4 text-center">
-          <p className="text-2xl font-bold">{stats?.comments ?? "—"}</p>
-          <p className="text-xs text-gray-500 mt-1">Comments</p>
-        </div>
+        <StatCard value={stats?.likes} label="Likes" />
+        <StatCard value={stats?.comments} label="Comments" />
+        {hasInsights && (
+          <>
+            <StatCard value={stats?.saved} label="Saves" />
+            <StatCard value={stats?.shares} label="Shares" />
+          </>
+        )}
       </div>
-      <div className="flex items-center justify-between mt-4">
+
+      {/* Reach & Discovery */}
+      {hasInsights && (
+        <>
+          <p className="text-xs font-medium text-gray-400 uppercase tracking-wide pt-1">
+            Reach &amp; Discovery
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            <StatCard value={stats?.reach} label="Reach" />
+            <StatCard value={stats?.impressions} label="Impressions" />
+            <StatCard value={stats?.profile_visits} label="Profile Visits" />
+            <StatCard value={stats?.follows} label="Follows" />
+          </div>
+        </>
+      )}
+
+      <div className="flex items-center justify-between pt-1">
         <p className="text-xs text-gray-400">
           {fetchedAt
             ? `Updated ${new Date(fetchedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`
@@ -593,7 +634,7 @@ function ThreadMessageBubble({
             <LinkifiedText text={message.body} />
           </p>
         ) : null}
-        <p className="text-[10px] mt-1 text-gray-400">
+        <p className="text-[10px] mt-1 text-gray-400" suppressHydrationWarning>
           {new Date(message.created_at).toLocaleTimeString([], {
             hour: "numeric",
             minute: "2-digit",

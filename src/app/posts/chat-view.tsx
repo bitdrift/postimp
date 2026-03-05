@@ -419,7 +419,7 @@ function MessageBubble({
             <LinkifiedText text={message.body} />
           </p>
         ) : null}
-        <p className="text-[10px] mt-1 text-gray-400">
+        <p className="text-[10px] mt-1 text-gray-400" suppressHydrationWarning>
           {new Date(message.created_at).toLocaleTimeString([], {
             hour: "numeric",
             minute: "2-digit",

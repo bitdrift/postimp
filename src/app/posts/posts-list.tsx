@@ -176,7 +176,7 @@ export default function PostsList({ posts: initialPosts }: { posts: Post[] }) {
                   >
                     {isDeleting ? "deleting..." : post.status}
                   </span>
-                  <span className="text-xs text-gray-400">
+                  <span className="text-xs text-gray-400" suppressHydrationWarning>
                     {new Date(post.created_at).toLocaleDateString([], {
                       month: "short",
                       day: "numeric",
