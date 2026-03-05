@@ -36,7 +36,7 @@ The primary web interface is a mobile-first chat-style app at `/posts`.
 - Copy-to-clipboard icon next to URLs in messages
 
 **Account** (`/account`):
-- Profile section: brand name, description, tone, target audience (view/edit)
+- Profile section: brand name, description, tone, caption style, target audience (view/edit)
 - Instagram connection card: connect/reconnect via OAuth
 - Phone number card (when present)
 - Navigation links and log out in header bar
@@ -68,7 +68,7 @@ Users can interact with the full post creation workflow via SMS/MMS:
 1. **Web signup:** Enter email → create password → complete onboarding form → redirected to posts
 2. **SMS signup:** Text the service number → receive signup link with token → enter email/password on web → profile created with phone number linked
 
-**Onboarding collects:** brand name, brand description, tone/voice, target audience.
+**Onboarding collects:** brand name, brand description, tone/voice, caption style, target audience.
 
 ### 4.2 Post Creation
 
@@ -108,12 +108,17 @@ Users can interact with the full post creation workflow via SMS/MMS:
 **Input:**
 - Image URL
 - User's description/feedback
-- Brand context: name, description, tone, target audience
+- Brand context: name, description, tone, caption style, target audience
 - Recent published captions (for consistency)
 - Revision feedback (when iterating)
 
+**Caption Style** (user-selectable):
+- **Polished** — structured, catchy hooks, emojis, 5-10 hashtags (default)
+- **Casual** — natural and conversational, minimal formatting, 0-3 hashtags
+- **Minimal** — short and clean (1-2 sentences), no hashtags or emojis
+
 **Output:**
-- Instagram caption with 5-10 hashtags
+- Instagram caption matching selected style
 - Authentic, on-brand voice
 - Max 500 tokens
 
@@ -135,7 +140,7 @@ Users can interact with the full post creation workflow via SMS/MMS:
 
 | Table | Purpose |
 |---|---|
-| `profiles` | User info: brand_name, brand_description, tone, target_audience, phone, onboarding_completed |
+| `profiles` | User info: brand_name, brand_description, tone, caption_style, target_audience, phone, onboarding_completed |
 | `posts` | Draft/published posts: status, caption, image_url, instagram_post_id, preview_token |
 | `messages` | All conversation messages: direction, body, channel (sms/web), phone, post_id, media_url |
 | `instagram_connections` | OAuth credentials: access_token, token_expires_at, instagram_user_id, instagram_username |
