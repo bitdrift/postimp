@@ -46,7 +46,7 @@ export default function PostsList({ posts: initialPosts }: { posts: Post[] }) {
     <div className="flex flex-col h-[100dvh] bg-gray-100">
       {/* Header */}
       <div className="bg-white border-b px-4 py-3 flex items-center justify-between shrink-0">
-        <h1 className="text-lg font-[family-name:var(--font-logo)] text-pink">Post Imp</h1>
+        <h1 className="text-lg font-[family-name:var(--font-logo)] ">Post Imp</h1>
         <button onClick={() => setMenuOpen(true)} className="p-1 text-gray-500 hover:text-gray-700">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -230,7 +230,7 @@ export default function PostsList({ posts: initialPosts }: { posts: Post[] }) {
       >
         <button
           onClick={() => router.push("/posts/new")}
-          className="w-full py-3 bg-pink text-white rounded-full font-medium hover:bg-pink-hover transition-colors"
+          className="w-full py-3 bg-black text-white rounded-full font-medium hover:bg-gray-800 transition-colors"
         >
           New Post
         </button>

@@ -251,7 +251,7 @@ function SignupFlow() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-pink text-white rounded-lg py-2.5 font-medium hover:bg-pink-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="w-full bg-black text-white rounded-lg py-2.5 font-medium hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {loading ? "Checking..." : "Continue"}
               </button>
@@ -331,7 +331,7 @@ function SignupFlow() {
               <button
                 type="submit"
                 disabled={loading || (!!token && !smsConsent)}
-                className="w-full bg-pink text-white rounded-lg py-2.5 font-medium hover:bg-pink-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="w-full bg-black text-white rounded-lg py-2.5 font-medium hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {loading ? "Creating account..." : "Sign Up"}
               </button>
