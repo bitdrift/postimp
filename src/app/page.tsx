@@ -32,7 +32,7 @@ export default function HomePage() {
                 height={140}
                 className="rounded-2xl shrink-0"
               />
-              <h1 className="text-5xl sm:text-6xl font-bold tracking-tight leading-[1.1]">
+              <h1 className="text-3xl sm:text-5xl font-bold tracking-tight leading-[1.1]">
                 Better social posts.
                 <br />
                 <span className="text-gray-400">A fraction of the cost.</span>
