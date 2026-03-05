@@ -6,16 +6,7 @@ export default function HomePage() {
     <div className="min-h-screen bg-white flex flex-col">
       {/* Nav */}
       <nav className="flex items-center justify-between px-6 py-4 max-w-5xl mx-auto w-full">
-        <div className="flex items-center gap-2">
-          <Image
-            src="/postimp_logo.png"
-            alt="Post Imp"
-            width={32}
-            height={32}
-            className="rounded-lg"
-          />
-          <span className="text-xl font-[family-name:var(--font-logo)]">Post Imp</span>
-        </div>
+        <span className="text-xl font-[family-name:var(--font-logo)]">Post Imp</span>
         <div className="flex items-center gap-4">
           <Link href="/login" className="text-sm text-gray-600 hover:text-black transition-colors">
             Log in
@@ -36,8 +27,8 @@ export default function HomePage() {
             <Image
               src="/postimp_logo.png"
               alt=""
-              width={80}
-              height={80}
+              width={120}
+              height={120}
               className="rounded-2xl mb-8"
             />
             <h1 className="text-5xl sm:text-6xl font-bold tracking-tight leading-[1.1]">
