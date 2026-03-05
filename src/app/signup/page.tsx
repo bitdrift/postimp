@@ -195,7 +195,7 @@ function SignupFlow() {
               <button
                 onClick={handleResend}
                 disabled={resending}
-                className="text-black font-medium hover:underline disabled:opacity-50"
+                className="text-pink font-medium hover:underline disabled:opacity-50"
               >
                 {resending ? "Sending..." : "resend the email"}
               </button>
@@ -230,7 +230,7 @@ function SignupFlow() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 focus:ring-2 focus:ring-black focus:border-transparent outline-none"
+                  className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 focus:ring-2 focus:ring-pink focus:border-transparent outline-none"
                   placeholder="you@example.com"
                 />
               </div>
@@ -251,7 +251,7 @@ function SignupFlow() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-black text-white rounded-lg py-2.5 font-medium hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="w-full bg-pink text-white rounded-lg py-2.5 font-medium hover:bg-pink-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {loading ? "Checking..." : "Continue"}
               </button>
@@ -273,7 +273,7 @@ function SignupFlow() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   minLength={6}
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 focus:ring-2 focus:ring-black focus:border-transparent outline-none"
+                  className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 focus:ring-2 focus:ring-pink focus:border-transparent outline-none"
                   placeholder="At least 6 characters"
                 />
               </div>
@@ -292,7 +292,7 @@ function SignupFlow() {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
                   minLength={6}
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 focus:ring-2 focus:ring-black focus:border-transparent outline-none"
+                  className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 focus:ring-2 focus:ring-pink focus:border-transparent outline-none"
                   placeholder="Re-enter your password"
                 />
               </div>
@@ -305,7 +305,7 @@ function SignupFlow() {
                     checked={smsConsent}
                     onChange={(e) => setSmsConsent(e.target.checked)}
                     required
-                    className="mt-1 h-4 w-4 rounded border-gray-300 text-black focus:ring-black"
+                    className="mt-1 h-4 w-4 rounded border-gray-300 text-pink focus:ring-pink"
                   />
                   <label htmlFor="sms-consent" className="text-xs text-gray-500 leading-relaxed">
                     By signing up, you consent to receive SMS messages from Post Imp (e.g. draft
@@ -331,7 +331,7 @@ function SignupFlow() {
               <button
                 type="submit"
                 disabled={loading || (!!token && !smsConsent)}
-                className="w-full bg-black text-white rounded-lg py-2.5 font-medium hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="w-full bg-pink text-white rounded-lg py-2.5 font-medium hover:bg-pink-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {loading ? "Creating account..." : "Sign Up"}
               </button>
@@ -353,7 +353,7 @@ function SignupFlow() {
 
           <p className="text-center text-sm text-gray-500 mt-6">
             Already have an account?{" "}
-            <Link href="/login" className="text-black font-medium hover:underline">
+            <Link href="/login" className="text-pink font-medium hover:underline">
               Log in
             </Link>
           </p>

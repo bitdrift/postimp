@@ -224,7 +224,7 @@ export default function ThreadView({ post, initialMessages, profileId }: ThreadV
             onClick={() => switchTab("chat")}
             className={`flex-1 py-2 text-sm font-medium text-center border-b-2 transition-colors ${
               activeTab === "chat"
-                ? "border-black text-black"
+                ? "border-pink text-pink"
                 : "border-transparent text-gray-400 hover:text-gray-600"
             }`}
           >
@@ -234,7 +234,7 @@ export default function ThreadView({ post, initialMessages, profileId }: ThreadV
             onClick={() => switchTab("preview")}
             className={`flex-1 py-2 text-sm font-medium text-center border-b-2 transition-colors ${
               activeTab === "preview"
-                ? "border-black text-black"
+                ? "border-pink text-pink"
                 : "border-transparent text-gray-400 hover:text-gray-600"
             }`}
           >
@@ -292,14 +292,14 @@ export default function ThreadView({ post, initialMessages, profileId }: ThreadV
               }}
               placeholder="Type a message..."
               rows={1}
-              className="flex-1 bg-gray-100 rounded-2xl px-4 py-2.5 text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-black/10 resize-none overflow-hidden"
+              className="flex-1 bg-gray-100 rounded-2xl px-4 py-2.5 text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-pink/20 resize-none overflow-hidden"
               style={{ maxHeight: 120 }}
               disabled={sending}
             />
             <button
               type="submit"
               disabled={sending || !input.trim()}
-              className="shrink-0 w-10 h-10 rounded-full bg-black text-white flex items-center justify-center disabled:opacity-30 transition-opacity"
+              className="shrink-0 w-10 h-10 rounded-full bg-pink text-white flex items-center justify-center disabled:opacity-30 transition-opacity"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -330,7 +330,7 @@ export default function ThreadView({ post, initialMessages, profileId }: ThreadV
                 switchTab("chat");
               }}
               disabled={sending}
-              className="w-full mt-4 py-3 bg-black text-white rounded-full font-medium hover:bg-gray-800 disabled:opacity-50 transition-colors"
+              className="w-full mt-4 py-3 bg-pink text-white rounded-full font-medium hover:bg-pink-hover disabled:opacity-50 transition-colors"
             >
               Approve &amp; Post
             </button>
@@ -433,7 +433,7 @@ function ThreadMessageBubble({
       <div
         className={`max-w-[80%] rounded-2xl px-4 py-2.5 ${
           isUser
-            ? "bg-black text-white rounded-br-md"
+            ? "bg-pink text-white rounded-br-md"
             : "bg-white text-gray-900 border rounded-bl-md"
         }`}
       >
@@ -468,7 +468,7 @@ function ThreadMessageBubble({
             <div className="flex gap-2">
               <button
                 onClick={() => onSend?.("Approve")}
-                className="px-4 py-1.5 bg-black text-white text-sm rounded-full hover:bg-gray-800 transition-colors"
+                className="px-4 py-1.5 bg-pink text-white text-sm rounded-full hover:bg-pink-hover transition-colors"
               >
                 Approve
               </button>

@@ -153,7 +153,7 @@ function AccountContent() {
                   value={brandName}
                   onChange={(e) => setBrandName(e.target.value)}
                   required
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 focus:ring-2 focus:ring-black focus:border-transparent outline-none"
+                  className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 focus:ring-2 focus:ring-pink focus:border-transparent outline-none"
                 />
               </div>
 
@@ -166,7 +166,7 @@ function AccountContent() {
                   onChange={(e) => setBrandDescription(e.target.value)}
                   required
                   rows={3}
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 focus:ring-2 focus:ring-black focus:border-transparent outline-none resize-none"
+                  className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 focus:ring-2 focus:ring-pink focus:border-transparent outline-none resize-none"
                 />
               </div>
 
@@ -177,7 +177,7 @@ function AccountContent() {
                   value={tone}
                   onChange={(e) => setTone(e.target.value)}
                   required
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 focus:ring-2 focus:ring-black focus:border-transparent outline-none"
+                  className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 focus:ring-2 focus:ring-pink focus:border-transparent outline-none"
                 />
               </div>
 
@@ -190,7 +190,7 @@ function AccountContent() {
                   value={targetAudience}
                   onChange={(e) => setTargetAudience(e.target.value)}
                   required
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 focus:ring-2 focus:ring-black focus:border-transparent outline-none"
+                  className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 focus:ring-2 focus:ring-pink focus:border-transparent outline-none"
                 />
               </div>
 
@@ -205,7 +205,7 @@ function AccountContent() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="flex-1 bg-black text-white rounded-lg py-2.5 font-medium hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="flex-1 bg-pink text-white rounded-lg py-2.5 font-medium hover:bg-pink-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {loading ? "Saving..." : "Save Changes"}
                 </button>
@@ -277,7 +277,7 @@ function AccountContent() {
               </div>
               <a
                 href="/api/instagram/auth"
-                className="text-sm text-black font-medium hover:underline"
+                className="text-sm text-pink font-medium hover:underline"
               >
                 Reconnect
               </a>

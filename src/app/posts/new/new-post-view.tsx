@@ -61,7 +61,7 @@ export default function NewPostView() {
       <div className="flex-1 flex items-center justify-center px-4">
         {uploading ? (
           <div className="text-center space-y-3">
-            <div className="mx-auto w-12 h-12 border-4 border-gray-200 border-t-black rounded-full animate-spin" />
+            <div className="mx-auto w-12 h-12 border-4 border-gray-200 border-t-pink rounded-full animate-spin" />
             <p className="text-gray-500 text-sm">Uploading...</p>
           </div>
         ) : (
@@ -69,7 +69,7 @@ export default function NewPostView() {
             <p className="text-gray-500 mb-6">Choose an image to begin</p>
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="bg-black text-white px-8 py-3 rounded-full font-medium hover:bg-gray-800 transition-colors"
+              className="bg-pink text-white px-8 py-3 rounded-full font-medium hover:bg-pink-hover transition-colors"
             >
               Choose Image
             </button>

@@ -6,14 +6,14 @@ export default function HomePage() {
     <div className="min-h-screen bg-white flex flex-col">
       {/* Nav */}
       <nav className="flex items-center justify-between px-6 py-4 max-w-5xl mx-auto w-full">
-        <span className="text-xl font-[family-name:var(--font-logo)]">Post Imp</span>
+        <span className="text-xl font-[family-name:var(--font-logo)] text-pink">Post Imp</span>
         <div className="flex items-center gap-4">
           <Link href="/login" className="text-sm text-gray-600 hover:text-black transition-colors">
             Log in
           </Link>
           <Link
             href="/signup"
-            className="text-sm bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors"
+            className="text-sm bg-pink text-white px-4 py-2 rounded-lg hover:bg-pink-hover transition-colors"
           >
             Sign up
           </Link>
@@ -45,7 +45,7 @@ export default function HomePage() {
             <div className="mt-10">
               <Link
                 href="/signup"
-                className="inline-block bg-black text-white px-8 py-3.5 rounded-full font-medium hover:bg-gray-800 transition-colors text-base"
+                className="inline-block bg-pink text-white px-8 py-3.5 rounded-full font-medium hover:bg-pink-hover transition-colors text-base"
               >
                 Get Started
               </Link>

@@ -3,11 +3,17 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --pink: #ec4899;
+  --pink-hover: #db2777;
+  --pink-light: #fce7f3;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-pink: var(--pink);
+  --color-pink-hover: var(--pink-hover);
+  --color-pink-light: var(--pink-light);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }

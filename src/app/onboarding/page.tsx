@@ -108,7 +108,7 @@ export default function OnboardingPage() {
                 value={brandName}
                 onChange={(e) => setBrandName(e.target.value)}
                 required
-                className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 focus:ring-2 focus:ring-black focus:border-transparent outline-none"
+                className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 focus:ring-2 focus:ring-pink focus:border-transparent outline-none"
                 placeholder="Your Brand"
               />
             </div>
@@ -126,7 +126,7 @@ export default function OnboardingPage() {
                 onChange={(e) => setBrandDescription(e.target.value)}
                 required
                 rows={3}
-                className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 focus:ring-2 focus:ring-black focus:border-transparent outline-none resize-none"
+                className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 focus:ring-2 focus:ring-pink focus:border-transparent outline-none resize-none"
                 placeholder="We sell handmade candles inspired by nature..."
               />
             </div>
@@ -141,7 +141,7 @@ export default function OnboardingPage() {
                 value={tone}
                 onChange={(e) => setTone(e.target.value)}
                 required
-                className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 focus:ring-2 focus:ring-black focus:border-transparent outline-none"
+                className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 focus:ring-2 focus:ring-pink focus:border-transparent outline-none"
                 placeholder="Friendly, witty, professional..."
               />
             </div>
@@ -159,7 +159,7 @@ export default function OnboardingPage() {
                 value={targetAudience}
                 onChange={(e) => setTargetAudience(e.target.value)}
                 required
-                className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 focus:ring-2 focus:ring-black focus:border-transparent outline-none"
+                className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 focus:ring-2 focus:ring-pink focus:border-transparent outline-none"
                 placeholder="Women aged 25-40 who love home decor..."
               />
             </div>
@@ -169,7 +169,7 @@ export default function OnboardingPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-black text-white rounded-lg py-2.5 font-medium hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="w-full bg-pink text-white rounded-lg py-2.5 font-medium hover:bg-pink-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {loading ? "Saving..." : "Complete Setup"}
             </button>

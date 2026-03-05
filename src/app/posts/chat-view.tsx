@@ -166,7 +166,7 @@ export default function ChatView({ initialMessages, profileId }: ChatViewProps) 
     <div className="flex flex-col h-[100dvh] bg-gray-100">
       {/* Header */}
       <div className="bg-white border-b px-4 py-3 flex items-center justify-between shrink-0">
-        <h1 className="text-lg font-[family-name:var(--font-logo)]">Post Imp</h1>
+        <h1 className="text-lg font-[family-name:var(--font-logo)] text-pink">Post Imp</h1>
         <a href="/account" className="text-sm text-gray-500 hover:text-gray-700">
           Account
         </a>
@@ -252,13 +252,13 @@ export default function ChatView({ initialMessages, profileId }: ChatViewProps) 
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder={imageFile ? "Add a description..." : "Type a message..."}
-          className="flex-1 bg-gray-100 rounded-full px-4 py-2.5 text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-black/10"
+          className="flex-1 bg-gray-100 rounded-full px-4 py-2.5 text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-pink/20"
           disabled={sending}
         />
         <button
           type="submit"
           disabled={sending || (!input.trim() && !imageFile)}
-          className="shrink-0 w-10 h-10 rounded-full bg-black text-white flex items-center justify-center disabled:opacity-30 transition-opacity"
+          className="shrink-0 w-10 h-10 rounded-full bg-pink text-white flex items-center justify-center disabled:opacity-30 transition-opacity"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -365,7 +365,7 @@ function MessageBubble({
       <div
         className={`max-w-[80%] rounded-2xl px-4 py-2.5 ${
           isUser
-            ? "bg-black text-white rounded-br-md"
+            ? "bg-pink text-white rounded-br-md"
             : "bg-white text-gray-900 border rounded-bl-md"
         }`}
       >
@@ -402,7 +402,7 @@ function MessageBubble({
             <div className="flex gap-2">
               <button
                 onClick={() => onSend?.("Approve")}
-                className="px-4 py-1.5 bg-black text-white text-sm rounded-full hover:bg-gray-800 transition-colors"
+                className="px-4 py-1.5 bg-pink text-white text-sm rounded-full hover:bg-pink-hover transition-colors"
               >
                 Approve
               </button>
