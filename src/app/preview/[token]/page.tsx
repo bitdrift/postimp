@@ -9,11 +9,7 @@ interface Props {
 
 async function getPost(token: string): Promise<Post | null> {
   const supabase = createAdminClient();
-  const { data } = await supabase
-    .from("posts")
-    .select("*")
-    .eq("preview_token", token)
-    .single();
+  const { data } = await supabase.from("posts").select("*").eq("preview_token", token).single();
   return data;
 }
 
@@ -24,8 +20,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!post) return { title: "Post Not Found" };
 
   const caption = post.caption || "Check out this post!";
-  const description =
-    caption.length > 160 ? caption.substring(0, 157) + "..." : caption;
+  const description = caption.length > 160 ? caption.substring(0, 157) + "..." : caption;
 
   return {
     title: "Post Imp Preview",
@@ -72,18 +67,12 @@ export default async function PreviewPage({ params }: Props) {
           {/* Image */}
           <div className="aspect-square relative bg-gray-100">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={post.image_url}
-              alt="Post preview"
-              className="w-full h-full object-cover"
-            />
+            <img src={post.image_url} alt="Post preview" className="w-full h-full object-cover" />
           </div>
 
           {/* Caption */}
           <div className="p-4">
-            <p className="text-sm whitespace-pre-line leading-relaxed">
-              {post.caption}
-            </p>
+            <p className="text-sm whitespace-pre-line leading-relaxed">{post.caption}</p>
             <p className="text-xs text-gray-400 mt-3">
               {new Date(post.created_at).toLocaleDateString("en-US", {
                 month: "long",
@@ -94,9 +83,7 @@ export default async function PreviewPage({ params }: Props) {
           </div>
         </div>
 
-        <p className="text-center text-xs text-gray-400 mt-4">
-          Powered by Post Imp
-        </p>
+        <p className="text-center text-xs text-gray-400 mt-4">Powered by Post Imp</p>
       </div>
     </div>
   );

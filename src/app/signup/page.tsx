@@ -188,9 +188,7 @@ function SignupFlow() {
               </div>
             )}
             {error && (
-              <div className="bg-red-50 text-red-700 rounded-lg p-3 text-sm mb-4">
-                {error}
-              </div>
+              <div className="bg-red-50 text-red-700 rounded-lg p-3 text-sm mb-4">{error}</div>
             )}
             <p className="text-sm text-gray-400">
               Didn&apos;t get it? Check your spam folder or{" "}
@@ -213,9 +211,7 @@ function SignupFlow() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="w-full max-w-md">
         <div className="bg-white rounded-2xl shadow-sm border p-8">
-          <h1 className="text-2xl font-bold text-center mb-2">
-            Join Post Imp
-          </h1>
+          <h1 className="text-2xl font-bold text-center mb-2">Join Post Imp</h1>
           <p className="text-gray-500 text-center mb-8">
             {step === "email"
               ? "Enter your email to get started"
@@ -225,10 +221,7 @@ function SignupFlow() {
           {step === "email" && (
             <form onSubmit={handleEmailSubmit} className="space-y-4">
               <div>
-                <label
-                  htmlFor="email"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                   Email
                 </label>
                 <input
@@ -252,9 +245,7 @@ function SignupFlow() {
               )}
 
               {error && (
-                <div className="bg-red-50 text-red-700 rounded-lg p-3 text-sm">
-                  {error}
-                </div>
+                <div className="bg-red-50 text-red-700 rounded-lg p-3 text-sm">{error}</div>
               )}
 
               <button
@@ -269,15 +260,10 @@ function SignupFlow() {
 
           {step === "password" && (
             <form onSubmit={handlePasswordSubmit} className="space-y-4">
-              <div className="bg-gray-50 rounded-lg px-4 py-2.5 text-sm text-gray-600">
-                {email}
-              </div>
+              <div className="bg-gray-50 rounded-lg px-4 py-2.5 text-sm text-gray-600">{email}</div>
 
               <div>
-                <label
-                  htmlFor="password"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
                   Password
                 </label>
                 <input
@@ -322,22 +308,24 @@ function SignupFlow() {
                     className="mt-1 h-4 w-4 rounded border-gray-300 text-black focus:ring-black"
                   />
                   <label htmlFor="sms-consent" className="text-xs text-gray-500 leading-relaxed">
-                    By signing up, you consent to receive SMS messages from Post Imp
-                    (e.g. draft captions, post confirmations, account notifications).
-                    Consent is not a condition of purchase. Msg &amp; data rates may
-                    apply. Msg frequency varies. Reply STOP to unsubscribe at any
-                    time. Reply HELP for assistance.{" "}
-                    <Link href="/privacy" className="underline">Privacy Policy</Link>
-                    {" "}&amp;{" "}
-                    <Link href="/terms" className="underline">Terms of Service</Link>.
+                    By signing up, you consent to receive SMS messages from Post Imp (e.g. draft
+                    captions, post confirmations, account notifications). Consent is not a condition
+                    of purchase. Msg &amp; data rates may apply. Msg frequency varies. Reply STOP to
+                    unsubscribe at any time. Reply HELP for assistance.{" "}
+                    <Link href="/privacy" className="underline">
+                      Privacy Policy
+                    </Link>{" "}
+                    &amp;{" "}
+                    <Link href="/terms" className="underline">
+                      Terms of Service
+                    </Link>
+                    .
                   </label>
                 </div>
               )}
 
               {error && (
-                <div className="bg-red-50 text-red-700 rounded-lg p-3 text-sm">
-                  {error}
-                </div>
+                <div className="bg-red-50 text-red-700 rounded-lg p-3 text-sm">{error}</div>
               )}
 
               <button

@@ -13,15 +13,10 @@ export async function POST(request: NextRequest) {
 
   if (error) {
     console.error("check-email: listUsers failed", error);
-    return NextResponse.json(
-      { error: "Something went wrong" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
   }
 
-  const user = data?.users.find(
-    (u) => u.email?.toLowerCase() === email.toLowerCase()
-  );
+  const user = data?.users.find((u) => u.email?.toLowerCase() === email.toLowerCase());
 
   if (!user) {
     return NextResponse.json({ status: "new" });

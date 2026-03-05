@@ -15,29 +15,26 @@ export function getAuthorizationUrl(state: string): string {
 }
 
 export async function exchangeCodeForToken(
-  code: string
+  code: string,
 ): Promise<{ accessToken: string; userId: string }> {
   // Exchange code for short-lived token
-  const tokenResponse = await fetch(
-    "https://api.instagram.com/oauth/access_token",
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        client_id: INSTAGRAM_APP_ID,
-        client_secret: INSTAGRAM_APP_SECRET,
-        grant_type: "authorization_code",
-        redirect_uri: REDIRECT_URI,
-        code,
-      }),
-    }
-  );
+  const tokenResponse = await fetch("https://api.instagram.com/oauth/access_token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      client_id: INSTAGRAM_APP_ID,
+      client_secret: INSTAGRAM_APP_SECRET,
+      grant_type: "authorization_code",
+      redirect_uri: REDIRECT_URI,
+      code,
+    }),
+  });
 
   const tokenData = await tokenResponse.json();
 
   if (tokenData.error_type || tokenData.error) {
     throw new Error(
-      tokenData.error_message || tokenData.error?.message || "Failed to exchange code for token"
+      tokenData.error_message || tokenData.error?.message || "Failed to exchange code for token",
     );
   }
 
@@ -50,27 +47,23 @@ export async function exchangeCodeForToken(
         grant_type: "ig_exchange_token",
         client_secret: INSTAGRAM_APP_SECRET,
         access_token: shortLivedToken,
-      })
+      }),
   );
 
   const longLivedData = await longLivedResponse.json();
 
   if (longLivedData.error) {
-    throw new Error(
-      longLivedData.error.message || "Failed to get long-lived token"
-    );
+    throw new Error(longLivedData.error.message || "Failed to get long-lived token");
   }
 
   // Fetch the correct user_id from /me to avoid JS number precision issues
   const meResponse = await fetch(
-    `https://graph.instagram.com/v21.0/me?fields=user_id&access_token=${longLivedData.access_token}`
+    `https://graph.instagram.com/v21.0/me?fields=user_id&access_token=${longLivedData.access_token}`,
   );
   const meData = await meResponse.json();
 
   if (meData.error) {
-    throw new Error(
-      meData.error.message || "Failed to fetch Instagram user info"
-    );
+    throw new Error(meData.error.message || "Failed to fetch Instagram user info");
   }
 
   return {
@@ -81,11 +74,11 @@ export async function exchangeCodeForToken(
 
 export async function getInstagramUsername(
   userId: string,
-  accessToken: string
+  accessToken: string,
 ): Promise<string | null> {
   try {
     const response = await fetch(
-      `https://graph.instagram.com/v21.0/${userId}?fields=username&access_token=${accessToken}`
+      `https://graph.instagram.com/v21.0/${userId}?fields=username&access_token=${accessToken}`,
     );
     const data = await response.json();
     return data.username || null;

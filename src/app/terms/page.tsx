@@ -13,18 +13,16 @@ export default function TermsPage() {
 
         <h2>Agreement to Terms</h2>
         <p>
-          By accessing or using Post Imp (&quot;the Service&quot;), operated at
-          postimp.com, you agree to be bound by these Terms of Service. If you
-          do not agree, do not use the Service.
+          By accessing or using Post Imp (&quot;the Service&quot;), operated at postimp.com, you
+          agree to be bound by these Terms of Service. If you do not agree, do not use the Service.
         </p>
 
         <h2>Description of Service</h2>
         <p>
-          Post Imp is an AI-powered social media management service that allows
-          you to create, review, and publish Instagram posts via SMS. You send
-          photos and descriptions via text message, and our AI generates
-          captions for your approval before publishing to your connected
-          Instagram account.
+          Post Imp is an AI-powered social media management service that allows you to create,
+          review, and publish Instagram posts via SMS. You send photos and descriptions via text
+          message, and our AI generates captions for your approval before publishing to your
+          connected Instagram account.
         </p>
 
         <h2>Account Registration</h2>
@@ -49,44 +47,38 @@ export default function TermsPage() {
         <ul>
           <li>You retain ownership of the images and content you submit.</li>
           <li>
-            AI-generated captions are created for your use and become part of
-            your published content.
+            AI-generated captions are created for your use and become part of your published
+            content.
           </li>
           <li>
-            You grant Post Imp a limited license to process, store, and transmit
-            your content as necessary to provide the Service.
+            You grant Post Imp a limited license to process, store, and transmit your content as
+            necessary to provide the Service.
           </li>
-          <li>
-            You are solely responsible for the content you publish through the
-            Service.
-          </li>
+          <li>You are solely responsible for the content you publish through the Service.</li>
         </ul>
 
         <h2>Instagram Connection</h2>
         <ul>
           <li>
-            You authorize Post Imp to publish content to your Instagram account
-            on your behalf when you approve a post.
+            You authorize Post Imp to publish content to your Instagram account on your behalf when
+            you approve a post.
           </li>
+          <li>You may disconnect your Instagram account at any time from your account settings.</li>
           <li>
-            You may disconnect your Instagram account at any time from your
-            account settings.
-          </li>
-          <li>
-            Post Imp is not responsible for changes to Instagram&apos;s API or
-            policies that may affect the Service.
+            Post Imp is not responsible for changes to Instagram&apos;s API or policies that may
+            affect the Service.
           </li>
         </ul>
 
         <h2>SMS Messaging</h2>
         <p>
-          The Post Imp SMS program sends messages related to your Instagram post
-          drafts, revisions, publishing confirmations, and account notifications.
+          The Post Imp SMS program sends messages related to your Instagram post drafts, revisions,
+          publishing confirmations, and account notifications.
         </p>
         <ul>
           <li>
-            By signing up and using the Service, you consent to receiving SMS
-            messages from Post Imp related to your posts and account.
+            By signing up and using the Service, you consent to receiving SMS messages from Post Imp
+            related to your posts and account.
           </li>
           <li>Message and data rates may apply based on your carrier plan.</li>
           <li>Message frequency varies based on your usage of the Service.</li>
@@ -95,39 +87,36 @@ export default function TermsPage() {
             <strong>HELP</strong> for assistance.
           </li>
           <li>
-            For support, contact us at{" "}
-            <a href="mailto:support@postimp.com">support@postimp.com</a>.
+            For support, contact us at <a href="mailto:support@postimp.com">support@postimp.com</a>.
           </li>
           <li>Consent to receive SMS is not a condition of purchase.</li>
         </ul>
 
         <h2>Disclaimer of Warranties</h2>
         <p>
-          The Service is provided &quot;as is&quot; and &quot;as available&quot; without
-          warranties of any kind, either express or implied. We do not guarantee
-          that the Service will be uninterrupted, error-free, or that AI-generated
-          captions will meet your specific requirements.
+          The Service is provided &quot;as is&quot; and &quot;as available&quot; without warranties
+          of any kind, either express or implied. We do not guarantee that the Service will be
+          uninterrupted, error-free, or that AI-generated captions will meet your specific
+          requirements.
         </p>
 
         <h2>Limitation of Liability</h2>
         <p>
-          To the maximum extent permitted by law, Post Imp shall not be liable
-          for any indirect, incidental, special, consequential, or punitive
-          damages resulting from your use of the Service, including but not
-          limited to loss of data, revenue, or reputation.
+          To the maximum extent permitted by law, Post Imp shall not be liable for any indirect,
+          incidental, special, consequential, or punitive damages resulting from your use of the
+          Service, including but not limited to loss of data, revenue, or reputation.
         </p>
 
         <h2>Termination</h2>
         <p>
-          We reserve the right to suspend or terminate your account at any time
-          for violation of these Terms. You may delete your account at any time
-          by contacting us.
+          We reserve the right to suspend or terminate your account at any time for violation of
+          these Terms. You may delete your account at any time by contacting us.
         </p>
 
         <h2>Changes to Terms</h2>
         <p>
-          We may update these Terms from time to time. Continued use of the
-          Service after changes constitutes acceptance of the updated Terms.
+          We may update these Terms from time to time. Continued use of the Service after changes
+          constitutes acceptance of the updated Terms.
         </p>
 
         <h2>Contact Us</h2>

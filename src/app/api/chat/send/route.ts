@@ -36,15 +36,12 @@ export async function POST(request: NextRequest) {
   const deliver = makeWebDeliver(admin, user.id);
   const result = await routeMessage(
     { profileId: user.id, body, mediaUrl: null, channel: "web" },
-    deliver
+    deliver,
   );
 
   // Tag inbound message with post_id
   if (result.postId && inboundMsg) {
-    await admin
-      .from("messages")
-      .update({ post_id: result.postId })
-      .eq("id", inboundMsg.id);
+    await admin.from("messages").update({ post_id: result.postId }).eq("id", inboundMsg.id);
   }
 
   return NextResponse.json({ ok: true });

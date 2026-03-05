@@ -17,23 +17,17 @@ export async function POST(request: NextRequest) {
     .single();
 
   if (!registration) {
-    return NextResponse.json(
-      { error: "Invalid signup link" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Invalid signup link" }, { status: 400 });
   }
 
   if (registration.used) {
-    return NextResponse.json(
-      { error: "This signup link has already been used" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "This signup link has already been used" }, { status: 400 });
   }
 
   if (new Date(registration.expires_at) < new Date()) {
     return NextResponse.json(
       { error: "This signup link has expired. Text us to get a new one." },
-      { status: 400 }
+      { status: 400 },
     );
   }
 

@@ -31,11 +31,7 @@ describe("handleNewPost", () => {
 
     // Verify post in DB
     const supabase = createAdminClient();
-    const { data } = await supabase
-      .from("posts")
-      .select("*")
-      .eq("id", postId!)
-      .single();
+    const { data } = await supabase.from("posts").select("*").eq("id", postId!).single();
     expect(data?.status).toBe("draft");
     expect(data?.caption).toBe("Test caption #test #vitest");
   });

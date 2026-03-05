@@ -4,7 +4,7 @@ import type { DeliverFn } from "./types";
 
 export function makeWebDeliver(
   supabase: ReturnType<typeof createAdminClient>,
-  profileId: string
+  profileId: string,
 ): DeliverFn {
   return async (reply: string, postId?: string) => {
     await supabase.from("messages").insert({
@@ -20,7 +20,7 @@ export function makeWebDeliver(
 export function makeSmsDeliver(
   supabase: ReturnType<typeof createAdminClient>,
   profileId: string,
-  phone: string
+  phone: string,
 ): DeliverFn {
   return async (reply: string, postId?: string) => {
     await sendSms(phone, reply);

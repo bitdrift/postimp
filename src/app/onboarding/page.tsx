@@ -92,19 +92,14 @@ export default function OnboardingPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12">
       <div className="w-full max-w-lg">
         <div className="bg-white rounded-2xl shadow-sm border p-8">
-          <h1 className="text-2xl font-bold text-center mb-2">
-            Set Up Your Brand
-          </h1>
+          <h1 className="text-2xl font-bold text-center mb-2">Set Up Your Brand</h1>
           <p className="text-gray-500 text-center mb-8">
             Tell us about your brand so we can craft the perfect posts
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label
-                htmlFor="brandName"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
+              <label htmlFor="brandName" className="block text-sm font-medium text-gray-700 mb-1">
                 Brand Name
               </label>
               <input
@@ -137,10 +132,7 @@ export default function OnboardingPage() {
             </div>
 
             <div>
-              <label
-                htmlFor="tone"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
+              <label htmlFor="tone" className="block text-sm font-medium text-gray-700 mb-1">
                 Brand Voice / Tone
               </label>
               <input
@@ -172,11 +164,7 @@ export default function OnboardingPage() {
               />
             </div>
 
-            {error && (
-              <div className="bg-red-50 text-red-700 rounded-lg p-3 text-sm">
-                {error}
-              </div>
-            )}
+            {error && <div className="bg-red-50 text-red-700 rounded-lg p-3 text-sm">{error}</div>}
 
             <button
               type="submit"

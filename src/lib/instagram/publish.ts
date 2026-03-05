@@ -8,22 +8,19 @@ export async function publishToInstagram(
   igUserId: string,
   accessToken: string,
   imageUrl: string,
-  caption: string
+  caption: string,
 ): Promise<PublishResult> {
   try {
     // Step 1: Create media container
-    const containerResponse = await fetch(
-      `https://graph.instagram.com/v21.0/${igUserId}/media`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          image_url: imageUrl,
-          caption,
-          access_token: accessToken,
-        }),
-      }
-    );
+    const containerResponse = await fetch(`https://graph.instagram.com/v21.0/${igUserId}/media`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        image_url: imageUrl,
+        caption,
+        access_token: accessToken,
+      }),
+    });
 
     const containerData = await containerResponse.json();
 
@@ -46,7 +43,7 @@ export async function publishToInstagram(
       attempts++;
 
       const statusResponse = await fetch(
-        `https://graph.instagram.com/v21.0/${containerId}?fields=status_code&access_token=${accessToken}`
+        `https://graph.instagram.com/v21.0/${containerId}?fields=status_code&access_token=${accessToken}`,
       );
       const statusData = await statusResponse.json();
       status = statusData.status_code;
@@ -76,7 +73,7 @@ export async function publishToInstagram(
           creation_id: containerId,
           access_token: accessToken,
         }),
-      }
+      },
     );
 
     const publishData = await publishResponse.json();

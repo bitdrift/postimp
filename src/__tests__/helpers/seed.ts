@@ -6,14 +6,17 @@ import type { DeliverFn } from "@/lib/core/types";
 const seededUserIds: string[] = [];
 
 export async function seedProfile(
-  overrides: Record<string, unknown> = {}
+  overrides: Record<string, unknown> = {},
 ): Promise<{ id: string }> {
   const supabase = createAdminClient();
   const id = crypto.randomUUID();
 
   // Insert into auth.users via RPC (PostgREST only exposes public schema)
   const { error: rpcError } = await supabase.rpc("test_create_user", { user_id: id });
-  if (rpcError) throw new Error(`seedProfile: create user failed: ${rpcError.message || JSON.stringify(rpcError)}`);
+  if (rpcError)
+    throw new Error(
+      `seedProfile: create user failed: ${rpcError.message || JSON.stringify(rpcError)}`,
+    );
 
   seededUserIds.push(id);
 
@@ -37,7 +40,7 @@ export async function seedProfile(
 
 export async function seedPost(
   profileId: string,
-  overrides: Record<string, unknown> = {}
+  overrides: Record<string, unknown> = {},
 ): Promise<{ id: string; preview_token: string }> {
   const supabase = createAdminClient();
   const { data, error } = await supabase
@@ -58,7 +61,7 @@ export async function seedPost(
 
 export async function seedInstagramConnection(
   profileId: string,
-  overrides: Record<string, unknown> = {}
+  overrides: Record<string, unknown> = {},
 ): Promise<{ id: string }> {
   const supabase = createAdminClient();
   const { data, error } = await supabase
@@ -67,9 +70,7 @@ export async function seedInstagramConnection(
       profile_id: profileId,
       instagram_user_id: "ig_user_123",
       access_token: "test_access_token",
-      token_expires_at: new Date(
-        Date.now() + 30 * 24 * 60 * 60 * 1000
-      ).toISOString(),
+      token_expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
       instagram_username: "testuser",
       ...overrides,
     })

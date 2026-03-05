@@ -16,10 +16,7 @@ describe("routeMessage", () => {
     await cleanAll();
   });
 
-  function ctx(
-    profileId: string,
-    overrides: Partial<MessageContext> = {}
-  ): MessageContext {
+  function ctx(profileId: string, overrides: Partial<MessageContext> = {}): MessageContext {
     return {
       profileId,
       body: "",
@@ -63,11 +60,7 @@ describe("routeMessage", () => {
 
     // Verify post status changed in DB
     const supabase = createAdminClient();
-    const { data } = await supabase
-      .from("posts")
-      .select("status")
-      .eq("profile_id", id)
-      .single();
+    const { data } = await supabase.from("posts").select("status").eq("profile_id", id).single();
     expect(data?.status).toBe("cancelled");
   });
 
@@ -86,10 +79,7 @@ describe("routeMessage", () => {
   it("dispatches to handleRevise for freeform text with active draft", async () => {
     const { id } = await seedProfile();
     await seedPost(id);
-    await routeMessage(
-      ctx(id, { body: "make it more casual" }),
-      deliver
-    );
+    await routeMessage(ctx(id, { body: "make it more casual" }), deliver);
 
     // handleRevise sends revisionAck then revisedCaption
     expect(deliver).toHaveBeenCalledTimes(2);
@@ -105,7 +95,7 @@ describe("routeMessage", () => {
         imageBuffer: buffer,
         contentType: "image/jpeg",
       }),
-      deliver
+      deliver,
     );
 
     expect(result.postId).toBeDefined();
@@ -120,7 +110,7 @@ describe("routeMessage", () => {
         body: "SET CAPTION: My custom caption here",
         channel: "sms",
       }),
-      deliver
+      deliver,
     );
 
     expect(deliver).toHaveBeenCalledOnce();
@@ -128,11 +118,7 @@ describe("routeMessage", () => {
 
     // Verify caption was updated in DB
     const supabase = createAdminClient();
-    const { data } = await supabase
-      .from("posts")
-      .select("caption")
-      .eq("id", post.id)
-      .single();
+    const { data } = await supabase.from("posts").select("caption").eq("id", post.id).single();
     expect(data?.caption).toBe("My custom caption here");
   });
 });

@@ -12,8 +12,7 @@ export async function POST(request: NextRequest) {
 
   // Validate Twilio signature
   const signature = request.headers.get("x-twilio-signature") || "";
-  const url =
-    process.env.NEXT_PUBLIC_APP_URL + "/api/webhooks/twilio";
+  const url = process.env.NEXT_PUBLIC_APP_URL + "/api/webhooks/twilio";
 
   if (process.env.NODE_ENV === "production") {
     if (!validateTwilioRequest(signature, url, params)) {
@@ -30,11 +29,7 @@ export async function POST(request: NextRequest) {
 
   // Log inbound message
   // First, check if this phone has a profile
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("id")
-    .eq("phone", from)
-    .single();
+  const { data: profile } = await supabase.from("profiles").select("id").eq("phone", from).single();
 
   await supabase.from("messages").insert({
     profile_id: profile?.id || null,

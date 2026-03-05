@@ -47,10 +47,7 @@ export default function PostsList({ posts: initialPosts }: { posts: Post[] }) {
       {/* Header */}
       <div className="bg-white border-b px-4 py-3 flex items-center justify-between shrink-0">
         <h1 className="text-lg font-[family-name:var(--font-logo)]">Post Imp</h1>
-        <button
-          onClick={() => setMenuOpen(true)}
-          className="p-1 text-gray-500 hover:text-gray-700"
-        >
+        <button onClick={() => setMenuOpen(true)} className="p-1 text-gray-500 hover:text-gray-700">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
@@ -83,10 +80,7 @@ export default function PostsList({ posts: initialPosts }: { posts: Post[] }) {
       >
         <div className="px-4 py-4 border-b flex items-center justify-between">
           <span className="font-semibold">Menu</span>
-          <button
-            onClick={() => setMenuOpen(false)}
-            className="text-gray-400 hover:text-gray-600"
-          >
+          <button onClick={() => setMenuOpen(false)} className="text-gray-400 hover:text-gray-600">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -143,15 +137,18 @@ export default function PostsList({ posts: initialPosts }: { posts: Post[] }) {
         {deleteError && (
           <div className="bg-red-50 text-red-700 rounded-lg p-3 text-sm flex items-center justify-between">
             <span>{deleteError}</span>
-            <button onClick={() => setDeleteError(null)} className="text-red-400 hover:text-red-600 ml-2 shrink-0">&times;</button>
+            <button
+              onClick={() => setDeleteError(null)}
+              className="text-red-400 hover:text-red-600 ml-2 shrink-0"
+            >
+              &times;
+            </button>
           </div>
         )}
         {posts.length === 0 && (
           <div className="text-center text-gray-400 mt-20">
             <p className="text-lg mb-1">No posts yet</p>
-            <p className="text-sm">
-              Tap the button below to create your first post.
-            </p>
+            <p className="text-sm">Tap the button below to create your first post.</p>
           </div>
         )}
         {posts.map((post) => {

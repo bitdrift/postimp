@@ -7,10 +7,7 @@ export default function HomePage() {
       <nav className="flex items-center justify-between px-6 py-4 max-w-5xl mx-auto w-full">
         <span className="text-xl font-[family-name:var(--font-logo)]">Post Imp</span>
         <div className="flex items-center gap-4">
-          <Link
-            href="/login"
-            className="text-sm text-gray-600 hover:text-black transition-colors"
-          >
+          <Link href="/login" className="text-sm text-gray-600 hover:text-black transition-colors">
             Log in
           </Link>
           <Link
@@ -32,7 +29,8 @@ export default function HomePage() {
               <span className="text-gray-400">Send in the Imp.</span>
             </h1>
             <p className="mt-6 text-lg text-gray-500 leading-relaxed">
-              An AI powered Social Media Manager that sounds like you, posts for you, and never asks for a raise.
+              An AI powered Social Media Manager that sounds like you, posts for you, and never asks
+              for a raise.
             </p>
             <div className="mt-10">
               <Link

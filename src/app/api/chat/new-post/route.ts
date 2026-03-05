@@ -36,19 +36,14 @@ export async function POST(request: NextRequest) {
 
   const deliver = makeWebDeliver(admin, user.id);
 
-  const postId = await handleNewPost(
-    user.id,
-    body,
-    "web",
-    deliver,
-    { kind: "buffer", imageBuffer, contentType }
-  );
+  const postId = await handleNewPost(user.id, body, "web", deliver, {
+    kind: "buffer",
+    imageBuffer,
+    contentType,
+  });
 
   if (!postId) {
-    return NextResponse.json(
-      { error: "Failed to create post" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to create post" }, { status: 500 });
   }
 
   // Log inbound message with post_id

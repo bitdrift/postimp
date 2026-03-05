@@ -8,7 +8,7 @@ export async function handleApprove(
   profileId: string,
   post: Post,
   channel: MessageChannel,
-  deliver: DeliverFn
+  deliver: DeliverFn,
 ) {
   const supabase = createAdminClient();
 
@@ -25,10 +25,7 @@ export async function handleApprove(
   }
 
   // Check token expiry
-  if (
-    connection.token_expires_at &&
-    new Date(connection.token_expires_at) < new Date()
-  ) {
+  if (connection.token_expires_at && new Date(connection.token_expires_at) < new Date()) {
     await deliver(msgStr("instagramExpired", channel), post.id);
     return;
   }
@@ -39,7 +36,7 @@ export async function handleApprove(
     connection.instagram_user_id,
     connection.access_token,
     post.image_url,
-    post.caption || ""
+    post.caption || "",
   );
 
   if (result.success) {

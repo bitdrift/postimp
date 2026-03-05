@@ -61,11 +61,7 @@ function AccountContent() {
         return;
       }
 
-      const { data: p } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .single();
+      const { data: p } = await supabase.from("profiles").select("*").eq("id", user.id).single();
 
       if (!p?.onboarding_completed) {
         router.push("/onboarding");
@@ -135,16 +131,10 @@ function AccountContent() {
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">Account</h1>
           <div className="flex items-center gap-4">
-            <Link
-              href="/posts"
-              className="text-sm text-gray-500 hover:text-gray-700"
-            >
+            <Link href="/posts" className="text-sm text-gray-500 hover:text-gray-700">
               Posts
             </Link>
-            <button
-              onClick={handleLogout}
-              className="text-sm text-gray-500 hover:text-gray-700"
-            >
+            <button onClick={handleLogout} className="text-sm text-gray-500 hover:text-gray-700">
               Log out
             </button>
           </div>
@@ -157,9 +147,7 @@ function AccountContent() {
           {editing ? (
             <form onSubmit={handleSave} className="space-y-5">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Brand Name
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Brand Name</label>
                 <input
                   type="text"
                   value={brandName}
@@ -183,9 +171,7 @@ function AccountContent() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Tone / Voice
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Tone / Voice</label>
                 <input
                   type="text"
                   value={tone}
@@ -209,14 +195,10 @@ function AccountContent() {
               </div>
 
               {error && (
-                <div className="bg-red-50 text-red-700 rounded-lg p-3 text-sm">
-                  {error}
-                </div>
+                <div className="bg-red-50 text-red-700 rounded-lg p-3 text-sm">{error}</div>
               )}
               {success && (
-                <div className="bg-green-50 text-green-700 rounded-lg p-3 text-sm">
-                  {success}
-                </div>
+                <div className="bg-green-50 text-green-700 rounded-lg p-3 text-sm">{success}</div>
               )}
 
               <div className="flex gap-3">
@@ -264,9 +246,7 @@ function AccountContent() {
               </div>
 
               {success && (
-                <div className="bg-green-50 text-green-700 rounded-lg p-3 text-sm">
-                  {success}
-                </div>
+                <div className="bg-green-50 text-green-700 rounded-lg p-3 text-sm">{success}</div>
               )}
 
               <button
@@ -285,19 +265,14 @@ function AccountContent() {
         <div className="bg-white rounded-2xl shadow-sm border p-8">
           <h2 className="text-lg font-semibold mb-4">Instagram Connection</h2>
           {igError && (
-            <div className="bg-red-50 text-red-700 rounded-lg p-3 text-sm mb-4">
-              {igError}
-            </div>
+            <div className="bg-red-50 text-red-700 rounded-lg p-3 text-sm mb-4">{igError}</div>
           )}
           {instagram ? (
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-medium">
-                  @{instagram.instagram_username || "Connected"}
-                </p>
+                <p className="font-medium">@{instagram.instagram_username || "Connected"}</p>
                 <p className="text-sm text-gray-500">
-                  Connected{" "}
-                  {new Date(instagram.created_at).toLocaleDateString()}
+                  Connected {new Date(instagram.created_at).toLocaleDateString()}
                 </p>
               </div>
               <a
