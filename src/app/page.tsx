@@ -1,11 +1,21 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-white flex flex-col">
       {/* Nav */}
       <nav className="flex items-center justify-between px-6 py-4 max-w-5xl mx-auto w-full">
-        <span className="text-xl font-[family-name:var(--font-logo)]">Post Imp</span>
+        <div className="flex items-center gap-2">
+          <Image
+            src="/postimp_logo.png"
+            alt="Post Imp"
+            width={32}
+            height={32}
+            className="rounded-lg"
+          />
+          <span className="text-xl font-[family-name:var(--font-logo)]">Post Imp</span>
+        </div>
         <div className="flex items-center gap-4">
           <Link href="/login" className="text-sm text-gray-600 hover:text-black transition-colors">
             Log in
@@ -23,6 +33,13 @@ export default function HomePage() {
       <main className="flex-1 flex items-center justify-start px-6 pb-20">
         <div className="max-w-5xl mx-auto w-full">
           <div className="text-left max-w-xl">
+            <Image
+              src="/postimp_logo.png"
+              alt=""
+              width={80}
+              height={80}
+              className="rounded-2xl mb-8"
+            />
             <h1 className="text-5xl sm:text-6xl font-bold tracking-tight leading-[1.1]">
               Big agency prices?
               <br />
