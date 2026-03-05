@@ -3,11 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import ThreadView from "./thread-view";
 
-export default async function ThreadPage({
-  params,
-}: {
-  params: Promise<{ postId: string }>;
-}) {
+export default async function ThreadPage({ params }: { params: Promise<{ postId: string }> }) {
   const { postId } = await params;
 
   const supabase = await createClient();
@@ -42,11 +38,5 @@ export default async function ThreadPage({
     .eq("post_id", postId)
     .order("created_at", { ascending: true });
 
-  return (
-    <ThreadView
-      post={post}
-      initialMessages={messages || []}
-      profileId={user.id}
-    />
-  );
+  return <ThreadView post={post} initialMessages={messages || []} profileId={user.id} />;
 }

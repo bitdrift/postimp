@@ -29,19 +29,13 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (!registration) {
-      return NextResponse.json(
-        { error: "Invalid or used token" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Invalid or used token" }, { status: 400 });
     }
 
     phone = registration.phone;
 
     // Mark registration as used
-    await supabase
-      .from("pending_registrations")
-      .update({ used: true })
-      .eq("token", token);
+    await supabase.from("pending_registrations").update({ used: true }).eq("token", token);
   }
 
   // Create profile
@@ -53,10 +47,7 @@ export async function POST(request: NextRequest) {
   if (profileError) {
     // Profile might already exist if there was a race condition
     if (!profileError.message.includes("duplicate")) {
-      return NextResponse.json(
-        { error: profileError.message },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: profileError.message }, { status: 500 });
     }
   }
 

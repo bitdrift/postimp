@@ -11,11 +11,7 @@ interface ThreadViewProps {
   profileId: string;
 }
 
-export default function ThreadView({
-  post,
-  initialMessages,
-  profileId,
-}: ThreadViewProps) {
+export default function ThreadView({ post, initialMessages, profileId }: ThreadViewProps) {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
@@ -69,7 +65,7 @@ export default function ThreadView({
               return [...prev, newMsg];
             });
           }
-        }
+        },
       )
       .subscribe();
 
@@ -93,7 +89,7 @@ export default function ThreadView({
         },
         (payload) => {
           setCurrentPost(payload.new as Post);
-        }
+        },
       )
       .subscribe();
 
@@ -188,10 +184,7 @@ export default function ThreadView({
       {/* Header */}
       <div className="bg-white border-b shrink-0">
         <div className="px-4 py-3 flex items-center gap-3">
-          <Link
-            href="/posts"
-            className="shrink-0 text-gray-500 hover:text-gray-700"
-          >
+          <Link href="/posts" className="shrink-0 text-gray-500 hover:text-gray-700">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -208,8 +201,7 @@ export default function ThreadView({
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium truncate">
               {currentPost.caption
-                ? currentPost.caption.slice(0, 50) +
-                  (currentPost.caption.length > 50 ? "..." : "")
+                ? currentPost.caption.slice(0, 50) + (currentPost.caption.length > 50 ? "..." : "")
                 : "New Post"}
             </p>
             <span
@@ -324,11 +316,7 @@ export default function ThreadView({
         /* Preview tab */
         <div className="flex-1 overflow-y-auto px-4 py-4">
           <div className="bg-white rounded-xl border overflow-hidden">
-            <img
-              src={currentPost.image_url}
-              alt=""
-              className="w-full aspect-square object-cover"
-            />
+            <img src={currentPost.image_url} alt="" className="w-full aspect-square object-cover" />
             <div className="p-4">
               <p className="text-sm whitespace-pre-wrap break-words">
                 {previewCaption || "Caption pending..."}
@@ -420,7 +408,7 @@ function LinkifiedText({ text }: { text: string }) {
           </span>
         ) : (
           <span key={i}>{part}</span>
-        )
+        ),
       )}
     </span>
   );
@@ -438,8 +426,7 @@ function ThreadMessageBubble({
   onViewPreview?: () => void;
 }) {
   const isUser = message.direction === "inbound";
-  const draft =
-    !isUser && message.body ? parseDraftMessage(message.body) : null;
+  const draft = !isUser && message.body ? parseDraftMessage(message.body) : null;
 
   return (
     <div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
@@ -462,9 +449,7 @@ function ThreadMessageBubble({
           <div className="space-y-3">
             <p className="text-sm font-medium">{draft.header}</p>
             <div className="bg-gray-50 border rounded-lg p-3">
-              <p className="text-sm whitespace-pre-wrap break-words">
-                {draft.caption}
-              </p>
+              <p className="text-sm whitespace-pre-wrap break-words">{draft.caption}</p>
             </div>
             {draft.previewUrl && (
               <span className="inline-flex items-center gap-1">

@@ -49,7 +49,7 @@ export default function ChatView({ initialMessages, profileId }: ChatViewProps) 
               return [...prev, newMsg];
             });
           }
-        }
+        },
       )
       .subscribe();
 
@@ -167,10 +167,7 @@ export default function ChatView({ initialMessages, profileId }: ChatViewProps) 
       {/* Header */}
       <div className="bg-white border-b px-4 py-3 flex items-center justify-between shrink-0">
         <h1 className="text-lg font-[family-name:var(--font-logo)]">Post Imp</h1>
-        <a
-          href="/account"
-          className="text-sm text-gray-500 hover:text-gray-700"
-        >
+        <a href="/account" className="text-sm text-gray-500 hover:text-gray-700">
           Account
         </a>
       </div>
@@ -180,9 +177,7 @@ export default function ChatView({ initialMessages, profileId }: ChatViewProps) 
         {messages.length === 0 && (
           <div className="text-center text-gray-400 mt-20">
             <p className="text-lg mb-1">Welcome to Post Imp</p>
-            <p className="text-sm">
-              Send a photo with a description to create a post.
-            </p>
+            <p className="text-sm">Send a photo with a description to create a post.</p>
           </div>
         )}
         {messages.map((msg) => (
@@ -347,7 +342,7 @@ function LinkifiedText({ text, className }: { text: string; className?: string }
           </span>
         ) : (
           <span key={i}>{part}</span>
-        )
+        ),
       )}
     </span>
   );
@@ -386,9 +381,7 @@ function MessageBubble({
           <div className="space-y-3">
             <p className="text-sm font-medium">{draft.header}</p>
             <div className="bg-gray-50 border rounded-lg p-3">
-              <p className="text-sm whitespace-pre-wrap break-words">
-                {draft.caption}
-              </p>
+              <p className="text-sm whitespace-pre-wrap break-words">{draft.caption}</p>
             </div>
             {draft.previewUrl && (
               <span className="inline-flex items-center gap-1">

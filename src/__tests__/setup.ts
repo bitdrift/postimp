@@ -5,7 +5,7 @@ import { vi } from "vitest";
 // This prevents accidentally hitting a production database.
 if (!process.env.POSTIMP_TEST_CONTAINER) {
   throw new Error(
-    "Tests must run inside the Docker container. Use `make test` or `npm run test:docker`."
+    "Tests must run inside the Docker container. Use `make test` or `npm run test:docker`.",
   );
 }
 
@@ -50,8 +50,6 @@ vi.mock("@/lib/instagram/publish", () => ({
 
 vi.mock("@/lib/instagram/auth", () => ({
   getAuthorizationUrl: vi.fn().mockReturnValue("https://instagram.com/oauth"),
-  exchangeCodeForToken: vi
-    .fn()
-    .mockResolvedValue({ accessToken: "tok", userId: "uid" }),
+  exchangeCodeForToken: vi.fn().mockResolvedValue({ accessToken: "tok", userId: "uid" }),
   getInstagramUsername: vi.fn().mockResolvedValue("testuser"),
 }));

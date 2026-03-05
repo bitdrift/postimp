@@ -38,16 +38,11 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         <div className="bg-white rounded-2xl shadow-sm border p-8">
           <h1 className="text-2xl font-bold text-center mb-2">Welcome Back</h1>
-          <p className="text-gray-500 text-center mb-8">
-            Log in to manage your posts
-          </p>
+          <p className="text-gray-500 text-center mb-8">Log in to manage your posts</p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                 Email
               </label>
               <input
@@ -62,10 +57,7 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
                 Password
               </label>
               <input
@@ -79,11 +71,7 @@ export default function LoginPage() {
               />
             </div>
 
-            {error && (
-              <div className="bg-red-50 text-red-700 rounded-lg p-3 text-sm">
-                {error}
-              </div>
-            )}
+            {error && <div className="bg-red-50 text-red-700 rounded-lg p-3 text-sm">{error}</div>}
 
             <button
               type="submit"
@@ -96,10 +84,7 @@ export default function LoginPage() {
 
           <p className="text-center text-sm text-gray-500 mt-6">
             Don&apos;t have an account?{" "}
-            <Link
-              href="/signup"
-              className="text-black font-medium hover:underline"
-            >
+            <Link href="/signup" className="text-black font-medium hover:underline">
               Sign up
             </Link>
           </p>

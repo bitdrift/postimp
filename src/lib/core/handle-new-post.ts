@@ -11,7 +11,7 @@ export async function handleNewPost(
   deliver: DeliverFn,
   source:
     | { kind: "url"; mediaUrl: string }
-    | { kind: "buffer"; imageBuffer: ArrayBuffer; contentType: string }
+    | { kind: "buffer"; imageBuffer: ArrayBuffer; contentType: string },
 ): Promise<string | null> {
   const supabase = createAdminClient();
 
@@ -22,7 +22,7 @@ export async function handleNewPost(
     if (source.kind === "url") {
       // Download image from Twilio (requires Basic auth)
       const twilioAuth = Buffer.from(
-        `${process.env.TWILIO_ACCOUNT_SID}:${process.env.TWILIO_AUTH_TOKEN}`
+        `${process.env.TWILIO_ACCOUNT_SID}:${process.env.TWILIO_AUTH_TOKEN}`,
       ).toString("base64");
 
       const imageResponse = await fetch(source.mediaUrl, {
@@ -41,11 +41,7 @@ export async function handleNewPost(
       contentType = source.contentType;
     }
 
-    const ext = contentType.includes("png")
-      ? "png"
-      : contentType.includes("webp")
-        ? "webp"
-        : "jpg";
+    const ext = contentType.includes("png") ? "png" : contentType.includes("webp") ? "webp" : "jpg";
     const fileName = `${profileId}/${Date.now()}.${ext}`;
 
     // Upload to Supabase Storage
@@ -86,9 +82,7 @@ export async function handleNewPost(
       .order("created_at", { ascending: false })
       .limit(5);
 
-    const recentCaptions = (recentPosts || [])
-      .map((p) => p.caption)
-      .filter(Boolean) as string[];
+    const recentCaptions = (recentPosts || []).map((p) => p.caption).filter(Boolean) as string[];
 
     // Generate caption with AI
     const caption = await generateCaption({
@@ -112,8 +106,7 @@ export async function handleNewPost(
 
     // Send caption preview
     const previewUrl = `${process.env.NEXT_PUBLIC_APP_URL}/preview/${post!.preview_token}`;
-    const truncatedCaption =
-      caption.length > 300 ? caption.substring(0, 297) + "..." : caption;
+    const truncatedCaption = caption.length > 300 ? caption.substring(0, 297) + "..." : caption;
 
     await deliver(msgFn2("draftCaption", channel)(truncatedCaption, previewUrl), post!.id);
     return post!.id;

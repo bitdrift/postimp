@@ -44,7 +44,7 @@ const templates = {
       "📸 Send a photo + description to create a post\n" +
       "✅ Reply APPROVE to publish your draft\n" +
       "✏️ Reply with feedback to revise\n" +
-      '📝 Reply CAPTION: your text to set exact caption\n' +
+      "📝 Reply CAPTION: your text to set exact caption\n" +
       "❌ Reply CANCEL to discard draft\n\n" +
       "For support, visit https://postimp.com or email support@postimp.com. " +
       "To opt out, reply STOP.",
@@ -96,7 +96,7 @@ const templates = {
 
 export function msg(
   key: keyof typeof templates,
-  channel: MessageChannel
+  channel: MessageChannel,
 ): string | ((...args: string[]) => string) {
   return templates[key][channel] as string | ((...args: string[]) => string);
 }
@@ -107,14 +107,14 @@ export function msgStr(key: keyof typeof templates, channel: MessageChannel): st
 
 export function msgFn1(
   key: keyof typeof templates,
-  channel: MessageChannel
+  channel: MessageChannel,
 ): (arg: string) => string {
   return templates[key][channel] as (arg: string) => string;
 }
 
 export function msgFn2(
   key: keyof typeof templates,
-  channel: MessageChannel
+  channel: MessageChannel,
 ): (a: string, b: string) => string {
   return templates[key][channel] as (a: string, b: string) => string;
 }

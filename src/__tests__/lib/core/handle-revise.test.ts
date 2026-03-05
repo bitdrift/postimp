@@ -19,11 +19,7 @@ describe("handleRevise", () => {
 
   async function getPost(postId: string): Promise<Post> {
     const supabase = createAdminClient();
-    const { data } = await supabase
-      .from("posts")
-      .select("*")
-      .eq("id", postId)
-      .single();
+    const { data } = await supabase.from("posts").select("*").eq("id", postId).single();
     return data as Post;
   }
 

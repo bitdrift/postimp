@@ -9,7 +9,7 @@ export async function handleRevise(
   post: Post,
   feedback: string,
   channel: MessageChannel,
-  deliver: DeliverFn
+  deliver: DeliverFn,
 ) {
   const supabase = createAdminClient();
 
@@ -38,16 +38,11 @@ export async function handleRevise(
     });
 
     // Update post caption
-    await supabase
-      .from("posts")
-      .update({ caption: newCaption })
-      .eq("id", post.id);
+    await supabase.from("posts").update({ caption: newCaption }).eq("id", post.id);
 
     const previewUrl = `${process.env.NEXT_PUBLIC_APP_URL}/preview/${post.preview_token}`;
     const truncatedCaption =
-      newCaption.length > 300
-        ? newCaption.substring(0, 297) + "..."
-        : newCaption;
+      newCaption.length > 300 ? newCaption.substring(0, 297) + "..." : newCaption;
 
     await deliver(msgFn2("revisedCaption", channel)(truncatedCaption, previewUrl), post.id);
   } catch (error) {

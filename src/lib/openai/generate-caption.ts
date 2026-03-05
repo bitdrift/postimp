@@ -6,10 +6,7 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 interface GenerateCaptionParams {
   imageUrl: string;
   userDescription: string;
-  profile: Pick<
-    Profile,
-    "brand_name" | "brand_description" | "tone" | "target_audience"
-  >;
+  profile: Pick<Profile, "brand_name" | "brand_description" | "tone" | "target_audience">;
   recentCaptions?: string[];
   revisionFeedback?: string;
   previousCaption?: string;

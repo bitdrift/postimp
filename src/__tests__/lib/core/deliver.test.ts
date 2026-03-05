@@ -19,11 +19,7 @@ describe("deliver functions", () => {
 
     await deliver("Hello from web");
 
-    const { data } = await supabase
-      .from("messages")
-      .select("*")
-      .eq("profile_id", id)
-      .single();
+    const { data } = await supabase.from("messages").select("*").eq("profile_id", id).single();
 
     expect(data).toBeDefined();
     expect(data!.body).toBe("Hello from web");
@@ -40,11 +36,7 @@ describe("deliver functions", () => {
 
     expect(mockSendSms).toHaveBeenCalledWith("+15559876543", "Hello from SMS");
 
-    const { data } = await supabase
-      .from("messages")
-      .select("*")
-      .eq("profile_id", id)
-      .single();
+    const { data } = await supabase.from("messages").select("*").eq("profile_id", id).single();
 
     expect(data).toBeDefined();
     expect(data!.body).toBe("Hello from SMS");
@@ -61,11 +53,7 @@ describe("deliver functions", () => {
 
     await deliver("Reply about your post", post.id);
 
-    const { data } = await supabase
-      .from("messages")
-      .select("*")
-      .eq("profile_id", id)
-      .single();
+    const { data } = await supabase.from("messages").select("*").eq("profile_id", id).single();
 
     expect(data).toBeDefined();
     expect(data!.post_id).toBe(post.id);

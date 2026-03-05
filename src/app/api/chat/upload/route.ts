@@ -49,15 +49,12 @@ export async function POST(request: NextRequest) {
       imageBuffer,
       contentType,
     },
-    deliver
+    deliver,
   );
 
   // Tag inbound message with post_id
   if (result.postId && inboundMsg) {
-    await admin
-      .from("messages")
-      .update({ post_id: result.postId })
-      .eq("id", inboundMsg.id);
+    await admin.from("messages").update({ post_id: result.postId }).eq("id", inboundMsg.id);
   }
 
   return NextResponse.json({ ok: true });

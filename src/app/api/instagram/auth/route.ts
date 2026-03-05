@@ -10,9 +10,7 @@ export async function GET() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return NextResponse.redirect(
-      `${process.env.NEXT_PUBLIC_APP_URL}/login`
-    );
+    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/login`);
   }
 
   // Use user ID as state to prevent CSRF and identify user on callback

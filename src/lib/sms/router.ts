@@ -6,13 +6,10 @@ export async function routeMessage(
   profileId: string,
   phone: string,
   body: string,
-  mediaUrl: string | null
+  mediaUrl: string | null,
 ) {
   const supabase = createAdminClient();
   const deliver = makeSmsDeliver(supabase, profileId, phone);
 
-  await coreRouteMessage(
-    { profileId, body, mediaUrl, channel: "sms" },
-    deliver
-  );
+  await coreRouteMessage({ profileId, body, mediaUrl, channel: "sms" }, deliver);
 }

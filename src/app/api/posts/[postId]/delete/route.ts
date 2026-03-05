@@ -4,7 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ postId: string }> }
+  { params }: { params: Promise<{ postId: string }> },
 ) {
   const { postId } = await params;
 
@@ -32,10 +32,7 @@ export async function POST(
   }
 
   // Soft delete
-  await admin
-    .from("posts")
-    .update({ status: "cancelled" })
-    .eq("id", postId);
+  await admin.from("posts").update({ status: "cancelled" }).eq("id", postId);
 
   return NextResponse.json({ ok: true });
 }
