@@ -4,6 +4,7 @@ export interface Profile {
   brand_name: string | null;
   brand_description: string | null;
   tone: string | null;
+  caption_style: "polished" | "casual" | "minimal";
   target_audience: string | null;
   onboarding_completed: boolean;
   created_at: string;

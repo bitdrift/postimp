@@ -8,6 +8,7 @@ export default function OnboardingPage() {
   const [brandName, setBrandName] = useState("");
   const [brandDescription, setBrandDescription] = useState("");
   const [tone, setTone] = useState("");
+  const [captionStyle, setCaptionStyle] = useState<"polished" | "casual" | "minimal">("polished");
   const [targetAudience, setTargetAudience] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -40,6 +41,7 @@ export default function OnboardingPage() {
         setBrandName(profile.brand_name || "");
         setBrandDescription(profile.brand_description || "");
         setTone(profile.tone || "");
+        setCaptionStyle(profile.caption_style || "polished");
         setTargetAudience(profile.target_audience || "");
       }
       setChecking(false);
@@ -66,6 +68,7 @@ export default function OnboardingPage() {
         brand_name: brandName,
         brand_description: brandDescription,
         tone,
+        caption_style: captionStyle,
         target_audience: targetAudience,
         onboarding_completed: true,
       })
@@ -144,6 +147,33 @@ export default function OnboardingPage() {
                 className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 focus:ring-2 focus:ring-pink focus:border-transparent outline-none"
                 placeholder="Friendly, witty, professional..."
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Caption Style</label>
+              <div className="grid grid-cols-3 gap-3">
+                {(
+                  [
+                    ["polished", "Polished", "Structured, catchy, emojis & hashtags"],
+                    ["casual", "Casual", "Natural, conversational, minimal extras"],
+                    ["minimal", "Minimal", "Short & clean, no hashtags or emojis"],
+                  ] as const
+                ).map(([value, label, desc]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setCaptionStyle(value)}
+                    className={`rounded-lg border p-3 text-left transition-colors ${
+                      captionStyle === value
+                        ? "border-pink bg-pink-light"
+                        : "border-gray-200 hover:border-gray-300"
+                    }`}
+                  >
+                    <p className="text-sm font-medium">{label}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{desc}</p>
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div>

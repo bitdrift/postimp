@@ -1,16 +1,39 @@
 import OpenAI from "openai";
-import type { Profile, Post } from "@/lib/supabase/types";
+import type { Profile } from "@/lib/supabase/types";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 interface GenerateCaptionParams {
   imageUrl: string;
   userDescription: string;
-  profile: Pick<Profile, "brand_name" | "brand_description" | "tone" | "target_audience">;
+  profile: Pick<
+    Profile,
+    "brand_name" | "brand_description" | "tone" | "caption_style" | "target_audience"
+  >;
   recentCaptions?: string[];
   revisionFeedback?: string;
   previousCaption?: string;
 }
+
+const styleGuidelines: Record<string, string> = {
+  polished: `- Write a structured, polished Instagram caption
+- Use a catchy opening hook
+- Include emojis where they feel natural
+- Include relevant hashtags (5-10)
+- Use line breaks for readability`,
+
+  casual: `- Write like a real person posting to their own feed — natural and conversational
+- Keep it short and unforced — no hooks or marketing language
+- Use emojis sparingly or not at all
+- Include 0-3 hashtags at most, only if they feel natural
+- Avoid heavy formatting or structure`,
+
+  minimal: `- Write a very short, clean caption — one or two sentences max
+- No hashtags
+- No emojis
+- No line breaks or formatting tricks
+- Let the image speak for itself`,
+};
 
 export async function generateCaption({
   imageUrl,
@@ -29,6 +52,8 @@ export async function generateCaption({
     ? `\n\nThe user wants revisions to this previous caption:\n"${previousCaption}"\n\nFeedback: "${revisionFeedback}"\nPlease revise the caption based on this feedback.`
     : "";
 
+  const guidelines = styleGuidelines[profile.caption_style] || styleGuidelines.polished;
+
   const systemPrompt = `You are an expert social media manager creating Instagram captions.
 
 Brand: ${profile.brand_name}
@@ -37,12 +62,9 @@ Tone/Voice: ${profile.tone}
 Target Audience: ${profile.target_audience}
 
 Guidelines:
-- Write an engaging Instagram caption that matches the brand voice
-- Include relevant hashtags (5-10)
-- Keep the caption concise but engaging
-- Use line breaks for readability
-- Don't use quotation marks around the caption
-- The caption should feel authentic and on-brand${recentContext}${revisionContext}`;
+${guidelines}
+- The caption should feel authentic and on-brand
+- Don't use quotation marks around the caption${recentContext}${revisionContext}`;
 
   const userMessage = revisionFeedback
     ? "Please revise the caption based on the feedback provided."

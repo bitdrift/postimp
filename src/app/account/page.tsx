@@ -26,6 +26,7 @@ function AccountContent() {
   const [brandName, setBrandName] = useState("");
   const [brandDescription, setBrandDescription] = useState("");
   const [tone, setTone] = useState("");
+  const [captionStyle, setCaptionStyle] = useState<"polished" | "casual" | "minimal">("polished");
   const [targetAudience, setTargetAudience] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -72,6 +73,7 @@ function AccountContent() {
       setBrandName(p.brand_name || "");
       setBrandDescription(p.brand_description || "");
       setTone(p.tone || "");
+      setCaptionStyle(p.caption_style || "polished");
       setTargetAudience(p.target_audience || "");
 
       const { data: ig } = await supabase
@@ -98,6 +100,7 @@ function AccountContent() {
         brand_name: brandName,
         brand_description: brandDescription,
         tone,
+        caption_style: captionStyle,
         target_audience: targetAudience,
       })
       .eq("id", profile!.id);
@@ -182,6 +185,33 @@ function AccountContent() {
               </div>
 
               <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Caption Style</label>
+                <div className="grid grid-cols-3 gap-3">
+                  {(
+                    [
+                      ["polished", "Polished", "Structured, catchy, emojis & hashtags"],
+                      ["casual", "Casual", "Natural, conversational, minimal extras"],
+                      ["minimal", "Minimal", "Short & clean, no hashtags or emojis"],
+                    ] as const
+                  ).map(([value, label, desc]) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => setCaptionStyle(value)}
+                      className={`rounded-lg border p-3 text-left transition-colors ${
+                        captionStyle === value
+                          ? "border-pink bg-pink-light"
+                          : "border-gray-200 hover:border-gray-300"
+                      }`}
+                    >
+                      <p className="text-sm font-medium">{label}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">{desc}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Target Audience
                 </label>
@@ -215,6 +245,7 @@ function AccountContent() {
                     setBrandName(profile?.brand_name || "");
                     setBrandDescription(profile?.brand_description || "");
                     setTone(profile?.tone || "");
+                    setCaptionStyle(profile?.caption_style || "polished");
                     setTargetAudience(profile?.target_audience || "");
                     setError("");
                     setSuccess("");
@@ -239,6 +270,10 @@ function AccountContent() {
               <div>
                 <p className="text-sm font-medium text-gray-500">Tone / Voice</p>
                 <p className="text-gray-900 mt-1">{tone}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500">Caption Style</p>
+                <p className="text-gray-900 mt-1 capitalize">{captionStyle}</p>
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-500">Target Audience</p>

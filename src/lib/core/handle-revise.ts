@@ -17,7 +17,7 @@ export async function handleRevise(
     // Get profile for AI context
     const { data: profile } = await supabase
       .from("profiles")
-      .select("brand_name, brand_description, tone, target_audience")
+      .select("brand_name, brand_description, tone, caption_style, target_audience")
       .eq("id", profileId)
       .single();
 
