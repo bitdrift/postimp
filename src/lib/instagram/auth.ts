@@ -73,6 +73,43 @@ export async function exchangeCodeForToken(
   };
 }
 
+const REFRESH_WINDOW_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+
+export function isTokenExpiringSoon(
+  tokenExpiresAt: string | null,
+  windowMs: number = REFRESH_WINDOW_MS,
+): boolean {
+  if (!tokenExpiresAt) return false;
+  return new Date(tokenExpiresAt).getTime() - Date.now() < windowMs;
+}
+
+export async function refreshInstagramToken(
+  currentToken: string,
+): Promise<{ accessToken: string; expiresAt: Date }> {
+  const response = await fetch(
+    `https://graph.instagram.com/oauth/access_token?` +
+      new URLSearchParams({
+        grant_type: "ig_refresh_token",
+        access_token: currentToken,
+      }),
+  );
+
+  if (!response.ok) {
+    throw new Error(`Instagram token refresh failed with status ${response.status}`);
+  }
+
+  const data = await response.json();
+
+  if (data.error) {
+    throw new Error(data.error.message || "Failed to refresh Instagram token");
+  }
+
+  return {
+    accessToken: data.access_token,
+    expiresAt: new Date(Date.now() + data.expires_in * 1000),
+  };
+}
+
 export async function getInstagramUsername(
   userId: string,
   accessToken: string,

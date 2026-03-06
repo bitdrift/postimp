@@ -66,6 +66,7 @@ Required in `.env.local`:
 - `INSTAGRAM_APP_ID`, `INSTAGRAM_APP_SECRET`
 - `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER`
 - `NEXT_PUBLIC_BASE_URL`
+- `CRON_SECRET` (Vercel Cron authentication)
 
 ## Testing
 

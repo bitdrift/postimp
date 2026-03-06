@@ -16,6 +16,22 @@ export async function getInstagramConnection(
   return data;
 }
 
+export async function updateInstagramToken(
+  client: DbClient,
+  profileId: string,
+  accessToken: string,
+  tokenExpiresAt: string,
+): Promise<void> {
+  const { error } = await client
+    .from("instagram_connections")
+    .update({
+      access_token: accessToken,
+      token_expires_at: tokenExpiresAt,
+    })
+    .eq("profile_id", profileId);
+  if (error) throw error;
+}
+
 export async function upsertInstagramConnection(
   client: DbClient,
   fields: {
