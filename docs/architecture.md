@@ -44,17 +44,17 @@ src/
 │   ├── onboarding/             # Brand profile setup
 │   └── preview/[token]/        # Public shareable preview
 ├── lib/                        # Business logic & service clients
-│   ├── core/                   # Unified message router + handlers
-│   │   ├── router.ts           # Routes messages by state + intent
-│   │   ├── handle-new-post.ts  # Draft creation
-│   │   ├── handle-approve.ts   # Publishing
-│   │   ├── handle-revise.ts    # Caption revision
+│   ├── core/                   # Unified message router + orchestrator
+│   │   ├── router.ts           # Entry point (delegates to orchestrate)
+│   │   ├── orchestrate.ts      # AI conversation orchestrator
+│   │   ├── handle-new-post.ts  # Image upload + draft creation
+│   │   ├── handle-approve.ts   # Instagram publishing
 │   │   ├── deliver.ts          # Channel-agnostic delivery
-│   │   ├── messages.ts         # Message templates (SMS + web)
+│   │   ├── messages.ts         # Guard messages + caption formatting
 │   │   └── types.ts            # Shared types
 │   ├── supabase/               # DB clients (browser, server, admin)
 │   ├── instagram/              # OAuth + Graph API publishing
-│   ├── openai/                 # GPT-4o caption generation
+│   ├── openai/                 # Responses API conversation module
 │   ├── twilio/                 # SMS client + signature validation
 │   └── sms/                    # SMS-specific routing
 ├── middleware.ts                # Auth guard for protected routes
@@ -67,18 +67,14 @@ supabase/
 
 ### Unified Message Router
 
-The central design pattern is a **unified router** (`lib/core/router.ts`) that handles both web and SMS messages through the same business logic. Channel differences are abstracted via a `DeliverFn` type — the router doesn't know or care whether it's replying to a browser or a phone.
+The central design pattern is a **unified orchestrator** (`lib/core/orchestrate.ts`) that handles both web and SMS messages through the same business logic. Channel differences are abstracted via a `DeliverFn` type — the orchestrator doesn't know or care whether it's replying to a browser or a phone.
 
 ```
-Web /api/chat/send ──→ router.ts ──→ handle-*.ts ──→ deliver (web)
-Twilio webhook    ──→ router.ts ──→ handle-*.ts ──→ deliver (sms)
+Web /api/chat/send ──→ router.ts ──→ orchestrate.ts ──→ AI ──→ deliver (web)
+Twilio webhook    ──→ router.ts ──→ orchestrate.ts ──→ AI ──→ deliver (sms)
 ```
 
-The router determines intent based on post state and message content:
-- **No active draft + image** → create new post
-- **Active draft + approval keywords** → publish
-- **Active draft + text feedback** → revise caption
-- **Cancel/help keywords** → cancel or show help
+The orchestrator uses pre-AI guards for hardcoded checks (onboarding, media upload, no-draft prompt), then sends all other messages to OpenAI's Responses API. The AI determines intent and calls function tools (`update_caption`, `publish_post`) when needed. Each post maintains a persistent AI conversation via `openai_conversation_id`.
 
 ### Post Lifecycle
 

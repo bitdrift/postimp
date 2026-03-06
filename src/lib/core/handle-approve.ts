@@ -3,33 +3,25 @@ import { publishToInstagram } from "@/lib/instagram/publish";
 import { getInstagramConnection, updateInstagramToken } from "@/lib/db/instagram";
 import { updatePost, type Post } from "@/lib/db/posts";
 import { refreshInstagramToken, isTokenExpiringSoon } from "@/lib/instagram/auth";
-import { msgStr, msgFn1 } from "./messages";
-import type { MessageChannel } from "@/lib/db/messages";
-import type { DeliverFn } from "./types";
 
-export async function handleApprove(
-  profileId: string,
-  post: Post,
-  channel: MessageChannel,
-  deliver: DeliverFn,
-) {
+export interface PublishResult {
+  success: boolean;
+  error?: string;
+  instagramPostId?: string;
+}
+
+export async function executePublish(profileId: string, post: Post): Promise<PublishResult> {
   const db = createDbClient();
 
-  // Get Instagram connection
   const connection = await getInstagramConnection(db, profileId);
 
   if (!connection) {
-    await deliver(msgStr("noInstagram", channel), post.id);
-    return;
+    return { success: false, error: "No Instagram account connected. Please connect one first." };
   }
 
-  // Check token expiry
   if (isTokenExpiringSoon(connection.token_expires_at, 0)) {
-    await deliver(msgStr("instagramExpired", channel), post.id);
-    return;
+    return { success: false, error: "Your Instagram connection has expired. Please reconnect." };
   }
-
-  await deliver(msgStr("publishStarted", channel), post.id);
 
   const result = await publishToInstagram(
     connection.instagram_user_id,
@@ -45,9 +37,7 @@ export async function handleApprove(
       published_at: new Date().toISOString(),
     });
 
-    await deliver(msgStr("publishSuccess", channel), post.id);
-
-    // Opportunistic token refresh — best effort, never blocks the publish
+    // Opportunistic token refresh
     if (isTokenExpiringSoon(connection.token_expires_at)) {
       try {
         const refreshed = await refreshInstagramToken(connection.access_token);
@@ -61,7 +51,9 @@ export async function handleApprove(
         console.error("Opportunistic token refresh failed:", err);
       }
     }
-  } else {
-    await deliver(msgFn1("publishFailed", channel)(result.error || "Unknown error"), post.id);
+
+    return { success: true, instagramPostId: result.instagramPostId };
   }
+
+  return { success: false, error: result.error || "Unknown publishing error" };
 }

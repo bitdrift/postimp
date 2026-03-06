@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createDbClient } from "@/lib/db/client";
-import { cancelDrafts } from "@/lib/db/posts";
 import { insertMessage } from "@/lib/db/messages";
 import { makeWebDeliver } from "@/lib/core/deliver";
-import { handleNewPost } from "@/lib/core/handle-new-post";
+import { routeMessage } from "@/lib/core/router";
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
@@ -24,34 +23,37 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "image is required" }, { status: 400 });
   }
 
-  const db = createDbClient();
-
-  // Cancel any existing draft
-  await cancelDrafts(db, user.id);
-
   const imageBuffer = await file.arrayBuffer();
   const contentType = file.type || "image/jpeg";
 
+  const db = createDbClient();
   const deliver = makeWebDeliver(db, user.id);
 
-  const postId = await handleNewPost(user.id, body, "web", deliver, {
-    kind: "buffer",
-    imageBuffer,
-    contentType,
-  });
+  const result = await routeMessage(
+    {
+      profileId: user.id,
+      body,
+      mediaUrl: null,
+      channel: "web",
+      imageBuffer,
+      contentType,
+    },
+    deliver,
+  );
 
-  if (!postId) {
+  if (!result.postId) {
     return NextResponse.json({ error: "Failed to create post" }, { status: 500 });
   }
 
-  // Log inbound message with post_id
+  // Log inbound message with post_id and image
   await insertMessage(db, {
     profile_id: user.id,
     direction: "inbound",
     body: body || "(photo)",
     channel: "web",
-    post_id: postId,
+    post_id: result.postId,
+    media_url: result.imageUrl || null,
   });
 
-  return NextResponse.json({ postId });
+  return NextResponse.json({ postId: result.postId });
 }

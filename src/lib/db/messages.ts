@@ -24,7 +24,7 @@ export async function insertMessage(
 export async function updateMessage(
   client: DbClient,
   id: string,
-  fields: Partial<Pick<Message, "post_id">>,
+  fields: Partial<Pick<Message, "post_id" | "media_url">>,
 ): Promise<void> {
   const { error } = await client.from("messages").update(fields).eq("id", id);
   if (error) throw error;

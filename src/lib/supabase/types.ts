@@ -31,6 +31,7 @@ export interface Post {
   caption: string | null;
   status: PostStatus;
   preview_token: string;
+  openai_conversation_id: string | null;
   instagram_post_id: string | null;
   published_at: string | null;
   created_at: string;

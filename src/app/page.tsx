@@ -26,10 +26,7 @@ export default function HomePage() {
           Post Imp
         </span>
         <div className="flex items-center gap-4">
-          <Link
-            href="/login"
-            className="text-sm text-gray-600 hover:text-black transition-colors"
-          >
+          <Link href="/login" className="text-sm text-gray-600 hover:text-black transition-colors">
             Log in
           </Link>
           <Link
@@ -51,8 +48,7 @@ export default function HomePage() {
               <span className="text-pink">A fraction of the cost.</span>
             </h1>
             <p className="mt-6 text-lg text-gray-500 leading-relaxed">
-              Skip the agency. Send a photo, approve your caption, and Post Imp handles
-              the rest.
+              Skip the agency. Send a photo, approve your caption, and Post Imp handles the rest.
             </p>
             <Link
               href="/signup"

@@ -191,6 +191,7 @@ export default function ChatView({ initialMessages, profileId }: ChatViewProps) 
             }}
           />
         ))}
+        {sending && <TypingIndicator />}
         <div ref={messagesEndRef} />
       </div>
 
@@ -345,6 +346,33 @@ function LinkifiedText({ text, className }: { text: string; className?: string }
         ),
       )}
     </span>
+  );
+}
+
+function TypingIndicator() {
+  return (
+    <div className="flex justify-start">
+      <div className="bg-white text-gray-900 border rounded-2xl rounded-bl-md px-4 py-3">
+        <div className="flex items-center gap-1.5">
+          {[0, 150, 300].map((delay) => (
+            <span
+              key={delay}
+              className="block w-2 h-2 rounded-full bg-gray-400"
+              style={{
+                animation: "typing-dot 1.4s infinite ease-in-out both",
+                animationDelay: `${delay}ms`,
+              }}
+            />
+          ))}
+        </div>
+        <style>{`
+          @keyframes typing-dot {
+            0%, 80%, 100% { transform: scale(0.4); opacity: 0.4; }
+            40% { transform: scale(1); opacity: 1; }
+          }
+        `}</style>
+      </div>
+    </div>
   );
 }
 

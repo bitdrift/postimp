@@ -28,8 +28,24 @@ process.env.INSTAGRAM_APP_SECRET = "test-secret";
 
 // ── Mock external services (NOT Supabase) ────────────────────────────
 
-vi.mock("@/lib/openai/generate-caption", () => ({
-  generateCaption: vi.fn().mockResolvedValue("Test caption #test #vitest"),
+vi.mock("@/lib/openai/conversation", () => ({
+  sendMessage: vi.fn().mockResolvedValue({
+    responseId: "resp_test_123",
+    textResponse: "Here's a caption for your post!",
+    toolCalls: [
+      {
+        name: "update_caption",
+        callId: "call_test_1",
+        args: { caption: "Test caption #test #vitest" },
+      },
+    ],
+  }),
+  sendToolResults: vi.fn().mockResolvedValue({
+    responseId: "resp_test_456",
+    textResponse: "Caption updated!",
+    toolCalls: [],
+  }),
+  buildSystemPrompt: vi.fn().mockReturnValue("test system prompt"),
 }));
 
 vi.mock("@/lib/twilio/client", () => ({

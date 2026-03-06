@@ -102,26 +102,32 @@ Users can interact with the full post creation workflow via SMS/MMS:
 - Soft delete (status set to "cancelled"); cancelled posts filtered from the list.
 - Loading indicator and error handling during deletion.
 
-## 5. AI Caption Generation
+## 5. Conversational AI System
 
-**Model:** OpenAI GPT-4o with vision
+**Model:** OpenAI GPT-4o via Responses API (persistent conversations)
 
-**Input:**
-- Image URL
-- User's description/feedback
-- Brand context: name, description, tone, caption style, target audience
-- Recent published captions (for consistency)
-- Revision feedback (when iterating)
+Each post gets its own AI conversation. All user messages go to the AI, which decides intent and calls tools when needed. No keyword matching — the AI handles approvals, revisions, questions, and publishing naturally.
+
+**Conversation persistence:** Each post stores an `openai_conversation_id` (the response ID from the Responses API). Subsequent messages pass `previous_response_id` for full conversation memory.
+
+**Function tools:**
+- `update_caption(caption)` — AI calls this whenever writing or revising a caption. The backend formats and displays the caption separately (CAPTION_START/END for web, truncated for SMS).
+- `publish_post()` — AI calls this when the user wants to publish. The backend handles Instagram connection checks, token validation, and the publish flow, then returns the result to the AI.
+
+**System prompt includes:**
+- Brand context (name, description, tone, target audience)
+- Caption style guidelines (polished/casual/minimal)
+- Behavioral rules (always use tools for captions, be concise for SMS, stay on topic)
 
 **Caption Style** (user-selectable):
 - **Polished** — structured, catchy hooks, emojis, 5-10 hashtags (default)
 - **Casual** — natural and conversational, minimal formatting, 0-3 hashtags
 - **Minimal** — short and clean (1-2 sentences), no hashtags or emojis
 
-**Output:**
-- Instagram caption matching selected style
-- Authentic, on-brand voice
-- Max 500 tokens
+**Pre-AI guards** (hardcoded, not sent to AI):
+- Onboarding check
+- Image upload and storage
+- No-draft/no-media prompt
 
 ## 6. Instagram Integration
 
@@ -142,7 +148,7 @@ Users can interact with the full post creation workflow via SMS/MMS:
 | Table | Purpose |
 |---|---|
 | `profiles` | User info: brand_name, brand_description, tone, caption_style, target_audience, phone, onboarding_completed |
-| `posts` | Draft/published posts: status, caption, image_url, instagram_post_id, preview_token |
+| `posts` | Draft/published posts: status, caption, image_url, instagram_post_id, preview_token, openai_conversation_id |
 | `messages` | All conversation messages: direction, body, channel (sms/web), phone, post_id, media_url |
 | `post_stats` | Cached engagement metrics: data (JSONB), fetched_at |
 | `instagram_connections` | OAuth credentials: access_token, token_expires_at, instagram_user_id, instagram_username |
@@ -180,8 +186,8 @@ Users can interact with the full post creation workflow via SMS/MMS:
 The product currently includes:
 
 - Web-based and SMS-based post creation with image upload
-- AI-generated draft captions with vision analysis
-- Conversational revision loop (approve, edit, cancel)
+- Conversational AI chat per post (OpenAI Responses API with function calling)
+- AI-generated captions, natural-language revisions, and Q&A about posts
 - Automated publishing to Instagram
 - Thread-per-post architecture with chat, preview, and stats tabs
 - Real-time message updates

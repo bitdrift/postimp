@@ -49,9 +49,12 @@ export async function POST(request: NextRequest) {
     deliver,
   );
 
-  // Tag inbound message with post_id
+  // Tag inbound message with post_id and image
   if (result.postId && inboundMsg) {
-    await updateMessage(db, inboundMsg.id, { post_id: result.postId });
+    await updateMessage(db, inboundMsg.id, {
+      post_id: result.postId,
+      media_url: result.imageUrl || null,
+    });
   }
 
   return NextResponse.json({ ok: true });
