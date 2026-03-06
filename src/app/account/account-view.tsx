@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import type { Profile } from "@/lib/db/profiles";
 import type { InstagramConnection } from "@/lib/db/instagram";
+import type { FacebookConnection } from "@/lib/db/facebook";
 
 export default function AccountView() {
   return (
@@ -24,6 +25,7 @@ export default function AccountView() {
 function AccountContent() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [instagram, setInstagram] = useState<InstagramConnection | null>(null);
+  const [facebook, setFacebook] = useState<FacebookConnection | null>(null);
   const [brandName, setBrandName] = useState("");
   const [brandDescription, setBrandDescription] = useState("");
   const [tone, setTone] = useState("");
@@ -35,6 +37,7 @@ function AccountContent() {
   const [checking, setChecking] = useState(true);
   const [editing, setEditing] = useState(false);
   const [igError, setIgError] = useState("");
+  const [fbError, setFbError] = useState("");
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClient();
@@ -47,6 +50,10 @@ function AccountContent() {
         setIgError("Instagram connection was cancelled.");
       } else if (urlError === "instagram_failed") {
         setIgError(detail || "Failed to connect Instagram. Please try again.");
+      } else if (urlError === "facebook_denied") {
+        setFbError("Facebook connection was cancelled.");
+      } else if (urlError === "facebook_failed") {
+        setFbError(detail || "Failed to connect Facebook. Please try again.");
       } else if (urlError === "invalid_state") {
         setIgError("Invalid session. Please try connecting again.");
       }
@@ -77,13 +84,13 @@ function AccountContent() {
       setCaptionStyle(p.caption_style || "polished");
       setTargetAudience(p.target_audience || "");
 
-      const { data: ig } = await supabase
-        .from("instagram_connections")
-        .select("*")
-        .eq("profile_id", user.id)
-        .single();
+      const [{ data: ig }, { data: fb }] = await Promise.all([
+        supabase.from("instagram_connections").select("*").eq("profile_id", user.id).single(),
+        supabase.from("facebook_connections").select("*").eq("profile_id", user.id).single(),
+      ]);
 
       setInstagram(ig);
+      setFacebook(fb);
       setChecking(false);
     }
     load();
@@ -326,6 +333,36 @@ function AccountContent() {
               className="inline-block bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg px-6 py-2.5 font-medium hover:opacity-90 transition-opacity"
             >
               Connect Instagram
+            </a>
+          )}
+        </div>
+
+        <div className="bg-white rounded-2xl shadow-sm border p-8">
+          <h2 className="text-lg font-semibold mb-4">Facebook Connection</h2>
+          {fbError && (
+            <div className="bg-red-50 text-red-700 rounded-lg p-3 text-sm mb-4">{fbError}</div>
+          )}
+          {facebook ? (
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">{facebook.page_name || "Connected"}</p>
+                <p className="text-sm text-gray-500">
+                  Connected {new Date(facebook.created_at).toLocaleDateString()}
+                </p>
+              </div>
+              <a
+                href="/api/facebook/auth"
+                className="text-sm text-blue-600 font-medium hover:underline"
+              >
+                Reconnect
+              </a>
+            </div>
+          ) : (
+            <a
+              href="/api/facebook/auth"
+              className="inline-block bg-blue-600 text-white rounded-lg px-6 py-2.5 font-medium hover:bg-blue-700 transition-colors"
+            >
+              Connect Facebook
             </a>
           )}
         </div>

@@ -7,6 +7,7 @@ export interface Profile {
   caption_style: "polished" | "casual" | "minimal";
   target_audience: string | null;
   onboarding_completed: boolean;
+  publish_platforms: string[];
   created_at: string;
   updated_at: string;
 }
@@ -22,6 +23,17 @@ export interface InstagramConnection {
   updated_at: string;
 }
 
+export interface FacebookConnection {
+  id: string;
+  profile_id: string;
+  facebook_user_id: string;
+  facebook_page_id: string;
+  page_name: string | null;
+  page_access_token: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export type PostStatus = "draft" | "published" | "cancelled";
 
 export interface Post {
@@ -33,6 +45,7 @@ export interface Post {
   preview_token: string;
   openai_conversation_id: string | null;
   instagram_post_id: string | null;
+  facebook_post_id: string | null;
   published_at: string | null;
   created_at: string;
   updated_at: string;

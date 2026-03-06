@@ -81,6 +81,28 @@ export async function seedInstagramConnection(
   return data!;
 }
 
+export async function seedFacebookConnection(
+  profileId: string,
+  overrides: Record<string, unknown> = {},
+): Promise<{ id: string }> {
+  const db = createDbClient();
+  const { data, error } = await db
+    .from("facebook_connections")
+    .insert({
+      profile_id: profileId,
+      facebook_user_id: "fb_user_123",
+      facebook_page_id: "fb_page_123",
+      page_name: "Test Page",
+      page_access_token: "test_page_token",
+      ...overrides,
+    })
+    .select("id")
+    .single();
+
+  if (error) throw new Error(`seedFacebookConnection: ${error.message || JSON.stringify(error)}`);
+  return data!;
+}
+
 /**
  * Deletes all test data created by this test suite.
  * Uses a sentinel UUID with .neq() because PostgREST requires a filter
@@ -99,6 +121,12 @@ export async function cleanAll() {
 
   const { error: igErr } = await db.from("instagram_connections").delete().neq("id", NIL);
   if (igErr) console.error("cleanAll instagram_connections:", igErr.message);
+
+  const { error: fbErr } = await db.from("facebook_connections").delete().neq("id", NIL);
+  if (fbErr) console.error("cleanAll facebook_connections:", fbErr.message);
+
+  const { error: pendingFbErr } = await db.from("pending_facebook_tokens").delete().neq("id", NIL);
+  if (pendingFbErr) console.error("cleanAll pending_facebook_tokens:", pendingFbErr.message);
 
   const { error: profErr } = await db.from("profiles").delete().neq("id", NIL);
   if (profErr) console.error("cleanAll profiles:", profErr.message);

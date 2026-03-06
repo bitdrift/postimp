@@ -74,3 +74,18 @@ vi.mock("@/lib/instagram/auth", () => ({
   }),
   isTokenExpiringSoon: vi.fn().mockReturnValue(false),
 }));
+
+vi.mock("@/lib/facebook/publish", () => ({
+  publishToFacebook: vi.fn().mockResolvedValue({
+    success: true,
+    facebookPostId: "fb_123",
+  }),
+}));
+
+vi.mock("@/lib/facebook/auth", () => ({
+  getFacebookAuthorizationUrl: vi.fn().mockReturnValue("https://facebook.com/oauth"),
+  exchangeCodeForToken: vi.fn().mockResolvedValue({ accessToken: "fb_tok", userId: "fb_uid" }),
+  listPages: vi
+    .fn()
+    .mockResolvedValue([{ id: "page_1", name: "Test Page", access_token: "page_tok" }]),
+}));
