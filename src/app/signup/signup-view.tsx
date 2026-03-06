@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import Image from "next/image";
 import Link from "next/link";
 
 type Step = "email" | "password" | "emailSent";
@@ -263,6 +264,10 @@ function SignupFlow() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
         <div className="w-full max-w-md">
+          <div className="flex flex-col items-center mb-8">
+            <Image src="/postimp_logo.png" alt="" width={80} height={90} className="h-20 w-auto" />
+            <span className="text-4xl font-[family-name:var(--font-logo)] mt-2">Post Imp</span>
+          </div>
           <div className="bg-white rounded-2xl shadow-sm border p-8 text-center">
             <div className="text-4xl mb-4">📬</div>
             <h1 className="text-2xl font-bold mb-2">Check your email</h1>
@@ -300,6 +305,10 @@ function SignupFlow() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="w-full max-w-md">
+        <div className="flex flex-col items-center mb-8">
+          <Image src="/postimp_logo.png" alt="" width={80} height={90} className="h-20 w-auto" />
+          <span className="text-4xl font-[family-name:var(--font-logo)] mt-2">Post Imp</span>
+        </div>
         <div className="bg-white rounded-2xl shadow-sm border p-8">
           <h1 className="text-2xl font-bold text-center mb-2">Join Post Imp</h1>
           <p className="text-gray-500 text-center mb-8">
