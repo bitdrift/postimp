@@ -3,7 +3,8 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import type { Message, Post } from "@/lib/supabase/types";
+import type { Post } from "@/lib/db/posts";
+import type { Message } from "@/lib/db/messages";
 
 interface ThreadViewProps {
   post: Post;

@@ -1,4 +1,4 @@
-import type { MessageChannel } from "@/lib/supabase/types";
+import type { MessageChannel } from "@/lib/db/messages";
 
 const templates = {
   draftCaption: {

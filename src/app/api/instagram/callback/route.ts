@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createDbClient } from "@/lib/db/client";
 import { exchangeCodeForToken, getInstagramUsername } from "@/lib/instagram/auth";
+import { upsertInstagramConnection } from "@/lib/db/instagram";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -25,19 +26,16 @@ export async function GET(request: NextRequest) {
 
     const username = await getInstagramUsername(igUserId, accessToken);
 
-    const supabase = createAdminClient();
+    const db = createDbClient();
 
     // Upsert the connection
-    await supabase.from("instagram_connections").upsert(
-      {
-        profile_id: userId,
-        instagram_user_id: igUserId,
-        access_token: accessToken,
-        token_expires_at: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString(), // 60 days
-        instagram_username: username,
-      },
-      { onConflict: "profile_id" },
-    );
+    await upsertInstagramConnection(db, {
+      profile_id: userId,
+      instagram_user_id: igUserId,
+      access_token: accessToken,
+      token_expires_at: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString(), // 60 days
+      instagram_username: username,
+    });
 
     return NextResponse.redirect(`${baseUrl}/account?instagram=connected`);
   } catch (err) {

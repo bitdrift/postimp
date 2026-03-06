@@ -1,7 +1,9 @@
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createDbClient } from "@/lib/db/client";
 import { publishToInstagram } from "@/lib/instagram/publish";
+import { getInstagramConnection } from "@/lib/db/instagram";
+import { updatePost, type Post } from "@/lib/db/posts";
 import { msgStr, msgFn1 } from "./messages";
-import type { Post, MessageChannel } from "@/lib/supabase/types";
+import type { MessageChannel } from "@/lib/db/messages";
 import type { DeliverFn } from "./types";
 
 export async function handleApprove(
@@ -10,14 +12,10 @@ export async function handleApprove(
   channel: MessageChannel,
   deliver: DeliverFn,
 ) {
-  const supabase = createAdminClient();
+  const db = createDbClient();
 
   // Get Instagram connection
-  const { data: connection } = await supabase
-    .from("instagram_connections")
-    .select("*")
-    .eq("profile_id", profileId)
-    .single();
+  const connection = await getInstagramConnection(db, profileId);
 
   if (!connection) {
     await deliver(msgStr("noInstagram", channel), post.id);
@@ -40,14 +38,11 @@ export async function handleApprove(
   );
 
   if (result.success) {
-    await supabase
-      .from("posts")
-      .update({
-        status: "published",
-        instagram_post_id: result.instagramPostId,
-        published_at: new Date().toISOString(),
-      })
-      .eq("id", post.id);
+    await updatePost(db, post.id, {
+      status: "published",
+      instagram_post_id: result.instagramPostId,
+      published_at: new Date().toISOString(),
+    });
 
     await deliver(msgStr("publishSuccess", channel), post.id);
   } else {

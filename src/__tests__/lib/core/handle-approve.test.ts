@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { handleApprove } from "@/lib/core/handle-approve";
 import { publishToInstagram } from "@/lib/instagram/publish";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createDbClient } from "@/lib/db/client";
 import type { DeliverFn } from "@/lib/core/types";
-import type { Post } from "@/lib/supabase/types";
+import type { Post } from "@/lib/db/posts";
 import {
   seedProfile,
   seedPost,
@@ -29,8 +29,8 @@ describe("handleApprove", () => {
   });
 
   async function getPost(postId: string): Promise<Post> {
-    const supabase = createAdminClient();
-    const { data } = await supabase.from("posts").select("*").eq("id", postId).single();
+    const db = createDbClient();
+    const { data } = await db.from("posts").select("*").eq("id", postId).single();
     return data as Post;
   }
 

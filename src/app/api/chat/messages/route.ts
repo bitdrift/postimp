@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createDbClient } from "@/lib/db/client";
+import { getMessages } from "@/lib/db/messages";
 
 export async function GET(request: NextRequest) {
   const supabase = await createClient();
@@ -15,24 +16,18 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const before = searchParams.get("before");
 
-  const admin = createAdminClient();
-  let query = admin
-    .from("messages")
-    .select("*")
-    .eq("profile_id", user.id)
-    .eq("channel", "web")
-    .order("created_at", { ascending: false })
-    .limit(50);
+  const db = createDbClient();
 
-  if (before) {
-    query = query.lt("created_at", before);
+  try {
+    const messages = await getMessages(db, user.id, {
+      channel: "web",
+      ascending: true,
+      ...(before && { before }),
+    });
+
+    return NextResponse.json({ messages });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
-
-  const { data: messages, error } = await query;
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-
-  return NextResponse.json({ messages: (messages || []).reverse() });
 }

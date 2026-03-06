@@ -1,6 +1,8 @@
 import { redirect, notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createDbClient } from "@/lib/db/client";
+import { getPostById } from "@/lib/db/posts";
+import { getMessages } from "@/lib/db/messages";
 import ThreadView from "./thread-view";
 
 export default async function ThreadPage({ params }: { params: Promise<{ postId: string }> }) {
@@ -15,28 +17,21 @@ export default async function ThreadPage({ params }: { params: Promise<{ postId:
     redirect("/login");
   }
 
-  const admin = createAdminClient();
+  const db = createDbClient();
 
   // Fetch post
-  const { data: post } = await admin
-    .from("posts")
-    .select("*")
-    .eq("id", postId)
-    .eq("profile_id", user.id)
-    .single();
+  const post = await getPostById(db, postId, user.id);
 
   if (!post) {
     notFound();
   }
 
   // Fetch messages for this post
-  const { data: messages } = await admin
-    .from("messages")
-    .select("*")
-    .eq("profile_id", user.id)
-    .eq("channel", "web")
-    .eq("post_id", postId)
-    .order("created_at", { ascending: true });
+  const messages = await getMessages(db, user.id, {
+    channel: "web",
+    postId,
+    ascending: true,
+  });
 
-  return <ThreadView post={post} initialMessages={messages || []} profileId={user.id} />;
+  return <ThreadView post={post} initialMessages={messages} profileId={user.id} />;
 }

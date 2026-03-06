@@ -1,7 +1,10 @@
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createDbClient } from "@/lib/db/client";
 import { generateCaption } from "@/lib/openai/generate-caption";
+import { getProfile } from "@/lib/db/profiles";
+import { getRecentCaptions, insertPost } from "@/lib/db/posts";
+import { uploadPostImage, getPostImageUrl } from "@/lib/db/storage";
 import { msgStr, msgFn2 } from "./messages";
-import type { MessageChannel } from "@/lib/supabase/types";
+import type { MessageChannel } from "@/lib/db/messages";
 import type { DeliverFn } from "./types";
 
 export async function handleNewPost(
@@ -13,7 +16,7 @@ export async function handleNewPost(
     | { kind: "url"; mediaUrl: string }
     | { kind: "buffer"; imageBuffer: ArrayBuffer; contentType: string },
 ): Promise<string | null> {
-  const supabase = createAdminClient();
+  const db = createDbClient();
 
   try {
     let imageBuffer: ArrayBuffer;
@@ -45,28 +48,17 @@ export async function handleNewPost(
     const fileName = `${profileId}/${Date.now()}.${ext}`;
 
     // Upload to Supabase Storage
-    const { error: uploadError } = await supabase.storage
-      .from("post-images")
-      .upload(fileName, imageBuffer, {
-        contentType,
-        upsert: false,
-      });
-
-    if (uploadError) {
+    try {
+      await uploadPostImage(db, fileName, imageBuffer, contentType);
+    } catch {
       await deliver(msgStr("imageUploadError", channel));
       return null;
     }
 
-    const {
-      data: { publicUrl },
-    } = supabase.storage.from("post-images").getPublicUrl(fileName);
+    const publicUrl = getPostImageUrl(db, fileName);
 
     // Get profile for AI context
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("brand_name, brand_description, tone, caption_style, target_audience")
-      .eq("id", profileId)
-      .single();
+    const profile = await getProfile(db, profileId);
 
     if (!profile) {
       await deliver(msgStr("profileError", channel));
@@ -74,15 +66,7 @@ export async function handleNewPost(
     }
 
     // Get recent captions for consistency
-    const { data: recentPosts } = await supabase
-      .from("posts")
-      .select("caption")
-      .eq("profile_id", profileId)
-      .eq("status", "published")
-      .order("created_at", { ascending: false })
-      .limit(5);
-
-    const recentCaptions = (recentPosts || []).map((p) => p.caption).filter(Boolean) as string[];
+    const recentCaptions = await getRecentCaptions(db, profileId);
 
     // Generate caption with AI
     const caption = await generateCaption({
@@ -93,23 +77,19 @@ export async function handleNewPost(
     });
 
     // Create draft post
-    const { data: post } = await supabase
-      .from("posts")
-      .insert({
-        profile_id: profileId,
-        image_url: publicUrl,
-        caption,
-        status: "draft",
-      })
-      .select("id, preview_token")
-      .single();
+    const post = await insertPost(db, {
+      profile_id: profileId,
+      image_url: publicUrl,
+      caption,
+      status: "draft",
+    });
 
     // Send caption preview
-    const previewUrl = `${process.env.NEXT_PUBLIC_APP_URL}/preview/${post!.preview_token}`;
+    const previewUrl = `${process.env.NEXT_PUBLIC_APP_URL}/preview/${post.preview_token}`;
     const truncatedCaption = caption.length > 300 ? caption.substring(0, 297) + "..." : caption;
 
-    await deliver(msgFn2("draftCaption", channel)(truncatedCaption, previewUrl), post!.id);
-    return post!.id;
+    await deliver(msgFn2("draftCaption", channel)(truncatedCaption, previewUrl), post.id);
+    return post.id;
   } catch (error) {
     console.error("Error creating post:", error);
     await deliver(msgStr("genericError", channel));

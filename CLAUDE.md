@@ -26,6 +26,7 @@ npm run test:docker  # Run tests in isolated Docker container
 
 - `src/app/` — Pages and API route handlers (App Router)
 - `src/lib/core/` — Unified message router and post handlers (the core business logic)
+- `src/lib/db/` — Database access layer (thin wrappers around Supabase queries)
 - `src/lib/supabase/` — Database clients (browser, server, admin)
 - `src/lib/instagram/` — OAuth and publishing
 - `src/lib/openai/` — Caption generation
@@ -51,9 +52,10 @@ npm run test:docker  # Run tests in isolated Docker container
 
 - Path alias: `@/*` maps to `src/*`
 - Server components by default; use `"use client"` only when needed
-- API routes use the admin Supabase client (`createAdminClient`)
+- API routes use `createDbClient()` from `lib/db/client` for database operations
 - Database changes go through `supabase/migrations/` as incremental SQL files
 - Fonts: Luckiest Guy (logo), Geist (body), Geist Mono (code)
+- Server-side DB access goes through `lib/db/` functions. Client components may use the Supabase browser client directly for auth, realtime, and RLS-protected reads.
 
 ## Environment Variables
 

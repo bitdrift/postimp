@@ -1,7 +1,9 @@
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createDbClient } from "@/lib/db/client";
 import { generateCaption } from "@/lib/openai/generate-caption";
+import { getProfile } from "@/lib/db/profiles";
+import { updatePost, type Post } from "@/lib/db/posts";
 import { msgStr, msgFn2 } from "./messages";
-import type { Post, MessageChannel } from "@/lib/supabase/types";
+import type { MessageChannel } from "@/lib/db/messages";
 import type { DeliverFn } from "./types";
 
 export async function handleRevise(
@@ -11,15 +13,11 @@ export async function handleRevise(
   channel: MessageChannel,
   deliver: DeliverFn,
 ) {
-  const supabase = createAdminClient();
+  const db = createDbClient();
 
   try {
     // Get profile for AI context
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("brand_name, brand_description, tone, caption_style, target_audience")
-      .eq("id", profileId)
-      .single();
+    const profile = await getProfile(db, profileId);
 
     if (!profile) {
       await deliver(msgStr("profileError", channel), post.id);
@@ -38,7 +36,7 @@ export async function handleRevise(
     });
 
     // Update post caption
-    await supabase.from("posts").update({ caption: newCaption }).eq("id", post.id);
+    await updatePost(db, post.id, { caption: newCaption });
 
     const previewUrl = `${process.env.NEXT_PUBLIC_APP_URL}/preview/${post.preview_token}`;
     const truncatedCaption =

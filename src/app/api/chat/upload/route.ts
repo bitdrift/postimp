@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createDbClient } from "@/lib/db/client";
+import { insertMessage, updateMessage } from "@/lib/db/messages";
 import { makeWebDeliver } from "@/lib/core/deliver";
 import { routeMessage } from "@/lib/core/router";
 
@@ -22,24 +23,20 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "image is required" }, { status: 400 });
   }
 
-  const admin = createAdminClient();
+  const db = createDbClient();
 
   // Log inbound message (post_id set after routing)
-  const { data: inboundMsg } = await admin
-    .from("messages")
-    .insert({
-      profile_id: user.id,
-      direction: "inbound",
-      body: body || "(photo)",
-      channel: "web",
-    })
-    .select("id")
-    .single();
+  const inboundMsg = await insertMessage(db, {
+    profile_id: user.id,
+    direction: "inbound",
+    body: body || "(photo)",
+    channel: "web",
+  });
 
   const imageBuffer = await file.arrayBuffer();
   const contentType = file.type || "image/jpeg";
 
-  const deliver = makeWebDeliver(admin, user.id);
+  const deliver = makeWebDeliver(db, user.id);
   const result = await routeMessage(
     {
       profileId: user.id,
@@ -54,7 +51,7 @@ export async function POST(request: NextRequest) {
 
   // Tag inbound message with post_id
   if (result.postId && inboundMsg) {
-    await admin.from("messages").update({ post_id: result.postId }).eq("id", inboundMsg.id);
+    await updateMessage(db, inboundMsg.id, { post_id: result.postId });
   }
 
   return NextResponse.json({ ok: true });

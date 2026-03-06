@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { handleRevise } from "@/lib/core/handle-revise";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createDbClient } from "@/lib/db/client";
 import type { DeliverFn } from "@/lib/core/types";
-import type { Post } from "@/lib/supabase/types";
+import type { Post } from "@/lib/db/posts";
 import { seedProfile, seedPost, cleanAll, makeTestDeliver } from "../../helpers/seed";
 
 describe("handleRevise", () => {
@@ -18,8 +18,8 @@ describe("handleRevise", () => {
   });
 
   async function getPost(postId: string): Promise<Post> {
-    const supabase = createAdminClient();
-    const { data } = await supabase.from("posts").select("*").eq("id", postId).single();
+    const db = createDbClient();
+    const { data } = await db.from("posts").select("*").eq("id", postId).single();
     return data as Post;
   }
 

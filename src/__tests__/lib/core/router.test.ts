@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { routeMessage } from "@/lib/core/router";
 import type { MessageContext } from "@/lib/core/types";
 import { seedProfile, seedPost, cleanAll, makeTestDeliver } from "../../helpers/seed";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createDbClient } from "@/lib/db/client";
 
 describe("routeMessage", () => {
   let deliver: ReturnType<typeof makeTestDeliver>["deliver"];
@@ -59,8 +59,8 @@ describe("routeMessage", () => {
     expect(messages[0].text.toLowerCase()).toContain("cancel");
 
     // Verify post status changed in DB
-    const supabase = createAdminClient();
-    const { data } = await supabase.from("posts").select("status").eq("profile_id", id).single();
+    const db = createDbClient();
+    const { data } = await db.from("posts").select("status").eq("profile_id", id).single();
     expect(data?.status).toBe("cancelled");
   });
 
@@ -117,8 +117,8 @@ describe("routeMessage", () => {
     expect(messages[0].text).toContain("updated");
 
     // Verify caption was updated in DB
-    const supabase = createAdminClient();
-    const { data } = await supabase.from("posts").select("caption").eq("id", post.id).single();
+    const db = createDbClient();
+    const { data } = await db.from("posts").select("caption").eq("id", post.id).single();
     expect(data?.caption).toBe("My custom caption here");
   });
 });

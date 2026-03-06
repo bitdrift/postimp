@@ -1,16 +1,15 @@
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createDbClient } from "@/lib/db/client";
+import { getPostByPreviewToken, type Post } from "@/lib/db/posts";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import type { Post } from "@/lib/supabase/types";
 
 interface Props {
   params: Promise<{ token: string }>;
 }
 
 async function getPost(token: string): Promise<Post | null> {
-  const supabase = createAdminClient();
-  const { data } = await supabase.from("posts").select("*").eq("preview_token", token).single();
-  return data;
+  const db = createDbClient();
+  return getPostByPreviewToken(db, token);
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

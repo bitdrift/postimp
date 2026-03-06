@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { handleNewPost } from "@/lib/core/handle-new-post";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createDbClient } from "@/lib/db/client";
 import type { DeliverFn } from "@/lib/core/types";
 import { seedProfile, cleanAll, makeTestDeliver } from "../../helpers/seed";
 
@@ -30,8 +30,8 @@ describe("handleNewPost", () => {
     expect(deliver).toHaveBeenCalled();
 
     // Verify post in DB
-    const supabase = createAdminClient();
-    const { data } = await supabase.from("posts").select("*").eq("id", postId!).single();
+    const db = createDbClient();
+    const { data } = await db.from("posts").select("*").eq("id", postId!).single();
     expect(data?.status).toBe("draft");
     expect(data?.caption).toBe("Test caption #test #vitest");
   });
@@ -40,8 +40,8 @@ describe("handleNewPost", () => {
     const fakeId = crypto.randomUUID();
 
     // Create auth user but no profile
-    const supabase = createAdminClient();
-    await supabase.rpc("test_create_user", { user_id: fakeId });
+    const db = createDbClient();
+    await db.rpc("test_create_user", { user_id: fakeId });
 
     const buffer = new ArrayBuffer(8);
     const postId = await handleNewPost(fakeId, "photo", "web", deliver, {
@@ -72,15 +72,15 @@ describe("handleNewPost", () => {
     const { id } = await seedProfile();
 
     // Temporarily override the storage mock to return an error
-    const supabase = createAdminClient();
-    const originalUpload = supabase.storage.from("post-images").upload;
+    const db = createDbClient();
+    const originalUpload = db.storage.from("post-images").upload;
     const mockUpload = vi.fn().mockResolvedValue({
       data: null,
       error: { message: "Bucket not found", statusCode: 400 },
     });
 
     // Patch the storage client prototype so handleNewPost's own client sees it
-    const StorageFileApi = Object.getPrototypeOf(supabase.storage.from("post-images"));
+    const StorageFileApi = Object.getPrototypeOf(db.storage.from("post-images"));
     const origProtoUpload = StorageFileApi.upload;
     StorageFileApi.upload = mockUpload;
 
