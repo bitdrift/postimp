@@ -1,7 +1,8 @@
 import { createDbClient } from "@/lib/db/client";
 import { publishToInstagram } from "@/lib/instagram/publish";
-import { getInstagramConnection } from "@/lib/db/instagram";
+import { getInstagramConnection, updateInstagramToken } from "@/lib/db/instagram";
 import { updatePost, type Post } from "@/lib/db/posts";
+import { refreshInstagramToken, isTokenExpiringSoon } from "@/lib/instagram/auth";
 import { msgStr, msgFn1 } from "./messages";
 import type { MessageChannel } from "@/lib/db/messages";
 import type { DeliverFn } from "./types";
@@ -23,7 +24,7 @@ export async function handleApprove(
   }
 
   // Check token expiry
-  if (connection.token_expires_at && new Date(connection.token_expires_at) < new Date()) {
+  if (isTokenExpiringSoon(connection.token_expires_at, 0)) {
     await deliver(msgStr("instagramExpired", channel), post.id);
     return;
   }
@@ -45,6 +46,21 @@ export async function handleApprove(
     });
 
     await deliver(msgStr("publishSuccess", channel), post.id);
+
+    // Opportunistic token refresh — best effort, never blocks the publish
+    if (isTokenExpiringSoon(connection.token_expires_at)) {
+      try {
+        const refreshed = await refreshInstagramToken(connection.access_token);
+        await updateInstagramToken(
+          db,
+          profileId,
+          refreshed.accessToken,
+          refreshed.expiresAt.toISOString(),
+        );
+      } catch (err) {
+        console.error("Opportunistic token refresh failed:", err);
+      }
+    }
   } else {
     await deliver(msgFn1("publishFailed", channel)(result.error || "Unknown error"), post.id);
   }

@@ -52,4 +52,9 @@ vi.mock("@/lib/instagram/auth", () => ({
   getAuthorizationUrl: vi.fn().mockReturnValue("https://instagram.com/oauth"),
   exchangeCodeForToken: vi.fn().mockResolvedValue({ accessToken: "tok", userId: "uid" }),
   getInstagramUsername: vi.fn().mockResolvedValue("testuser"),
+  refreshInstagramToken: vi.fn().mockResolvedValue({
+    accessToken: "refreshed_tok",
+    expiresAt: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
+  }),
+  isTokenExpiringSoon: vi.fn().mockReturnValue(false),
 }));

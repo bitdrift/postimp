@@ -1,7 +1,11 @@
 import { describe, it, expect, afterEach } from "vitest";
 import { createDbClient } from "@/lib/db/client";
 import { seedProfile, seedInstagramConnection, cleanAll } from "../../helpers/seed";
-import { getInstagramConnection, upsertInstagramConnection } from "@/lib/db/instagram";
+import {
+  getInstagramConnection,
+  updateInstagramToken,
+  upsertInstagramConnection,
+} from "@/lib/db/instagram";
 
 const db = createDbClient();
 
@@ -25,6 +29,23 @@ describe("instagram connections", () => {
       const { id } = await seedProfile();
       const connection = await getInstagramConnection(db, id);
       expect(connection).toBeNull();
+    });
+  });
+
+  describe("updateInstagramToken", () => {
+    it("updates only token fields", async () => {
+      const { id } = await seedProfile();
+      await seedInstagramConnection(id);
+
+      const newExpiry = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString();
+      await updateInstagramToken(db, id, "refreshed_token", newExpiry);
+
+      const connection = await getInstagramConnection(db, id);
+      expect(connection!.access_token).toBe("refreshed_token");
+      expect(connection!.token_expires_at).toBe(newExpiry);
+      // Other fields unchanged
+      expect(connection!.instagram_user_id).toBe("ig_user_123");
+      expect(connection!.instagram_username).toBe("testuser");
     });
   });
 
