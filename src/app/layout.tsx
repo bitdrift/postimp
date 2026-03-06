@@ -19,9 +19,9 @@ const luckiestGuy = Luckiest_Guy({
 });
 
 export const metadata: Metadata = {
-  title: "Post Imp - AI-Powered Instagram Manager via SMS",
+  title: "Post Imp — AI-Powered Social Media Manager",
   description:
-    "Create, review, and publish Instagram posts by texting. AI-powered captions, instant previews, one-tap publishing.",
+    "An AI powered Social Media Manager that sounds like you, posts for you, and never asks for a raise.",
 };
 
 export default function RootLayout({
