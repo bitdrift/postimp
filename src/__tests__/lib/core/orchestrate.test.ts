@@ -161,6 +161,25 @@ describe("orchestrate", () => {
     );
   });
 
+  it("targets specific post when postId is provided", async () => {
+    const { id } = await seedProfile();
+    const post1 = await seedPost(id, { caption: "First post" });
+    const post2 = await seedPost(id, { caption: "Second post" });
+
+    mockSendMessage.mockResolvedValueOnce({
+      responseId: "resp_specific",
+      textResponse: "Updated!",
+      toolCalls: [],
+    });
+
+    // Target post1 specifically, even though post2 is newer
+    await orchestrate(ctx(id, { body: "revise this", postId: post1.id }), deliver);
+
+    expect(mockSendMessage).toHaveBeenCalledOnce();
+    expect(deliver).toHaveBeenCalledOnce();
+    expect(messages[0].postId).toBe(post1.id);
+  });
+
   it("handles AI error gracefully", async () => {
     const { id } = await seedProfile();
     await seedPost(id);

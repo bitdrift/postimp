@@ -38,7 +38,7 @@ npm run test:docker  # Run tests in isolated Docker container
 - **No separate backend.** Next.js Route Handlers (`app/api/`) are the entire backend, running as Vercel serverless functions.
 - **Unified message router.** `lib/core/router.ts` handles both web and SMS through the same logic. Channel-specific delivery is abstracted via `DeliverFn`.
 - **Supabase client tiers.** Use `client.ts` in browser, `server.ts` in server components, `admin.ts` (service role) in API routes. API routes bypass RLS; browser/server clients respect it.
-- **One active draft.** Users can only have one draft post at a time. New uploads cancel existing drafts.
+- **Multiple drafts.** Users can have multiple draft posts simultaneously. Each post has its own AI conversation.
 - **Realtime chat.** Thread views subscribe to Supabase Postgres Changes for live message updates.
 
 ## Formatting & Linting

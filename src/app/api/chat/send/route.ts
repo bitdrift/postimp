@@ -15,24 +15,25 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { body } = await request.json();
+  const { body, postId } = await request.json();
   if (!body || typeof body !== "string") {
     return NextResponse.json({ error: "body is required" }, { status: 400 });
   }
 
   const db = createDbClient();
 
-  // Log inbound message (post_id set after routing)
+  // Log inbound message (post_id set after routing if not provided)
   const inboundMsg = await insertMessage(db, {
     profile_id: user.id,
     direction: "inbound",
     body,
     channel: "web",
+    ...(postId && { post_id: postId }),
   });
 
   const deliver = makeWebDeliver(db, user.id);
   const result = await routeMessage(
-    { profileId: user.id, body, mediaUrl: null, channel: "web" },
+    { profileId: user.id, body, mediaUrl: null, channel: "web", postId: postId || undefined },
     deliver,
   );
 

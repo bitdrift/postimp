@@ -120,7 +120,7 @@ describe("routeMessage", () => {
     expect(data?.caption).toBe("Test caption #test #vitest");
   });
 
-  it("cancels existing draft when new media is sent", async () => {
+  it("keeps existing draft when new media is sent", async () => {
     const { id } = await seedProfile();
     const oldPost = await seedPost(id);
 
@@ -134,10 +134,10 @@ describe("routeMessage", () => {
       deliver,
     );
 
-    // Old post should be cancelled
+    // Old post should still be a draft
     const db = createDbClient();
     const { data } = await db.from("posts").select("status").eq("id", oldPost.id).single();
-    expect(data?.status).toBe("cancelled");
+    expect(data?.status).toBe("draft");
   });
 
   it("saves conversation ID on post after first AI call", async () => {

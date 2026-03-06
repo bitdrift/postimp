@@ -75,9 +75,8 @@ Users can interact with the full post creation workflow via SMS/MMS:
 
 1. User sends an image (via web upload or MMS) with an optional text description.
 2. Image is uploaded to Supabase Storage.
-3. AI generates a draft caption using GPT-4o with vision, incorporating the image, description, brand profile, and recent post history for consistency.
-4. Any existing draft posts are cancelled (one active draft at a time).
-5. Draft post is created in the database and the caption is sent back to the user.
+3. Draft post is created and the AI generates a caption via the conversation system.
+4. Users can have multiple active drafts simultaneously.
 
 ### 4.3 Review & Revision
 

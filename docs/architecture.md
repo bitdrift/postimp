@@ -78,7 +78,7 @@ The orchestrator uses pre-AI guards for hardcoded checks (onboarding, media uplo
 
 ### Post Lifecycle
 
-Posts follow a simple state machine: `draft` → `published` or `cancelled`. Only one draft can be active per user at a time — uploading a new image cancels any existing draft.
+Posts follow a simple state machine: `draft` → `published` or `cancelled`. Users can have multiple active drafts simultaneously.
 
 ### Supabase Client Tiers
 

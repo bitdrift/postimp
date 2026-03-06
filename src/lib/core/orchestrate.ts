@@ -31,12 +31,6 @@ export async function orchestrate(
   let newPostResult: { postId: string; imageUrl: string; previewToken: string } | null = null;
 
   if (hasMedia) {
-    // Cancel existing drafts
-    const existingDraft = await getActiveDraft(db, ctx.profileId);
-    if (existingDraft) {
-      await updatePost(db, existingDraft.id, { status: "cancelled" });
-    }
-
     const source: ImageSource =
       ctx.imageBuffer && ctx.contentType
         ? { kind: "buffer", imageBuffer: ctx.imageBuffer, contentType: ctx.contentType }
@@ -46,7 +40,7 @@ export async function orchestrate(
     if (!newPostResult) return {};
   }
 
-  // Get active post (either newly created or existing draft)
+  // Resolve which post to chat about
   let postId: string;
   let imageUrl: string;
   let previewToken: string;
@@ -57,7 +51,24 @@ export async function orchestrate(
     imageUrl = newPostResult.imageUrl;
     previewToken = newPostResult.previewToken;
     conversationId = null;
+  } else if (ctx.postId) {
+    // Specific post targeted (e.g. from thread view)
+    const post = await db
+      .from("posts")
+      .select("*")
+      .eq("id", ctx.postId)
+      .eq("profile_id", ctx.profileId)
+      .single();
+    if (!post.data) {
+      await deliver(msgStr("genericError", ctx.channel));
+      return {};
+    }
+    postId = post.data.id;
+    imageUrl = post.data.image_url;
+    previewToken = post.data.preview_token;
+    conversationId = post.data.openai_conversation_id;
   } else {
+    // No specific post — fall back to most recent draft (SMS flow)
     const existingDraft = await getActiveDraft(db, ctx.profileId);
     if (!existingDraft) {
       await deliver(msgStr("noDraftPrompt", ctx.channel));

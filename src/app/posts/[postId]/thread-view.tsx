@@ -141,7 +141,7 @@ export default function ThreadView({ post, initialMessages, profileId }: ThreadV
       await fetch("/api/chat/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ body }),
+        body: JSON.stringify({ body, postId: post.id }),
       });
     } catch {
       // Error handling could be added
@@ -171,7 +171,7 @@ export default function ThreadView({ post, initialMessages, profileId }: ThreadV
       await fetch("/api/chat/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ body: text }),
+        body: JSON.stringify({ body: text, postId: post.id }),
       });
     } catch {
       // Error handling could be added
