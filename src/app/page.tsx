@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 const steps = [
@@ -22,8 +23,17 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-white flex flex-col">
       <nav className="max-w-5xl mx-auto px-6 py-6 w-full flex items-center justify-between shrink-0">
-        <span className="text-3xl sm:text-4xl font-[family-name:var(--font-logo)] leading-none translate-y-1.5">
-          Post Imp
+        <span className="flex items-center gap-2">
+          <Image
+            src="/postimp_logo.png"
+            alt=""
+            width={48}
+            height={56}
+            className="h-12 sm:h-14 w-auto"
+          />
+          <span className="text-3xl sm:text-4xl font-[family-name:var(--font-logo)] leading-none translate-y-1.5">
+            Post Imp
+          </span>
         </span>
         <div className="flex items-center gap-4">
           <Link href="/login" className="text-sm text-gray-600 hover:text-black transition-colors">
@@ -43,12 +53,12 @@ export default function HomePage() {
         <section className="max-w-5xl mx-auto px-6 pt-16 pb-24">
           <div className="max-w-2xl">
             <h1 className="text-3xl sm:text-5xl font-bold tracking-tight leading-[1.1]">
-              Professional Instagram posts.
+              Pro social media management.
               <br />
-              <span className="text-pink">A fraction of the cost.</span>
+              <em className="text-pink">At a fraction of the cost.</em>
             </h1>
             <p className="mt-6 text-lg text-gray-500 leading-relaxed">
-              Skip the agency. Send a photo, approve your caption, and Post Imp handles the rest.
+              Send your photos, approve the results, and let Post Imp handle the rest.
             </p>
             <Link
               href="/signup"
