@@ -86,24 +86,27 @@ export default function OnboardingView() {
 
   if (checking) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-base-200">
         <ImpLoader />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12">
+    <div className="min-h-screen flex items-center justify-center bg-base-200 px-4 py-12">
       <div className="w-full max-w-lg">
-        <div className="bg-white rounded-2xl shadow-sm border p-8">
+        <div className="bg-base-100 rounded-2xl shadow-sm border border-base-300 p-8">
           <h1 className="text-2xl font-bold text-center mb-2">Set Up Your Brand</h1>
-          <p className="text-gray-500 text-center mb-8">
+          <p className="text-base-content/50 text-center mb-8">
             Tell us about your brand so we can craft the perfect posts
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label htmlFor="brandName" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="brandName"
+                className="block text-sm font-medium text-base-content/70 mb-1"
+              >
                 Brand Name
               </label>
               <input
@@ -112,7 +115,7 @@ export default function OnboardingView() {
                 value={brandName}
                 onChange={(e) => setBrandName(e.target.value)}
                 required
-                className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 focus:ring-2 focus:ring-pink focus:border-transparent outline-none"
+                className="w-full rounded-lg border border-base-300 px-4 py-2.5 text-base-content focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
                 placeholder="Your Brand"
               />
             </div>
@@ -120,7 +123,7 @@ export default function OnboardingView() {
             <div>
               <label
                 htmlFor="brandDescription"
-                className="block text-sm font-medium text-gray-700 mb-1"
+                className="block text-sm font-medium text-base-content/70 mb-1"
               >
                 What does your brand do?
               </label>
@@ -130,13 +133,13 @@ export default function OnboardingView() {
                 onChange={(e) => setBrandDescription(e.target.value)}
                 required
                 rows={3}
-                className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 focus:ring-2 focus:ring-pink focus:border-transparent outline-none resize-none"
+                className="w-full rounded-lg border border-base-300 px-4 py-2.5 text-base-content focus:ring-2 focus:ring-primary focus:border-transparent outline-none resize-none"
                 placeholder="We sell handmade candles inspired by nature..."
               />
             </div>
 
             <div>
-              <label htmlFor="tone" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="tone" className="block text-sm font-medium text-base-content/70 mb-1">
                 Brand Voice / Tone
               </label>
               <input
@@ -145,13 +148,15 @@ export default function OnboardingView() {
                 value={tone}
                 onChange={(e) => setTone(e.target.value)}
                 required
-                className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 focus:ring-2 focus:ring-pink focus:border-transparent outline-none"
+                className="w-full rounded-lg border border-base-300 px-4 py-2.5 text-base-content focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
                 placeholder="Friendly, witty, professional..."
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Caption Style</label>
+              <label className="block text-sm font-medium text-base-content/70 mb-2">
+                Caption Style
+              </label>
               <div className="grid grid-cols-3 gap-3">
                 {(
                   [
@@ -166,12 +171,12 @@ export default function OnboardingView() {
                     onClick={() => setCaptionStyle(value)}
                     className={`rounded-lg border p-3 text-left transition-colors ${
                       captionStyle === value
-                        ? "border-pink bg-pink-light"
-                        : "border-gray-200 hover:border-gray-300"
+                        ? "border-primary bg-primary/10"
+                        : "border-base-300 hover:border-base-content/30"
                     }`}
                   >
                     <p className="text-sm font-medium">{label}</p>
-                    <p className="text-xs text-gray-500 mt-0.5">{desc}</p>
+                    <p className="text-xs text-base-content/50 mt-0.5">{desc}</p>
                   </button>
                 ))}
               </div>
@@ -180,7 +185,7 @@ export default function OnboardingView() {
             <div>
               <label
                 htmlFor="targetAudience"
-                className="block text-sm font-medium text-gray-700 mb-1"
+                className="block text-sm font-medium text-base-content/70 mb-1"
               >
                 Target Audience
               </label>
@@ -190,17 +195,17 @@ export default function OnboardingView() {
                 value={targetAudience}
                 onChange={(e) => setTargetAudience(e.target.value)}
                 required
-                className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 focus:ring-2 focus:ring-pink focus:border-transparent outline-none"
+                className="w-full rounded-lg border border-base-300 px-4 py-2.5 text-base-content focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
                 placeholder="Women aged 25-40 who love home decor..."
               />
             </div>
 
-            {error && <div className="bg-red-50 text-red-700 rounded-lg p-3 text-sm">{error}</div>}
+            {error && <div className="bg-error/10 text-error rounded-lg p-3 text-sm">{error}</div>}
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-black text-white rounded-lg py-2.5 font-medium hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="w-full bg-neutral text-neutral-content rounded-lg py-2.5 font-medium hover:bg-neutral/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {loading ? "Saving..." : "Complete Setup"}
             </button>

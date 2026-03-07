@@ -11,11 +11,11 @@ type Step = "email" | "password" | "emailSent";
 let zxcvbnInitialized = false;
 
 const STRENGTH_CONFIG = [
-  { label: "Weak", color: "bg-red-500" },
-  { label: "Weak", color: "bg-red-500" },
-  { label: "Fair", color: "bg-orange-400" },
-  { label: "Strong", color: "bg-green-500" },
-  { label: "Strong", color: "bg-green-500" },
+  { label: "Weak", color: "bg-error" },
+  { label: "Weak", color: "bg-error" },
+  { label: "Fair", color: "bg-warning" },
+  { label: "Strong", color: "bg-success" },
+  { label: "Strong", color: "bg-success" },
 ] as const;
 
 type Score = 0 | 1 | 2 | 3 | 4;
@@ -38,18 +38,14 @@ function PasswordStrengthMeter({ score }: { score: Score }) {
           <div
             key={i}
             className={`h-1.5 flex-1 rounded-full transition-colors duration-300 ${
-              i < filledSegments ? color : "bg-gray-200"
+              i < filledSegments ? color : "bg-base-300"
             }`}
           />
         ))}
       </div>
-      <p className="mt-1 text-xs text-gray-500">
+      <p className="mt-1 text-xs text-base-content/50">
         Password strength:{" "}
-        <span
-          className={
-            score <= 1 ? "text-red-600" : score === 2 ? "text-orange-500" : "text-green-600"
-          }
-        >
+        <span className={score <= 1 ? "text-error" : score === 2 ? "text-warning" : "text-success"}>
           {label}
         </span>
       </p>
@@ -61,8 +57,8 @@ export default function SignupView() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <p className="text-gray-500">Loading...</p>
+        <div className="min-h-screen flex items-center justify-center bg-base-200">
+          <p className="text-base-content/50">Loading...</p>
         </div>
       }
     >
@@ -262,35 +258,35 @@ function SignupFlow() {
 
   if (step === "emailSent") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      <div className="min-h-screen flex items-center justify-center bg-base-200 px-4">
         <div className="w-full max-w-md">
           <div className="flex flex-col items-center mb-8">
             <Image src="/postimp_logo.png" alt="" width={80} height={90} className="h-20 w-auto" />
             <span className="text-4xl font-[family-name:var(--font-logo)] mt-2">Post Imp</span>
           </div>
-          <div className="bg-white rounded-2xl shadow-sm border p-8 text-center">
+          <div className="bg-base-100 rounded-2xl shadow-sm border border-base-300 p-8 text-center">
             <div className="text-4xl mb-4">📬</div>
             <h1 className="text-2xl font-bold mb-2">Check your email</h1>
-            <p className="text-gray-500 mb-6">
+            <p className="text-base-content/50 mb-6">
               We sent a confirmation link to{" "}
-              <span className="font-medium text-gray-900">{email}</span>.
+              <span className="font-medium text-base-content">{email}</span>.
               <br />
               Click the link to activate your account.
             </p>
             {resendSuccess && (
-              <div className="bg-green-50 text-green-700 rounded-lg p-3 text-sm mb-4">
+              <div className="bg-success/10 text-success rounded-lg p-3 text-sm mb-4">
                 Confirmation email resent!
               </div>
             )}
             {error && (
-              <div className="bg-red-50 text-red-700 rounded-lg p-3 text-sm mb-4">{error}</div>
+              <div className="bg-error/10 text-error rounded-lg p-3 text-sm mb-4">{error}</div>
             )}
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-base-content/40">
               Didn&apos;t get it? Check your spam folder or{" "}
               <button
                 onClick={handleResend}
                 disabled={resending}
-                className="text-pink font-medium hover:underline disabled:opacity-50"
+                className="text-primary font-medium hover:underline disabled:opacity-50"
               >
                 {resending ? "Sending..." : "resend the email"}
               </button>
@@ -303,15 +299,15 @@ function SignupFlow() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-base-200 px-4">
       <div className="w-full max-w-md">
         <div className="flex flex-col items-center mb-8">
           <Image src="/postimp_logo.png" alt="" width={80} height={90} className="h-20 w-auto" />
           <span className="text-4xl font-[family-name:var(--font-logo)] mt-2">Post Imp</span>
         </div>
-        <div className="bg-white rounded-2xl shadow-sm border p-8">
+        <div className="bg-base-100 rounded-2xl shadow-sm border border-base-300 p-8">
           <h1 className="text-2xl font-bold text-center mb-2">Join Post Imp</h1>
-          <p className="text-gray-500 text-center mb-8">
+          <p className="text-base-content/50 text-center mb-8">
             {step === "email"
               ? "Enter your email to get started"
               : "Create a password for your account"}
@@ -320,7 +316,10 @@ function SignupFlow() {
           {step === "email" && (
             <form onSubmit={handleEmailSubmit} className="space-y-4">
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-medium text-base-content/70 mb-1"
+                >
                   Email
                 </label>
                 <input
@@ -329,13 +328,13 @@ function SignupFlow() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 focus:ring-2 focus:ring-pink focus:border-transparent outline-none"
+                  className="w-full rounded-lg border border-base-300 px-4 py-2.5 text-base-content focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
                   placeholder="you@example.com"
                 />
               </div>
 
               {confirmedMessage && (
-                <div className="bg-blue-50 text-blue-800 rounded-lg p-3 text-sm">
+                <div className="bg-info/10 text-info rounded-lg p-3 text-sm">
                   You already have an account.{" "}
                   <Link href="/login" className="font-medium underline">
                     Log in instead
@@ -344,13 +343,13 @@ function SignupFlow() {
               )}
 
               {error && (
-                <div className="bg-red-50 text-red-700 rounded-lg p-3 text-sm">{error}</div>
+                <div className="bg-error/10 text-error rounded-lg p-3 text-sm">{error}</div>
               )}
 
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-black text-white rounded-lg py-2.5 font-medium hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="w-full bg-neutral text-neutral-content rounded-lg py-2.5 font-medium hover:bg-neutral/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {loading ? "Checking..." : "Continue"}
               </button>
@@ -359,10 +358,15 @@ function SignupFlow() {
 
           {step === "password" && (
             <form onSubmit={handlePasswordSubmit} className="space-y-4">
-              <div className="bg-gray-50 rounded-lg px-4 py-2.5 text-sm text-gray-600">{email}</div>
+              <div className="bg-base-200 rounded-lg px-4 py-2.5 text-sm text-base-content/60">
+                {email}
+              </div>
 
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="password"
+                  className="block text-sm font-medium text-base-content/70 mb-1"
+                >
                   Password
                 </label>
                 <input
@@ -372,7 +376,7 @@ function SignupFlow() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   minLength={6}
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 focus:ring-2 focus:ring-pink focus:border-transparent outline-none"
+                  className="w-full rounded-lg border border-base-300 px-4 py-2.5 text-base-content focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
                   placeholder="At least 6 characters"
                 />
                 {strength !== null && <PasswordStrengthMeter score={strength} />}
@@ -381,7 +385,7 @@ function SignupFlow() {
               <div>
                 <label
                   htmlFor="confirm-password"
-                  className="block text-sm font-medium text-gray-700 mb-1"
+                  className="block text-sm font-medium text-base-content/70 mb-1"
                 >
                   Confirm Password
                 </label>
@@ -392,7 +396,7 @@ function SignupFlow() {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
                   minLength={6}
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 focus:ring-2 focus:ring-pink focus:border-transparent outline-none"
+                  className="w-full rounded-lg border border-base-300 px-4 py-2.5 text-base-content focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
                   placeholder="Re-enter your password"
                 />
               </div>
@@ -405,9 +409,12 @@ function SignupFlow() {
                     checked={smsConsent}
                     onChange={(e) => setSmsConsent(e.target.checked)}
                     required
-                    className="mt-1 h-4 w-4 rounded border-gray-300 text-pink focus:ring-pink"
+                    className="mt-1 h-4 w-4 rounded border-base-300 text-primary focus:ring-primary"
                   />
-                  <label htmlFor="sms-consent" className="text-xs text-gray-500 leading-relaxed">
+                  <label
+                    htmlFor="sms-consent"
+                    className="text-xs text-base-content/50 leading-relaxed"
+                  >
                     By signing up, you consent to receive SMS messages from Post Imp (e.g. draft
                     captions, post confirmations, account notifications). Consent is not a condition
                     of purchase. Msg &amp; data rates may apply. Msg frequency varies. Reply STOP to
@@ -425,13 +432,13 @@ function SignupFlow() {
               )}
 
               {error && (
-                <div className="bg-red-50 text-red-700 rounded-lg p-3 text-sm">{error}</div>
+                <div className="bg-error/10 text-error rounded-lg p-3 text-sm">{error}</div>
               )}
 
               <button
                 type="submit"
                 disabled={loading || (!!token && !smsConsent)}
-                className="w-full bg-black text-white rounded-lg py-2.5 font-medium hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="w-full bg-neutral text-neutral-content rounded-lg py-2.5 font-medium hover:bg-neutral/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {loading ? "Creating account..." : "Sign Up"}
               </button>
@@ -445,16 +452,16 @@ function SignupFlow() {
                   setError("");
                   setStrength(null);
                 }}
-                className="w-full text-sm text-gray-500 hover:text-gray-700 transition-colors"
+                className="w-full text-sm text-base-content/50 hover:text-base-content/70 transition-colors"
               >
                 &larr; Back
               </button>
             </form>
           )}
 
-          <p className="text-center text-sm text-gray-500 mt-6">
+          <p className="text-center text-sm text-base-content/50 mt-6">
             Already have an account?{" "}
-            <Link href="/login" className="text-pink font-medium hover:underline">
+            <Link href="/login" className="text-primary font-medium hover:underline">
               Log in
             </Link>
           </p>

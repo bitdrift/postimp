@@ -7,9 +7,9 @@ import type { Post } from "@/lib/db/posts";
 import Image from "next/image";
 
 const statusColors: Record<string, string> = {
-  draft: "bg-yellow-100 text-yellow-800",
-  published: "bg-green-100 text-green-800",
-  cancelled: "bg-gray-100 text-gray-500",
+  draft: "bg-warning/10 text-warning",
+  published: "bg-success/10 text-success",
+  cancelled: "bg-base-200 text-base-content/50",
 };
 
 export default function PostsList({ posts: initialPosts }: { posts: Post[] }) {
@@ -44,14 +44,17 @@ export default function PostsList({ posts: initialPosts }: { posts: Post[] }) {
   }
 
   return (
-    <div className="flex flex-col h-[100dvh] bg-gray-100">
+    <div className="flex flex-col h-[100dvh] bg-base-200">
       {/* Header */}
-      <div className="bg-white border-b px-4 py-3 flex items-center justify-between shrink-0">
+      <div className="bg-base-100 border-b border-base-300 px-4 py-3 flex items-center justify-between shrink-0">
         <span className="flex items-center gap-1.5">
           <Image src="/postimp_logo.png" alt="" width={28} height={32} className="h-7 w-auto" />
           <h1 className="text-lg font-[family-name:var(--font-logo)] translate-y-1">Post Imp</h1>
         </span>
-        <button onClick={() => setMenuOpen(true)} className="p-1 text-gray-500 hover:text-gray-700">
+        <button
+          onClick={() => setMenuOpen(true)}
+          className="p-1 text-base-content/50 hover:text-base-content/70"
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
@@ -71,20 +74,23 @@ export default function PostsList({ posts: initialPosts }: { posts: Post[] }) {
 
       {/* Slide-in menu backdrop */}
       <div
-        className={`fixed inset-0 bg-black/40 z-40 transition-opacity duration-300 ${
+        className={`fixed inset-0 bg-neutral/40 z-40 transition-opacity duration-300 ${
           menuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
         onClick={() => setMenuOpen(false)}
       />
       {/* Slide-in menu panel */}
       <div
-        className={`fixed top-0 right-0 bottom-0 w-64 bg-white z-50 shadow-xl flex flex-col transition-transform duration-300 ease-in-out ${
+        className={`fixed top-0 right-0 bottom-0 w-64 bg-base-100 z-50 shadow-xl flex flex-col transition-transform duration-300 ease-in-out ${
           menuOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        <div className="px-4 py-4 border-b flex items-center justify-between">
+        <div className="px-4 py-4 border-b border-base-300 flex items-center justify-between">
           <span className="font-semibold">Menu</span>
-          <button onClick={() => setMenuOpen(false)} className="text-gray-400 hover:text-gray-600">
+          <button
+            onClick={() => setMenuOpen(false)}
+            className="text-base-content/40 hover:text-base-content/60"
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -106,7 +112,7 @@ export default function PostsList({ posts: initialPosts }: { posts: Post[] }) {
               setMenuOpen(false);
               router.push("/posts/new");
             }}
-            className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 transition-colors"
+            className="w-full text-left px-4 py-3 text-sm hover:bg-base-200 transition-colors"
           >
             New Post
           </button>
@@ -115,21 +121,21 @@ export default function PostsList({ posts: initialPosts }: { posts: Post[] }) {
               setMenuOpen(false);
               router.push("/account");
             }}
-            className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 transition-colors"
+            className="w-full text-left px-4 py-3 text-sm hover:bg-base-200 transition-colors"
           >
             Account
           </button>
           <a
             href="mailto:support@postimp.com"
-            className="block px-4 py-3 text-sm hover:bg-gray-50 transition-colors"
+            className="block px-4 py-3 text-sm hover:bg-base-200 transition-colors"
           >
             Support
           </a>
         </nav>
-        <div className="border-t px-4 py-3">
+        <div className="border-t border-base-300 px-4 py-3">
           <button
             onClick={handleLogout}
-            className="w-full text-left text-sm text-gray-500 hover:text-gray-700"
+            className="w-full text-left text-sm text-base-content/50 hover:text-base-content/70"
           >
             Log Out
           </button>
@@ -139,18 +145,18 @@ export default function PostsList({ posts: initialPosts }: { posts: Post[] }) {
       {/* Posts list */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
         {deleteError && (
-          <div className="bg-red-50 text-red-700 rounded-lg p-3 text-sm flex items-center justify-between">
+          <div className="bg-error/10 text-error rounded-lg p-3 text-sm flex items-center justify-between">
             <span>{deleteError}</span>
             <button
               onClick={() => setDeleteError(null)}
-              className="text-red-400 hover:text-red-600 ml-2 shrink-0"
+              className="text-error/60 hover:text-error ml-2 shrink-0"
             >
               &times;
             </button>
           </div>
         )}
         {posts.length === 0 && (
-          <div className="text-center text-gray-400 mt-20">
+          <div className="text-center text-base-content/40 mt-20">
             <p className="text-lg mb-1">No posts yet</p>
             <p className="text-sm">Tap the button below to create your first post.</p>
           </div>
@@ -161,8 +167,8 @@ export default function PostsList({ posts: initialPosts }: { posts: Post[] }) {
             <button
               key={post.id}
               onClick={() => router.push(`/posts/${post.id}`)}
-              className={`w-full bg-white rounded-xl border p-3 flex items-start gap-3 text-left transition-colors ${
-                isDeleting ? "opacity-50 pointer-events-none" : "hover:bg-gray-50"
+              className={`w-full bg-base-100 rounded-xl border border-base-300 p-3 flex items-start gap-3 text-left transition-colors ${
+                isDeleting ? "opacity-50 pointer-events-none" : "hover:bg-base-200"
               }`}
             >
               <img
@@ -171,7 +177,7 @@ export default function PostsList({ posts: initialPosts }: { posts: Post[] }) {
                 className="w-16 h-16 rounded-lg object-cover shrink-0"
               />
               <div className="flex-1 min-w-0">
-                <p className="text-sm text-gray-900 line-clamp-2">
+                <p className="text-sm text-base-content line-clamp-2">
                   {post.caption || "Generating caption..."}
                 </p>
                 <div className="flex items-center gap-2 mt-1.5">
@@ -180,7 +186,7 @@ export default function PostsList({ posts: initialPosts }: { posts: Post[] }) {
                   >
                     {isDeleting ? "deleting..." : post.status}
                   </span>
-                  <span className="text-xs text-gray-400" suppressHydrationWarning>
+                  <span className="text-xs text-base-content/40" suppressHydrationWarning>
                     {new Date(post.created_at).toLocaleDateString([], {
                       month: "short",
                       day: "numeric",
@@ -189,7 +195,7 @@ export default function PostsList({ posts: initialPosts }: { posts: Post[] }) {
                   <span className="flex-1" />
                   {isDeleting ? (
                     <span className="shrink-0">
-                      <span className="block w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+                      <span className="block w-4 h-4 border-2 border-base-content/30 border-t-base-content/60 rounded-full animate-spin" />
                     </span>
                   ) : (
                     <span
@@ -199,7 +205,7 @@ export default function PostsList({ posts: initialPosts }: { posts: Post[] }) {
                         e.stopPropagation();
                         handleDelete(post.id);
                       }}
-                      className="shrink-0 p-0.5 text-gray-300 hover:text-red-500 transition-colors"
+                      className="shrink-0 p-0.5 text-base-content/30 hover:text-error transition-colors"
                       title="Delete post"
                     >
                       <svg
@@ -229,12 +235,12 @@ export default function PostsList({ posts: initialPosts }: { posts: Post[] }) {
 
       {/* New post button */}
       <div
-        className="bg-white border-t px-4 py-3 shrink-0"
+        className="bg-base-100 border-t border-base-300 px-4 py-3 shrink-0"
         style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
       >
         <button
           onClick={() => router.push("/posts/new")}
-          className="w-full py-3 bg-black text-white rounded-full font-medium hover:bg-gray-800 transition-colors"
+          className="w-full py-3 bg-neutral text-neutral-content rounded-full font-medium hover:bg-neutral/80 transition-colors"
         >
           New Post
         </button>

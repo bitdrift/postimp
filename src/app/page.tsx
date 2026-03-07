@@ -21,7 +21,7 @@ const steps = [
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen bg-base-100 flex flex-col">
       <nav className="max-w-5xl mx-auto px-6 py-6 w-full flex items-center justify-between shrink-0">
         <span className="flex items-center gap-2">
           <div className="-mx-8">
@@ -32,12 +32,15 @@ export default function HomePage() {
           </span>
         </span>
         <div className="flex items-center gap-4">
-          <Link href="/login" className="text-sm text-gray-600 hover:text-black transition-colors">
+          <Link
+            href="/login"
+            className="text-sm text-base-content/60 hover:text-base-content transition-colors"
+          >
             Log in
           </Link>
           <Link
             href="/signup"
-            className="text-sm bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors"
+            className="text-sm bg-neutral text-neutral-content px-4 py-2 rounded-lg hover:bg-neutral/80 transition-colors"
           >
             Sign up
           </Link>
@@ -51,14 +54,14 @@ export default function HomePage() {
             <h1 className="text-3xl sm:text-5xl font-bold tracking-tight leading-[1.1]">
               Pro social media management.
               <br />
-              <em className="text-pink">At a fraction of the cost.</em>
+              <em className="text-primary">At a fraction of the cost.</em>
             </h1>
-            <p className="mt-6 text-lg text-gray-500 leading-relaxed">
+            <p className="mt-6 text-lg text-base-content/50 leading-relaxed">
               Send your photos, approve the results, and let Post Imp handle the rest.
             </p>
             <Link
               href="/signup"
-              className="inline-block mt-10 bg-black text-white px-8 py-3.5 rounded-full font-medium hover:bg-gray-800 transition-colors"
+              className="inline-block mt-10 bg-neutral text-neutral-content px-8 py-3.5 rounded-full font-medium hover:bg-neutral/80 transition-colors"
             >
               Get Started
             </Link>
@@ -66,16 +69,16 @@ export default function HomePage() {
         </section>
 
         {/* How it works */}
-        <section className="border-t bg-gray-50">
+        <section className="border-t border-base-300 bg-base-200">
           <div className="max-w-5xl mx-auto px-6 py-20">
             <div className="grid sm:grid-cols-3 gap-10">
               {steps.map((step) => (
                 <div key={step.number}>
                   <div className="flex items-baseline gap-3">
-                    <span className="text-3xl font-bold text-pink">{step.number}</span>
+                    <span className="text-3xl font-bold text-primary">{step.number}</span>
                     <h3 className="text-lg font-semibold">{step.title}</h3>
                   </div>
-                  <p className="text-gray-500 mt-2 leading-relaxed">{step.description}</p>
+                  <p className="text-base-content/50 mt-2 leading-relaxed">{step.description}</p>
                 </div>
               ))}
             </div>
@@ -83,17 +86,20 @@ export default function HomePage() {
         </section>
       </main>
 
-      <footer className="border-t shrink-0">
-        <div className="max-w-5xl mx-auto px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-gray-400">
+      <footer className="border-t border-base-300 shrink-0">
+        <div className="max-w-5xl mx-auto px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-base-content/40">
           <p>&copy; {new Date().getFullYear()} Post Imp</p>
           <div className="flex items-center gap-6">
-            <Link href="/privacy" className="hover:text-gray-600 transition-colors">
+            <Link href="/privacy" className="hover:text-base-content/60 transition-colors">
               Privacy
             </Link>
-            <Link href="/terms" className="hover:text-gray-600 transition-colors">
+            <Link href="/terms" className="hover:text-base-content/60 transition-colors">
               Terms
             </Link>
-            <a href="mailto:support@postimp.com" className="hover:text-gray-600 transition-colors">
+            <a
+              href="mailto:support@postimp.com"
+              className="hover:text-base-content/60 transition-colors"
+            >
               Support
             </a>
           </div>

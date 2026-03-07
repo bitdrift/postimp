@@ -182,11 +182,11 @@ export default function ThreadView({ post, initialMessages, profileId }: ThreadV
   }
 
   return (
-    <div className="flex flex-col h-[100dvh] bg-gray-100">
+    <div className="flex flex-col h-[100dvh] bg-base-200">
       {/* Header */}
-      <div className="bg-white border-b shrink-0">
+      <div className="bg-base-100 border-b border-base-300 shrink-0">
         <div className="px-4 py-3 flex items-center gap-3">
-          <Link href="/posts" className="shrink-0 text-gray-500 hover:text-gray-700">
+          <Link href="/posts" className="shrink-0 text-base-content/50 hover:text-base-content/70">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -209,10 +209,10 @@ export default function ThreadView({ post, initialMessages, profileId }: ThreadV
             <span
               className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                 currentPost.status === "published"
-                  ? "bg-green-100 text-green-800"
+                  ? "bg-success/10 text-success"
                   : currentPost.status === "cancelled"
-                    ? "bg-gray-100 text-gray-500"
-                    : "bg-yellow-100 text-yellow-800"
+                    ? "bg-base-200 text-base-content/50"
+                    : "bg-warning/10 text-warning"
               }`}
             >
               {currentPost.status}
@@ -221,13 +221,13 @@ export default function ThreadView({ post, initialMessages, profileId }: ThreadV
         </div>
 
         {/* Tabs */}
-        <div className="flex border-t">
+        <div className="flex border-t border-base-300">
           <button
             onClick={() => switchTab("chat")}
             className={`flex-1 py-2 text-sm font-medium text-center border-b-2 transition-colors ${
               activeTab === "chat"
-                ? "border-pink text-pink"
-                : "border-transparent text-gray-400 hover:text-gray-600"
+                ? "border-primary text-primary"
+                : "border-transparent text-base-content/40 hover:text-base-content/60"
             }`}
           >
             Chat
@@ -236,8 +236,8 @@ export default function ThreadView({ post, initialMessages, profileId }: ThreadV
             onClick={() => switchTab("preview")}
             className={`flex-1 py-2 text-sm font-medium text-center border-b-2 transition-colors ${
               activeTab === "preview"
-                ? "border-pink text-pink"
-                : "border-transparent text-gray-400 hover:text-gray-600"
+                ? "border-primary text-primary"
+                : "border-transparent text-base-content/40 hover:text-base-content/60"
             }`}
           >
             Preview
@@ -246,8 +246,8 @@ export default function ThreadView({ post, initialMessages, profileId }: ThreadV
             onClick={() => switchTab("stats")}
             className={`flex-1 py-2 text-sm font-medium text-center border-b-2 transition-colors ${
               activeTab === "stats"
-                ? "border-pink text-pink"
-                : "border-transparent text-gray-400 hover:text-gray-600"
+                ? "border-primary text-primary"
+                : "border-transparent text-base-content/40 hover:text-base-content/60"
             }`}
           >
             Stats
@@ -285,7 +285,7 @@ export default function ThreadView({ post, initialMessages, profileId }: ThreadV
           {/* Input bar (no photo picker) */}
           <form
             onSubmit={handleSend}
-            className="bg-white border-t px-4 py-3 flex items-end gap-2 shrink-0"
+            className="bg-base-100 border-t border-base-300 px-4 py-3 flex items-end gap-2 shrink-0"
             style={{
               paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))",
             }}
@@ -307,14 +307,14 @@ export default function ThreadView({ post, initialMessages, profileId }: ThreadV
               }}
               placeholder="Type a message..."
               rows={1}
-              className="flex-1 bg-gray-100 rounded-2xl px-4 py-2.5 text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-pink/20 resize-none overflow-hidden"
+              className="flex-1 bg-base-200 rounded-2xl px-4 py-2.5 text-base-content placeholder-base-content/40 outline-none focus:ring-2 focus:ring-primary/20 resize-none overflow-hidden"
               style={{ maxHeight: 120 }}
               disabled={sending}
             />
             <button
               type="submit"
               disabled={sending || !input.trim()}
-              className="shrink-0 w-10 h-10 rounded-full bg-black text-white flex items-center justify-center disabled:opacity-30 transition-opacity"
+              className="shrink-0 w-10 h-10 rounded-full bg-neutral text-neutral-content flex items-center justify-center disabled:opacity-30 transition-opacity"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -330,7 +330,7 @@ export default function ThreadView({ post, initialMessages, profileId }: ThreadV
       ) : (
         /* Preview tab */
         <div className="flex-1 overflow-y-auto px-4 py-4">
-          <div className="bg-white rounded-xl border overflow-hidden">
+          <div className="bg-base-100 rounded-xl border border-base-300 overflow-hidden">
             <img src={currentPost.image_url} alt="" className="w-full aspect-square object-cover" />
             <div className="p-4">
               <p className="text-sm whitespace-pre-wrap break-words">
@@ -345,7 +345,7 @@ export default function ThreadView({ post, initialMessages, profileId }: ThreadV
                 switchTab("chat");
               }}
               disabled={sending}
-              className="w-full mt-4 py-3 bg-black text-white rounded-full font-medium hover:bg-gray-800 disabled:opacity-50 transition-colors"
+              className="w-full mt-4 py-3 bg-neutral text-neutral-content rounded-full font-medium hover:bg-neutral/80 disabled:opacity-50 transition-colors"
             >
               Approve &amp; Post
             </button>
@@ -371,9 +371,9 @@ interface StatsData {
 
 function StatCard({ value, label }: { value: number | undefined; label: string }) {
   return (
-    <div className="bg-white rounded-xl border p-4 text-center">
+    <div className="bg-base-100 rounded-xl border border-base-300 p-4 text-center">
       <p className="text-2xl font-bold">{value ?? "—"}</p>
-      <p className="text-xs text-gray-500 mt-1">{label}</p>
+      <p className="text-xs text-base-content/50 mt-1">{label}</p>
     </div>
   );
 }
@@ -412,7 +412,7 @@ function StatsTab({ postId, isPublished }: { postId: string; isPublished: boolea
   if (!isPublished) {
     return (
       <div className="flex-1 flex items-center justify-center px-4">
-        <div className="text-center text-gray-400">
+        <div className="text-center text-base-content/40">
           <p className="text-lg mb-1">No stats yet</p>
           <p className="text-sm">Stats will appear here once the post is published to Instagram.</p>
         </div>
@@ -432,8 +432,8 @@ function StatsTab({ postId, isPublished }: { postId: string; isPublished: boolea
     return (
       <div className="flex-1 flex items-center justify-center px-4">
         <div className="text-center">
-          <p className="text-gray-500 mb-3">{error}</p>
-          <button onClick={fetchStats} className="text-sm text-pink font-medium hover:underline">
+          <p className="text-base-content/50 mb-3">{error}</p>
+          <button onClick={fetchStats} className="text-sm text-primary font-medium hover:underline">
             Try again
           </button>
         </div>
@@ -460,7 +460,7 @@ function StatsTab({ postId, isPublished }: { postId: string; isPublished: boolea
       {/* Reach & Discovery */}
       {hasInsights && (
         <>
-          <p className="text-xs font-medium text-gray-400 uppercase tracking-wide pt-1">
+          <p className="text-xs font-medium text-base-content/40 uppercase tracking-wide pt-1">
             Reach &amp; Discovery
           </p>
           <div className="grid grid-cols-2 gap-3">
@@ -473,7 +473,7 @@ function StatsTab({ postId, isPublished }: { postId: string; isPublished: boolea
       )}
 
       <div className="flex items-center justify-between pt-1">
-        <p className="text-xs text-gray-400">
+        <p className="text-xs text-base-content/40">
           {fetchedAt
             ? `Updated ${new Date(fetchedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`
             : ""}
@@ -481,7 +481,7 @@ function StatsTab({ postId, isPublished }: { postId: string; isPublished: boolea
         <button
           onClick={fetchStats}
           disabled={loading}
-          className="text-xs text-pink font-medium hover:underline disabled:opacity-50"
+          className="text-xs text-primary font-medium hover:underline disabled:opacity-50"
         >
           {loading ? "Refreshing..." : "Refresh"}
         </button>
@@ -514,11 +514,11 @@ function CopyButton({ url }: { url: string }) {
         setCopied(true);
         setTimeout(() => setCopied(false), 1500);
       }}
-      className="inline-flex items-center ml-1 text-gray-400 hover:text-gray-600 align-middle"
+      className="inline-flex items-center ml-1 text-base-content/40 hover:text-base-content/60 align-middle"
       title="Copy link"
     >
       {copied ? (
-        <span className="text-xs text-green-600">Copied!</span>
+        <span className="text-xs text-success">Copied!</span>
       ) : (
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -566,12 +566,12 @@ function LinkifiedText({ text }: { text: string }) {
 function TypingIndicator() {
   return (
     <div className="flex justify-start">
-      <div className="bg-white text-gray-900 border rounded-2xl rounded-bl-md px-4 py-3">
+      <div className="bg-base-100 text-base-content border border-base-300 rounded-2xl rounded-bl-md px-4 py-3">
         <div className="flex items-center gap-1.5">
           {[0, 150, 300].map((delay) => (
             <span
               key={delay}
-              className="block w-2 h-2 rounded-full bg-gray-400"
+              className="block w-2 h-2 rounded-full bg-base-content/40"
               style={{
                 animation: "typing-dot 1.4s infinite ease-in-out both",
                 animationDelay: `${delay}ms`,
@@ -609,8 +609,8 @@ function ThreadMessageBubble({
       <div
         className={`max-w-[80%] rounded-2xl px-4 py-2.5 ${
           isUser
-            ? "bg-black text-white rounded-br-md"
-            : "bg-white text-gray-900 border rounded-bl-md"
+            ? "bg-neutral text-neutral-content rounded-br-md"
+            : "bg-base-100 text-base-content border border-base-300 rounded-bl-md"
         }`}
       >
         {message.media_url && (
@@ -624,33 +624,33 @@ function ThreadMessageBubble({
         {draft ? (
           <div className="space-y-3">
             <p className="text-sm font-medium">{draft.header}</p>
-            <div className="bg-gray-50 border rounded-lg p-3">
+            <div className="bg-base-200 border border-base-300 rounded-lg p-3">
               <p className="text-sm whitespace-pre-wrap break-words">{draft.caption}</p>
             </div>
             {draft.previewUrl && (
               <span className="inline-flex items-center gap-1">
                 <button
                   onClick={() => onViewPreview?.()}
-                  className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium"
+                  className="inline-flex items-center gap-1 text-sm text-info hover:text-info font-medium"
                 >
                   View Preview &rarr;
                 </button>
                 <CopyButton url={draft.previewUrl} />
               </span>
             )}
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-base-content/50">
               What do you think? Suggest changes, or approve to publish.
             </p>
             <div className="flex gap-2">
               <button
                 onClick={() => onSend?.("Approve")}
-                className="px-4 py-1.5 bg-black text-white text-sm rounded-full hover:bg-gray-800 transition-colors"
+                className="px-4 py-1.5 bg-neutral text-neutral-content text-sm rounded-full hover:bg-neutral/80 transition-colors"
               >
                 Approve
               </button>
               <button
                 onClick={() => onFillInput?.(draft.caption)}
-                className="px-4 py-1.5 bg-gray-100 text-gray-700 text-sm rounded-full hover:bg-gray-200 transition-colors"
+                className="px-4 py-1.5 bg-base-200 text-base-content/70 text-sm rounded-full hover:bg-base-300 transition-colors"
               >
                 Edit
               </button>
@@ -661,7 +661,7 @@ function ThreadMessageBubble({
             <LinkifiedText text={message.body} />
           </p>
         ) : null}
-        <p className="text-[10px] mt-1 text-gray-400" suppressHydrationWarning>
+        <p className="text-[10px] mt-1 text-base-content/40" suppressHydrationWarning>
           {new Date(message.created_at).toLocaleTimeString([], {
             hour: "numeric",
             minute: "2-digit",
