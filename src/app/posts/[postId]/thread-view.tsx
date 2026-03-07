@@ -12,9 +12,19 @@ interface ThreadViewProps {
   post: Post;
   initialMessages: Message[];
   profileId: string;
+  instagramUsername: string | null;
+  instagramProfilePic: string | null;
+  instagramFollowers: number | null;
 }
 
-export default function ThreadView({ post, initialMessages, profileId }: ThreadViewProps) {
+export default function ThreadView({
+  post,
+  initialMessages,
+  profileId,
+  instagramUsername,
+  instagramProfilePic,
+  instagramFollowers,
+}: ThreadViewProps) {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
@@ -330,23 +340,132 @@ export default function ThreadView({ post, initialMessages, profileId }: ThreadV
         </>
       ) : (
         /* Preview tab */
-        <div className="flex-1 overflow-y-auto px-4 py-4">
+        <div className="flex-1 overflow-y-auto px-4 py-4 bg-base-200">
           {currentPost.status === "published" && currentPost.instagram_permalink ? (
             <div className="flex justify-center">
               <InstagramEmbed permalink={currentPost.instagram_permalink} />
             </div>
           ) : (
             <>
-              <div className="bg-base-100 rounded-xl border border-base-300 overflow-hidden">
+              <div className="bg-white rounded border border-gray-300 overflow-hidden max-w-[400px] mx-auto text-black">
+                {/* Header */}
+                <div className="flex items-center gap-2.5 px-3 py-2.5">
+                  {instagramProfilePic ? (
+                    <img
+                      src={instagramProfilePic}
+                      alt=""
+                      className="w-10 h-10 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-300 to-gray-200 flex items-center justify-center text-sm font-bold text-gray-500">
+                      {(instagramUsername || "?")[0].toUpperCase()}
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <span className="text-sm font-semibold block leading-tight">
+                      {instagramUsername || "your_account"}
+                    </span>
+                    {instagramFollowers !== null && (
+                      <span className="text-xs text-gray-500">
+                        {instagramFollowers.toLocaleString()} follower
+                        {instagramFollowers !== 1 ? "s" : ""}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-xs font-semibold text-white bg-[#0095f6]/40 px-4 py-1.5 rounded">
+                    View profile
+                  </span>
+                </div>
+                {/* Image */}
                 <img
                   src={currentPost.image_url}
                   alt=""
                   className="w-full aspect-square object-cover"
                 />
-                <div className="p-4">
+                {/* "View more on Instagram" */}
+                <div className="px-3 pt-3 pb-2">
+                  <span className="text-sm text-[#00376b]/40">View more on Instagram</span>
+                </div>
+                <div className="mx-3 border-t border-gray-200" />
+                {/* Action icons row */}
+                <div className="flex items-center px-3 py-2.5">
+                  <div className="flex items-center gap-4">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="w-6 h-6 text-black/25"
+                    >
+                      <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
+                    </svg>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="w-6 h-6 text-black/25"
+                    >
+                      <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+                    </svg>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="w-6 h-6 text-black/25"
+                    >
+                      <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8" />
+                      <polyline points="16 6 12 2 8 6" />
+                      <line x1="12" y1="2" x2="12" y2="15" />
+                    </svg>
+                  </div>
+                  <div className="flex-1" />
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="w-6 h-6 text-black/25"
+                  >
+                    <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" />
+                  </svg>
+                </div>
+                {/* Likes */}
+                <div className="px-3">
+                  <p className="text-sm font-semibold text-black/25">0 likes</p>
+                </div>
+                {/* Username + Caption */}
+                <div className="px-3 pt-1 pb-2">
                   <p className="text-sm whitespace-pre-wrap break-words">
-                    {previewCaption || "Caption pending..."}
+                    {previewCaption ? (
+                      <>
+                        <span className="font-semibold">{instagramUsername || "your_account"}</span>{" "}
+                        <CaptionWithHashtags text={previewCaption} />
+                      </>
+                    ) : (
+                      <span className="text-black/25">Caption pending...</span>
+                    )}
                   </p>
+                </div>
+                {/* Add a comment + IG logo */}
+                <div className="flex items-center justify-between px-3 py-2.5 border-t border-gray-200">
+                  <span className="text-sm text-black/25">Add a comment...</span>
+                  <svg className="w-6 h-6 text-black/25" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2.982c2.937 0 3.285.011 4.445.064a6.087 6.087 0 012.042.379 3.408 3.408 0 011.265.823 3.408 3.408 0 01.823 1.265 6.087 6.087 0 01.379 2.042c.053 1.16.064 1.508.064 4.445s-.011 3.285-.064 4.445a6.087 6.087 0 01-.379 2.042 3.643 3.643 0 01-2.088 2.088 6.087 6.087 0 01-2.042.379c-1.16.053-1.508.064-4.445.064s-3.285-.011-4.445-.064a6.087 6.087 0 01-2.042-.379 3.408 3.408 0 01-1.265-.823 3.408 3.408 0 01-.823-1.265 6.087 6.087 0 01-.379-2.042c-.053-1.16-.064-1.508-.064-4.445s.011-3.285.064-4.445a6.087 6.087 0 01.379-2.042 3.408 3.408 0 01.823-1.265 3.408 3.408 0 011.265-.823 6.087 6.087 0 012.042-.379c1.16-.053 1.508-.064 4.445-.064M12 1c-2.987 0-3.362.013-4.535.066a8.074 8.074 0 00-2.67.511 5.392 5.392 0 00-1.949 1.27 5.392 5.392 0 00-1.269 1.948 8.074 8.074 0 00-.51 2.67C1.012 8.638 1 9.013 1 12s.013 3.362.066 4.535a8.074 8.074 0 00.511 2.67 5.392 5.392 0 001.27 1.949 5.392 5.392 0 001.948 1.269 8.074 8.074 0 002.67.51C8.638 22.988 9.013 23 12 23s3.362-.013 4.535-.066a8.074 8.074 0 002.67-.511 5.625 5.625 0 003.218-3.218 8.074 8.074 0 00.51-2.67C22.988 15.362 23 14.987 23 12s-.013-3.362-.066-4.535a8.074 8.074 0 00-.511-2.67 5.392 5.392 0 00-1.27-1.949 5.392 5.392 0 00-1.948-1.269 8.074 8.074 0 00-2.67-.51C15.362 1.012 14.987 1 12 1zm0 5.351A5.649 5.649 0 1017.649 12 5.649 5.649 0 0012 6.351zm0 9.316A3.667 3.667 0 1115.667 12 3.667 3.667 0 0112 15.667zm5.872-10.859a1.32 1.32 0 100 2.64 1.32 1.32 0 000-2.64z" />
+                  </svg>
                 </div>
               </div>
               {currentPost.status === "draft" && (
@@ -356,9 +475,9 @@ export default function ThreadView({ post, initialMessages, profileId }: ThreadV
                     switchTab("chat");
                   }}
                   disabled={sending}
-                  className="w-full mt-4 py-3 bg-neutral text-neutral-content rounded-full font-medium hover:bg-neutral/80 disabled:opacity-50 transition-colors"
+                  className="w-full max-w-[400px] mx-auto block mt-4 py-3 bg-neutral text-neutral-content rounded-full font-medium hover:bg-neutral/80 disabled:opacity-50 transition-colors"
                 >
-                  Approve &amp; Post
+                  Approve
                 </button>
               )}
             </>
@@ -500,6 +619,23 @@ function StatsTab({ postId, isPublished }: { postId: string; isPublished: boolea
         </button>
       </div>
     </div>
+  );
+}
+
+function CaptionWithHashtags({ text }: { text: string }) {
+  const parts = text.split(/(#\w+)/g);
+  return (
+    <>
+      {parts.map((part, i) =>
+        part.startsWith("#") ? (
+          <span key={i} className="text-[#00376b]/70">
+            {part}
+          </span>
+        ) : (
+          <span key={i}>{part}</span>
+        ),
+      )}
+    </>
   );
 }
 
