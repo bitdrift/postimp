@@ -4,6 +4,7 @@ import { getActiveDraft, updatePost } from "@/lib/db/posts";
 import { sendMessage, sendToolResults, type SendMessageResult } from "@/lib/openai/conversation";
 import { uploadAndCreatePost, type ImageSource } from "./handle-new-post";
 import { executePublish } from "./handle-approve";
+import { fetchPostStats, fetchPostComments } from "./instagram-data";
 import { msgStr, formatCaptionMessage } from "./messages";
 import type { MessageContext, DeliverFn } from "./types";
 
@@ -138,6 +139,30 @@ export async function orchestrate(
             output: `Publishing failed: ${publishResult.error}`,
           });
         }
+      } else if (toolCall.name === "get_post_stats") {
+        const latestPost = await db.from("posts").select("*").eq("id", postId).single();
+        if (!latestPost.data || latestPost.data.status !== "published") {
+          toolOutputs.push({
+            callId: toolCall.callId,
+            output: "This post hasn't been published yet, so there are no stats available.",
+          });
+          continue;
+        }
+
+        const statsResult = await fetchPostStats(ctx.profileId, latestPost.data);
+        toolOutputs.push({ callId: toolCall.callId, output: JSON.stringify(statsResult) });
+      } else if (toolCall.name === "get_post_comments") {
+        const latestPost = await db.from("posts").select("*").eq("id", postId).single();
+        if (!latestPost.data || latestPost.data.status !== "published") {
+          toolOutputs.push({
+            callId: toolCall.callId,
+            output: "This post hasn't been published yet, so there are no comments available.",
+          });
+          continue;
+        }
+
+        const commentsResult = await fetchPostComments(ctx.profileId, latestPost.data);
+        toolOutputs.push({ callId: toolCall.callId, output: JSON.stringify(commentsResult) });
       }
     }
 

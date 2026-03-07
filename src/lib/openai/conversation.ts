@@ -62,6 +62,32 @@ const tools: OpenAI.Responses.Tool[] = [
     },
     strict: true,
   },
+  {
+    type: "function",
+    name: "get_post_stats",
+    description:
+      "Get performance stats for the current post (likes, comments count, impressions, reach, etc.). Only works for published posts. Call this when the user asks about how their post is doing, engagement, performance, or metrics.",
+    parameters: {
+      type: "object",
+      properties: {},
+      required: [],
+      additionalProperties: false,
+    },
+    strict: true,
+  },
+  {
+    type: "function",
+    name: "get_post_comments",
+    description:
+      "Get the comments on the current post from Instagram. Only works for published posts. Call this when the user asks about what people are saying, wants to see comments, or asks about feedback on their post.",
+    parameters: {
+      type: "object",
+      properties: {},
+      required: [],
+      additionalProperties: false,
+    },
+    strict: true,
+  },
 ];
 
 export interface ToolCall {
@@ -105,6 +131,8 @@ Rules:
 - When writing or revising a caption, ALWAYS use the update_caption tool. Never put the full caption in your text response.
 - When you call update_caption, just comment briefly on the caption in your text response (e.g. "Here's a caption focused on..."). The system displays the caption separately.
 - When the user wants to publish/approve/post, call the publish_post tool.
+- When the user asks about post performance, engagement, or metrics, use get_post_stats. Summarize the data in a helpful way with brief tips.
+- When the user asks about comments or feedback on their post, use get_post_comments. Summarize the sentiment and highlight interesting comments.
 - You can answer questions about the post, caption, or social media strategy without calling any tools.
 - Stay on topic — you help with Instagram posts, not general questions.${channelNote}`;
 }
