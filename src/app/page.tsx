@@ -1,5 +1,5 @@
-import Image from "next/image";
 import Link from "next/link";
+import ImpLoader from "@/app/components/imp-loader";
 
 const steps = [
   {
@@ -24,13 +24,9 @@ export default function HomePage() {
     <div className="min-h-screen bg-white flex flex-col">
       <nav className="max-w-5xl mx-auto px-6 py-6 w-full flex items-center justify-between shrink-0">
         <span className="flex items-center gap-2">
-          <Image
-            src="/postimp_logo.png"
-            alt=""
-            width={48}
-            height={56}
-            className="h-12 sm:h-14 w-auto"
-          />
+          <div className="-mx-8">
+            <ImpLoader size={115} />
+          </div>
           <span className="text-3xl sm:text-4xl font-[family-name:var(--font-logo)] leading-none translate-y-1.5">
             Post Imp
           </span>
