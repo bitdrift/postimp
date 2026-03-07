@@ -1,1 +1,8 @@
 npx lint-staged
+
+# Check for duplicate migration numbers
+dupes=$(ls supabase/migrations/*.sql 2>/dev/null | xargs -n1 basename | sed 's/_.*//' | sort | uniq -d)
+if [ -n "$dupes" ]; then
+  echo "Error: Duplicate migration numbers found: $dupes"
+  exit 1
+fi
