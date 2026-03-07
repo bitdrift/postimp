@@ -85,8 +85,8 @@ function AccountContent() {
       setTargetAudience(p.target_audience || "");
 
       const [{ data: ig }, { data: fb }] = await Promise.all([
-        supabase.from("instagram_connections").select("*").eq("profile_id", user.id).single(),
-        supabase.from("facebook_connections").select("*").eq("profile_id", user.id).single(),
+        supabase.from("instagram_connections").select("*").eq("profile_id", user.id).maybeSingle(),
+        supabase.from("facebook_connections").select("*").eq("profile_id", user.id).maybeSingle(),
       ]);
 
       setInstagram(ig);
