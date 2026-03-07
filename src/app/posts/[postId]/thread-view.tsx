@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
+import ReactMarkdown from "react-markdown";
 import { createClient } from "@/lib/supabase/client";
 import ImpLoader from "@/app/components/imp-loader";
 import type { Post } from "@/lib/db/posts";
@@ -657,9 +658,15 @@ function ThreadMessageBubble({
             </div>
           </div>
         ) : message.body && !(message.media_url && message.body === "(photo)") ? (
-          <p className="text-sm whitespace-pre-wrap break-words">
-            <LinkifiedText text={message.body} />
-          </p>
+          isUser ? (
+            <p className="text-sm whitespace-pre-wrap break-words">
+              <LinkifiedText text={message.body} />
+            </p>
+          ) : (
+            <div className="text-sm prose prose-sm max-w-none prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5 prose-headings:my-2 prose-headings:text-base-content prose-strong:text-base-content">
+              <ReactMarkdown>{message.body}</ReactMarkdown>
+            </div>
+          )
         ) : null}
         <p className="text-[10px] mt-1 text-base-content/40" suppressHydrationWarning>
           {new Date(message.created_at).toLocaleTimeString([], {
