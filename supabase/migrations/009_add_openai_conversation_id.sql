@@ -1,1 +1,1 @@
-ALTER TABLE posts ADD COLUMN openai_conversation_id text;
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS openai_conversation_id text;
