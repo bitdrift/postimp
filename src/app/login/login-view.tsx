@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import Image from "next/image";
 import Link from "next/link";
+import ImpLoader from "@/app/components/imp-loader";
 
 export default function LoginView() {
   const [email, setEmail] = useState("");
@@ -38,7 +38,9 @@ export default function LoginView() {
     <div className="min-h-screen flex items-center justify-center bg-base-200 px-4">
       <div className="w-full max-w-md">
         <div className="flex flex-col items-center mb-8">
-          <Image src="/postimp_logo.png" alt="" width={80} height={90} className="h-20 w-auto" />
+          <div className="-mx-6">
+            <ImpLoader size={165} />
+          </div>
           <span className="text-4xl font-[family-name:var(--font-logo)] mt-2">Post Imp</span>
         </div>
         <div className="bg-base-100 rounded-2xl shadow-sm border border-base-300 p-8">
