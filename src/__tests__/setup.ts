@@ -25,6 +25,8 @@ process.env.TWILIO_AUTH_TOKEN = "test-token";
 process.env.TWILIO_PHONE_NUMBER = "+15551234567";
 process.env.INSTAGRAM_APP_ID = "test-id";
 process.env.INSTAGRAM_APP_SECRET = "test-secret";
+process.env.FACEBOOK_APP_ID = "test-fb-id";
+process.env.FACEBOOK_APP_SECRET = "test-fb-secret";
 
 // ── Mock external services (NOT Supabase) ────────────────────────────
 
