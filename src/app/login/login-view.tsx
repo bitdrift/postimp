@@ -30,7 +30,7 @@ export default function LoginView() {
       return;
     }
 
-    router.push("/onboarding");
+    router.push("/posts");
     router.refresh();
   }
 
