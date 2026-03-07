@@ -1,5 +1,6 @@
 import Link from "next/link";
 import ImpLoader from "@/app/components/imp-loader";
+import RotatingHeadline from "@/app/components/rotating-headline";
 
 const steps = [
   {
@@ -50,11 +51,11 @@ export default function HomePage() {
       <main className="flex-1">
         {/* Hero */}
         <section className="max-w-5xl mx-auto px-6 pt-16 pb-24">
-          <div className="max-w-2xl">
-            <h1 className="text-3xl sm:text-5xl font-bold tracking-tight leading-[1.1]">
-              Pro social media management.
-              <br />
-              <em className="text-primary">At a fraction of the cost.</em>
+          <div>
+            <h1 className="text-3xl sm:text-5xl font-bold tracking-tight leading-[1.2]">
+              <span className="text-primary">
+                <RotatingHeadline />
+              </span>
             </h1>
             <p className="mt-6 text-lg text-base-content/50 leading-relaxed">
               Send your photos, approve the results, and let Post Imp handle the rest.
