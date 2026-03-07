@@ -11,6 +11,7 @@ export interface PublishResult {
   success: boolean;
   error?: string;
   instagramPostId?: string;
+  instagramPermalink?: string;
   facebookPostId?: string;
   partial?: boolean;
 }
@@ -69,7 +70,10 @@ export async function executePublish(profileId: string, post: Post): Promise<Pub
       status: "published",
       published_at: new Date().toISOString(),
     };
-    if (igSuccess) updateFields.instagram_post_id = igResult!.instagramPostId;
+    if (igSuccess) {
+      updateFields.instagram_post_id = igResult!.instagramPostId;
+      if (igResult!.permalink) updateFields.instagram_permalink = igResult!.permalink;
+    }
     if (fbSuccess) updateFields.facebook_post_id = fbResult!.facebookPostId;
 
     await updatePost(db, post.id, updateFields);
@@ -97,6 +101,7 @@ export async function executePublish(profileId: string, post: Post): Promise<Pub
       return {
         success: true,
         instagramPostId: igResult?.instagramPostId,
+        instagramPermalink: igResult?.permalink,
         facebookPostId: fbResult?.facebookPostId,
       };
     }
@@ -108,6 +113,7 @@ export async function executePublish(profileId: string, post: Post): Promise<Pub
       partial: true,
       error: failedError,
       instagramPostId: igResult?.instagramPostId,
+      instagramPermalink: igResult?.permalink,
       facebookPostId: fbResult?.facebookPostId,
     };
   }

@@ -1,6 +1,7 @@
 interface PublishResult {
   success: boolean;
   instagramPostId?: string;
+  permalink?: string;
   error?: string;
 }
 
@@ -85,9 +86,22 @@ export async function publishToInstagram(
       };
     }
 
+    // Fetch permalink for embedding
+    let permalink: string | undefined;
+    try {
+      const mediaRes = await fetch(
+        `https://graph.instagram.com/v21.0/${publishData.id}?fields=permalink&access_token=${accessToken}`,
+      );
+      const mediaData = await mediaRes.json();
+      if (mediaData.permalink) permalink = mediaData.permalink;
+    } catch {
+      // Non-critical — embed just won't be available
+    }
+
     return {
       success: true,
       instagramPostId: publishData.id,
+      permalink,
     };
   } catch (error) {
     console.error("Instagram publish error:", error);

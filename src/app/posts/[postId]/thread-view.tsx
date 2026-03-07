@@ -331,25 +331,37 @@ export default function ThreadView({ post, initialMessages, profileId }: ThreadV
       ) : (
         /* Preview tab */
         <div className="flex-1 overflow-y-auto px-4 py-4">
-          <div className="bg-base-100 rounded-xl border border-base-300 overflow-hidden">
-            <img src={currentPost.image_url} alt="" className="w-full aspect-square object-cover" />
-            <div className="p-4">
-              <p className="text-sm whitespace-pre-wrap break-words">
-                {previewCaption || "Caption pending..."}
-              </p>
+          {currentPost.status === "published" && currentPost.instagram_permalink ? (
+            <div className="flex justify-center">
+              <InstagramEmbed permalink={currentPost.instagram_permalink} />
             </div>
-          </div>
-          {currentPost.status === "draft" && (
-            <button
-              onClick={() => {
-                handleQuickSend("Approve");
-                switchTab("chat");
-              }}
-              disabled={sending}
-              className="w-full mt-4 py-3 bg-neutral text-neutral-content rounded-full font-medium hover:bg-neutral/80 disabled:opacity-50 transition-colors"
-            >
-              Approve &amp; Post
-            </button>
+          ) : (
+            <>
+              <div className="bg-base-100 rounded-xl border border-base-300 overflow-hidden">
+                <img
+                  src={currentPost.image_url}
+                  alt=""
+                  className="w-full aspect-square object-cover"
+                />
+                <div className="p-4">
+                  <p className="text-sm whitespace-pre-wrap break-words">
+                    {previewCaption || "Caption pending..."}
+                  </p>
+                </div>
+              </div>
+              {currentPost.status === "draft" && (
+                <button
+                  onClick={() => {
+                    handleQuickSend("Approve");
+                    switchTab("chat");
+                  }}
+                  disabled={sending}
+                  className="w-full mt-4 py-3 bg-neutral text-neutral-content rounded-full font-medium hover:bg-neutral/80 disabled:opacity-50 transition-colors"
+                >
+                  Approve &amp; Post
+                </button>
+              )}
+            </>
           )}
         </div>
       )}
@@ -487,6 +499,38 @@ function StatsTab({ postId, isPublished }: { postId: string; isPublished: boolea
           {loading ? "Refreshing..." : "Refresh"}
         </button>
       </div>
+    </div>
+  );
+}
+
+function InstagramEmbed({ permalink }: { permalink: string }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Load Instagram embed.js if not already present
+    const existing = document.querySelector('script[src*="instagram.com/embed.js"]');
+    if (existing) {
+      // Script already loaded — just re-process embeds
+      (
+        window as unknown as { instgrm?: { Embeds: { process: () => void } } }
+      ).instgrm?.Embeds.process();
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = "https://www.instagram.com/embed.js";
+    script.async = true;
+    document.body.appendChild(script);
+  }, [permalink]);
+
+  return (
+    <div ref={containerRef} className="w-full max-w-[400px]">
+      <blockquote
+        className="instagram-media"
+        data-instgrm-captioned
+        data-instgrm-permalink={permalink}
+        style={{ width: "100%", margin: 0 }}
+      />
     </div>
   );
 }
