@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import ImpLoader from "@/app/components/imp-loader";
 import type { Post } from "@/lib/db/posts";
 import type { Message } from "@/lib/db/messages";
 
@@ -261,8 +262,8 @@ export default function ThreadView({ post, initialMessages, profileId }: ThreadV
           {/* Messages */}
           <div ref={chatScrollRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
             {messages.length === 0 && (
-              <div className="text-center text-gray-400 mt-20">
-                <p className="text-sm">Generating your caption...</p>
+              <div className="flex items-center justify-center mt-16">
+                <ImpLoader message="Generating your caption..." />
               </div>
             )}
             {messages.map((msg) => (
@@ -422,7 +423,7 @@ function StatsTab({ postId, isPublished }: { postId: string; isPublished: boolea
   if (loading && !stats) {
     return (
       <div className="flex-1 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-gray-200 border-t-black rounded-full animate-spin" />
+        <ImpLoader message="Loading stats..." />
       </div>
     );
   }

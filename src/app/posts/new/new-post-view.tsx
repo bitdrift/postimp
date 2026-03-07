@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import ImpLoader from "@/app/components/imp-loader";
 
 export default function NewPostView() {
   const router = useRouter();
@@ -60,10 +61,7 @@ export default function NewPostView() {
       {/* Content */}
       <div className="flex-1 flex items-center justify-center px-4">
         {uploading ? (
-          <div className="text-center space-y-3">
-            <div className="mx-auto w-12 h-12 border-4 border-gray-200 border-t-black rounded-full animate-spin" />
-            <p className="text-gray-500 text-sm">Uploading...</p>
-          </div>
+          <ImpLoader message="Uploading..." />
         ) : (
           <div className="text-center">
             <p className="text-gray-500 mb-6">Choose an image to begin</p>
