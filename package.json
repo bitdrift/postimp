@@ -13,7 +13,8 @@
     "test:docker": "docker compose -f docker-compose.test.yml up --build --abort-on-container-exit",
     "format": "biome format --write .",
     "format:check": "biome format .",
-    "prepare": "husky"
+    "prepare": "husky",
+    "vercel:env:push": "bash scripts/sync-env.sh"
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx,json,css}": [
