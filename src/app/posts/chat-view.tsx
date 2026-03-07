@@ -163,11 +163,11 @@ export default function ChatView({ initialMessages, profileId }: ChatViewProps) 
   }
 
   return (
-    <div className="flex flex-col h-[100dvh] bg-gray-100">
+    <div className="flex flex-col h-[100dvh] bg-base-200">
       {/* Header */}
-      <div className="bg-white border-b px-4 py-3 flex items-center justify-between shrink-0">
+      <div className="bg-base-100 border-b border-base-300 px-4 py-3 flex items-center justify-between shrink-0">
         <h1 className="text-lg font-[family-name:var(--font-logo)] ">Post Imp</h1>
-        <a href="/account" className="text-sm text-gray-500 hover:text-gray-700">
+        <a href="/account" className="text-sm text-base-content/50 hover:text-base-content/70">
           Account
         </a>
       </div>
@@ -175,7 +175,7 @@ export default function ChatView({ initialMessages, profileId }: ChatViewProps) 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
         {messages.length === 0 && (
-          <div className="text-center text-gray-400 mt-20">
+          <div className="text-center text-base-content/40 mt-20">
             <p className="text-lg mb-1">Welcome to Post Imp</p>
             <p className="text-sm">Send a photo with a description to create a post.</p>
           </div>
@@ -206,7 +206,7 @@ export default function ChatView({ initialMessages, profileId }: ChatViewProps) 
             />
             <button
               onClick={() => clearImage()}
-              className="absolute -top-2 -right-2 bg-gray-800 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+              className="absolute -top-2 -right-2 bg-neutral text-neutral-content rounded-full w-5 h-5 flex items-center justify-center text-xs"
             >
               &times;
             </button>
@@ -217,7 +217,7 @@ export default function ChatView({ initialMessages, profileId }: ChatViewProps) 
       {/* Input bar */}
       <form
         onSubmit={handleSend}
-        className="bg-white border-t px-4 py-3 flex items-center gap-2 shrink-0"
+        className="bg-base-100 border-t border-base-300 px-4 py-3 flex items-center gap-2 shrink-0"
         style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
       >
         <input
@@ -230,7 +230,7 @@ export default function ChatView({ initialMessages, profileId }: ChatViewProps) 
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
-          className="shrink-0 w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 hover:bg-gray-200 transition-colors"
+          className="shrink-0 w-10 h-10 rounded-full bg-base-200 flex items-center justify-center text-base-content/60 hover:bg-base-300 transition-colors"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -253,13 +253,13 @@ export default function ChatView({ initialMessages, profileId }: ChatViewProps) 
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder={imageFile ? "Add a description..." : "Type a message..."}
-          className="flex-1 bg-gray-100 rounded-full px-4 py-2.5 text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-pink/20"
+          className="flex-1 bg-base-200 rounded-full px-4 py-2.5 text-base-content placeholder-base-content/40 outline-none focus:ring-2 focus:ring-primary/20"
           disabled={sending}
         />
         <button
           type="submit"
           disabled={sending || (!input.trim() && !imageFile)}
-          className="shrink-0 w-10 h-10 rounded-full bg-black text-white flex items-center justify-center disabled:opacity-30 transition-opacity"
+          className="shrink-0 w-10 h-10 rounded-full bg-neutral text-neutral-content flex items-center justify-center disabled:opacity-30 transition-opacity"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -299,11 +299,11 @@ function CopyButton({ url }: { url: string }) {
         setCopied(true);
         setTimeout(() => setCopied(false), 1500);
       }}
-      className="inline-flex items-center ml-1 text-gray-400 hover:text-gray-600 align-middle"
+      className="inline-flex items-center ml-1 text-base-content/40 hover:text-base-content/60 align-middle"
       title="Copy link"
     >
       {copied ? (
-        <span className="text-xs text-green-600">Copied!</span>
+        <span className="text-xs text-success">Copied!</span>
       ) : (
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -352,12 +352,12 @@ function LinkifiedText({ text, className }: { text: string; className?: string }
 function TypingIndicator() {
   return (
     <div className="flex justify-start">
-      <div className="bg-white text-gray-900 border rounded-2xl rounded-bl-md px-4 py-3">
+      <div className="bg-base-100 text-base-content border border-base-300 rounded-2xl rounded-bl-md px-4 py-3">
         <div className="flex items-center gap-1.5">
           {[0, 150, 300].map((delay) => (
             <span
               key={delay}
-              className="block w-2 h-2 rounded-full bg-gray-400"
+              className="block w-2 h-2 rounded-full bg-base-content/40"
               style={{
                 animation: "typing-dot 1.4s infinite ease-in-out both",
                 animationDelay: `${delay}ms`,
@@ -393,8 +393,8 @@ function MessageBubble({
       <div
         className={`max-w-[80%] rounded-2xl px-4 py-2.5 ${
           isUser
-            ? "bg-black text-white rounded-br-md"
-            : "bg-white text-gray-900 border rounded-bl-md"
+            ? "bg-neutral text-neutral-content rounded-br-md"
+            : "bg-base-100 text-base-content border border-base-300 rounded-bl-md"
         }`}
       >
         {message.media_url && (
@@ -408,7 +408,7 @@ function MessageBubble({
         {draft ? (
           <div className="space-y-3">
             <p className="text-sm font-medium">{draft.header}</p>
-            <div className="bg-gray-50 border rounded-lg p-3">
+            <div className="bg-base-200 border border-base-300 rounded-lg p-3">
               <p className="text-sm whitespace-pre-wrap break-words">{draft.caption}</p>
             </div>
             {draft.previewUrl && (
@@ -417,26 +417,26 @@ function MessageBubble({
                   href={draft.previewUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium"
+                  className="inline-flex items-center gap-1 text-sm text-info hover:text-info font-medium"
                 >
                   View Preview &rarr;
                 </a>
                 <CopyButton url={draft.previewUrl} />
               </span>
             )}
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-base-content/50">
               What do you think? Suggest changes, or approve to publish.
             </p>
             <div className="flex gap-2">
               <button
                 onClick={() => onSend?.("Approve")}
-                className="px-4 py-1.5 bg-black text-white text-sm rounded-full hover:bg-gray-800 transition-colors"
+                className="px-4 py-1.5 bg-neutral text-neutral-content text-sm rounded-full hover:bg-neutral/80 transition-colors"
               >
                 Approve
               </button>
               <button
                 onClick={() => onFillInput?.(draft.caption)}
-                className="px-4 py-1.5 bg-gray-100 text-gray-700 text-sm rounded-full hover:bg-gray-200 transition-colors"
+                className="px-4 py-1.5 bg-base-200 text-base-content/70 text-sm rounded-full hover:bg-base-300 transition-colors"
               >
                 Edit
               </button>
@@ -447,7 +447,7 @@ function MessageBubble({
             <LinkifiedText text={message.body} />
           </p>
         ) : null}
-        <p className="text-[10px] mt-1 text-gray-400" suppressHydrationWarning>
+        <p className="text-[10px] mt-1 text-base-content/40" suppressHydrationWarning>
           {new Date(message.created_at).toLocaleTimeString([], {
             hour: "numeric",
             minute: "2-digit",

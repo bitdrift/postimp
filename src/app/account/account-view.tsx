@@ -12,8 +12,8 @@ export default function AccountView() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <p className="text-gray-500">Loading...</p>
+        <div className="min-h-screen flex items-center justify-center bg-base-200">
+          <p className="text-base-content/50">Loading...</p>
         </div>
       }
     >
@@ -129,47 +129,52 @@ function AccountContent() {
 
   if (checking) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <p className="text-gray-500">Loading...</p>
+      <div className="min-h-screen flex items-center justify-center bg-base-200">
+        <p className="text-base-content/50">Loading...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 px-4 py-6">
+    <div className="min-h-screen bg-base-200 px-4 py-6">
       <div className="w-full max-w-lg mx-auto space-y-6">
         {/* Header bar */}
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">Account</h1>
           <div className="flex items-center gap-4">
-            <Link href="/posts" className="text-sm text-gray-500 hover:text-gray-700">
+            <Link href="/posts" className="text-sm text-base-content/50 hover:text-base-content/70">
               Posts
             </Link>
-            <button onClick={handleLogout} className="text-sm text-gray-500 hover:text-gray-700">
+            <button
+              onClick={handleLogout}
+              className="text-sm text-base-content/50 hover:text-base-content/70"
+            >
               Log out
             </button>
           </div>
         </div>
 
         {/* Profile card */}
-        <div className="bg-white rounded-2xl shadow-sm border p-8">
+        <div className="bg-base-100 rounded-2xl shadow-sm border border-base-300 p-8">
           <h2 className="text-lg font-semibold mb-4">Profile</h2>
 
           {editing ? (
             <form onSubmit={handleSave} className="space-y-5">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Brand Name</label>
+                <label className="block text-sm font-medium text-base-content/70 mb-1">
+                  Brand Name
+                </label>
                 <input
                   type="text"
                   value={brandName}
                   onChange={(e) => setBrandName(e.target.value)}
                   required
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 focus:ring-2 focus:ring-pink focus:border-transparent outline-none"
+                  className="w-full rounded-lg border border-base-300 px-4 py-2.5 text-base-content focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-base-content/70 mb-1">
                   Brand Description
                 </label>
                 <textarea
@@ -177,23 +182,25 @@ function AccountContent() {
                   onChange={(e) => setBrandDescription(e.target.value)}
                   required
                   rows={3}
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 focus:ring-2 focus:ring-pink focus:border-transparent outline-none resize-none"
+                  className="w-full rounded-lg border border-base-300 px-4 py-2.5 text-base-content focus:ring-2 focus:ring-primary focus:border-transparent outline-none resize-none"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Tone / Voice</label>
+                <label className="block text-sm font-medium text-base-content/70 mb-1">
+                  Tone / Voice
+                </label>
                 <input
                   type="text"
                   value={tone}
                   onChange={(e) => setTone(e.target.value)}
                   required
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 focus:ring-2 focus:ring-pink focus:border-transparent outline-none"
+                  className="w-full rounded-lg border border-base-300 px-4 py-2.5 text-base-content focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-base-content/70 mb-2">
                   Caption Style
                 </label>
                 <div className="grid grid-cols-3 gap-3">
@@ -210,19 +217,19 @@ function AccountContent() {
                       onClick={() => setCaptionStyle(value)}
                       className={`rounded-lg border p-3 text-left transition-colors ${
                         captionStyle === value
-                          ? "border-pink bg-pink-light"
-                          : "border-gray-200 hover:border-gray-300"
+                          ? "border-primary bg-primary/10"
+                          : "border-base-300 hover:border-base-content/30"
                       }`}
                     >
                       <p className="text-sm font-medium">{label}</p>
-                      <p className="text-xs text-gray-500 mt-0.5">{desc}</p>
+                      <p className="text-xs text-base-content/50 mt-0.5">{desc}</p>
                     </button>
                   ))}
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-base-content/70 mb-1">
                   Target Audience
                 </label>
                 <input
@@ -230,22 +237,22 @@ function AccountContent() {
                   value={targetAudience}
                   onChange={(e) => setTargetAudience(e.target.value)}
                   required
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 focus:ring-2 focus:ring-pink focus:border-transparent outline-none"
+                  className="w-full rounded-lg border border-base-300 px-4 py-2.5 text-base-content focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
                 />
               </div>
 
               {error && (
-                <div className="bg-red-50 text-red-700 rounded-lg p-3 text-sm">{error}</div>
+                <div className="bg-error/10 text-error rounded-lg p-3 text-sm">{error}</div>
               )}
               {success && (
-                <div className="bg-green-50 text-green-700 rounded-lg p-3 text-sm">{success}</div>
+                <div className="bg-success/10 text-success rounded-lg p-3 text-sm">{success}</div>
               )}
 
               <div className="flex gap-3">
                 <button
                   type="submit"
                   disabled={loading}
-                  className="flex-1 bg-black text-white rounded-lg py-2.5 font-medium hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="flex-1 bg-neutral text-neutral-content rounded-lg py-2.5 font-medium hover:bg-neutral/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {loading ? "Saving..." : "Save Changes"}
                 </button>
@@ -261,7 +268,7 @@ function AccountContent() {
                     setSuccess("");
                     setEditing(false);
                   }}
-                  className="px-6 rounded-lg border border-gray-300 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                  className="px-6 rounded-lg border border-base-300 py-2.5 text-sm font-medium text-base-content/70 hover:bg-base-200 transition-colors"
                 >
                   Cancel
                 </button>
@@ -270,28 +277,28 @@ function AccountContent() {
           ) : (
             <div className="space-y-5">
               <div>
-                <p className="text-sm font-medium text-gray-500">Brand Name</p>
-                <p className="text-gray-900 mt-1">{brandName}</p>
+                <p className="text-sm font-medium text-base-content/50">Brand Name</p>
+                <p className="text-base-content mt-1">{brandName}</p>
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-500">Brand Description</p>
-                <p className="text-gray-900 mt-1">{brandDescription}</p>
+                <p className="text-sm font-medium text-base-content/50">Brand Description</p>
+                <p className="text-base-content mt-1">{brandDescription}</p>
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-500">Tone / Voice</p>
-                <p className="text-gray-900 mt-1">{tone}</p>
+                <p className="text-sm font-medium text-base-content/50">Tone / Voice</p>
+                <p className="text-base-content mt-1">{tone}</p>
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-500">Caption Style</p>
-                <p className="text-gray-900 mt-1 capitalize">{captionStyle}</p>
+                <p className="text-sm font-medium text-base-content/50">Caption Style</p>
+                <p className="text-base-content mt-1 capitalize">{captionStyle}</p>
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-500">Target Audience</p>
-                <p className="text-gray-900 mt-1">{targetAudience}</p>
+                <p className="text-sm font-medium text-base-content/50">Target Audience</p>
+                <p className="text-base-content mt-1">{targetAudience}</p>
               </div>
 
               {success && (
-                <div className="bg-green-50 text-green-700 rounded-lg p-3 text-sm">{success}</div>
+                <div className="bg-success/10 text-success rounded-lg p-3 text-sm">{success}</div>
               )}
 
               <button
@@ -299,7 +306,7 @@ function AccountContent() {
                   setSuccess("");
                   setEditing(true);
                 }}
-                className="w-full border border-gray-300 rounded-lg py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                className="w-full border border-base-300 rounded-lg py-2.5 text-sm font-medium text-base-content/70 hover:bg-base-200 transition-colors"
               >
                 Edit Profile
               </button>
@@ -307,22 +314,22 @@ function AccountContent() {
           )}
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border p-8">
+        <div className="bg-base-100 rounded-2xl shadow-sm border border-base-300 p-8">
           <h2 className="text-lg font-semibold mb-4">Instagram Connection</h2>
           {igError && (
-            <div className="bg-red-50 text-red-700 rounded-lg p-3 text-sm mb-4">{igError}</div>
+            <div className="bg-error/10 text-error rounded-lg p-3 text-sm mb-4">{igError}</div>
           )}
           {instagram ? (
             <div className="flex items-center justify-between">
               <div>
                 <p className="font-medium">@{instagram.instagram_username || "Connected"}</p>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-base-content/50">
                   Connected {new Date(instagram.created_at).toLocaleDateString()}
                 </p>
               </div>
               <a
                 href="/api/instagram/auth"
-                className="text-sm text-pink font-medium hover:underline"
+                className="text-sm text-primary font-medium hover:underline"
               >
                 Reconnect
               </a>
@@ -330,29 +337,29 @@ function AccountContent() {
           ) : (
             <a
               href="/api/instagram/auth"
-              className="inline-block bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg px-6 py-2.5 font-medium hover:opacity-90 transition-opacity"
+              className="inline-block bg-gradient-to-r from-secondary to-primary text-neutral-content rounded-lg px-6 py-2.5 font-medium hover:opacity-90 transition-opacity"
             >
               Connect Instagram
             </a>
           )}
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border p-8">
+        <div className="bg-base-100 rounded-2xl shadow-sm border border-base-300 p-8">
           <h2 className="text-lg font-semibold mb-4">Facebook Connection</h2>
           {fbError && (
-            <div className="bg-red-50 text-red-700 rounded-lg p-3 text-sm mb-4">{fbError}</div>
+            <div className="bg-error/10 text-error rounded-lg p-3 text-sm mb-4">{fbError}</div>
           )}
           {facebook ? (
             <div className="flex items-center justify-between">
               <div>
                 <p className="font-medium">{facebook.page_name || "Connected"}</p>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-base-content/50">
                   Connected {new Date(facebook.created_at).toLocaleDateString()}
                 </p>
               </div>
               <a
                 href="/api/facebook/auth"
-                className="text-sm text-blue-600 font-medium hover:underline"
+                className="text-sm text-info font-medium hover:underline"
               >
                 Reconnect
               </a>
@@ -360,7 +367,7 @@ function AccountContent() {
           ) : (
             <a
               href="/api/facebook/auth"
-              className="inline-block bg-blue-600 text-white rounded-lg px-6 py-2.5 font-medium hover:bg-blue-700 transition-colors"
+              className="inline-block bg-info text-neutral-content rounded-lg px-6 py-2.5 font-medium hover:bg-info/80 transition-colors"
             >
               Connect Facebook
             </a>
@@ -368,9 +375,9 @@ function AccountContent() {
         </div>
 
         {profile?.phone && (
-          <div className="bg-white rounded-2xl shadow-sm border p-8">
+          <div className="bg-base-100 rounded-2xl shadow-sm border border-base-300 p-8">
             <h2 className="text-lg font-semibold mb-2">Phone</h2>
-            <p className="text-gray-600">{profile.phone}</p>
+            <p className="text-base-content/60">{profile.phone}</p>
           </div>
         )}
       </div>

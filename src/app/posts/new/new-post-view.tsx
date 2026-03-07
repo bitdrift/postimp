@@ -36,14 +36,14 @@ export default function NewPostView() {
   }
 
   return (
-    <div className="flex flex-col h-[100dvh] bg-gray-100">
+    <div className="flex flex-col h-[100dvh] bg-base-200">
       {/* Header */}
-      <div className="bg-white border-b px-4 py-3 flex items-center justify-between shrink-0">
+      <div className="bg-base-100 border-b border-base-300 px-4 py-3 flex items-center justify-between shrink-0">
         <h1 className="font-semibold text-lg">New Post</h1>
         {!uploading && (
           <button
             onClick={() => router.back()}
-            className="text-sm text-gray-500 hover:text-gray-700"
+            className="text-sm text-base-content/50 hover:text-base-content/70"
           >
             Cancel
           </button>
@@ -64,10 +64,10 @@ export default function NewPostView() {
           <ImpLoader message="Uploading..." />
         ) : (
           <div className="text-center">
-            <p className="text-gray-500 mb-6">Choose an image to begin</p>
+            <p className="text-base-content/50 mb-6">Choose an image to begin</p>
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="bg-black text-white px-8 py-3 rounded-full font-medium hover:bg-gray-800 transition-colors"
+              className="bg-neutral text-neutral-content px-8 py-3 rounded-full font-medium hover:bg-neutral/80 transition-colors"
             >
               Choose Image
             </button>
