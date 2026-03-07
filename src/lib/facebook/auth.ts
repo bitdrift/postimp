@@ -1,5 +1,5 @@
-const FACEBOOK_APP_ID = process.env.INSTAGRAM_APP_ID!;
-const FACEBOOK_APP_SECRET = process.env.INSTAGRAM_APP_SECRET!;
+const FACEBOOK_APP_ID = process.env.FACEBOOK_APP_ID!;
+const FACEBOOK_APP_SECRET = process.env.FACEBOOK_APP_SECRET!;
 const REDIRECT_URI = `${process.env.NEXT_PUBLIC_APP_URL}/api/facebook/callback`;
 
 export interface FacebookPage {
