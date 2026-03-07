@@ -14,7 +14,7 @@
     "format": "biome format --write .",
     "format:check": "biome format .",
     "prepare": "husky",
-    "vercel:env:sync": "bash scripts/sync-env.sh"
+    "vercel:env:push": "bash scripts/sync-env.sh"
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx,json,css}": [
