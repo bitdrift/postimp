@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import type { Post } from "@/lib/db/posts";
+import Image from "next/image";
 
 const statusColors: Record<string, string> = {
   draft: "bg-yellow-100 text-yellow-800",
@@ -46,7 +47,10 @@ export default function PostsList({ posts: initialPosts }: { posts: Post[] }) {
     <div className="flex flex-col h-[100dvh] bg-gray-100">
       {/* Header */}
       <div className="bg-white border-b px-4 py-3 flex items-center justify-between shrink-0">
-        <h1 className="text-lg font-[family-name:var(--font-logo)] ">Post Imp</h1>
+        <span className="flex items-center gap-1.5">
+          <Image src="/postimp_logo.png" alt="" width={28} height={32} className="h-7 w-auto" />
+          <h1 className="text-lg font-[family-name:var(--font-logo)] translate-y-1">Post Imp</h1>
+        </span>
         <button onClick={() => setMenuOpen(true)} className="p-1 text-gray-500 hover:text-gray-700">
           <svg
             xmlns="http://www.w3.org/2000/svg"
