@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import type { Profile } from "@/lib/db/profiles";
 import type { MessageChannel } from "@/lib/db/messages";
+import { log, timed } from "@/lib/logger";
 
 let _openai: OpenAI | null = null;
 function getOpenAI(): OpenAI {
@@ -166,6 +167,7 @@ export async function sendMessage(params: {
     });
   }
 
+  const elapsed = timed();
   const response = await getOpenAI().responses.create({
     model: "gpt-4o",
     instructions: buildSystemPrompt(profile, channel),
@@ -174,7 +176,16 @@ export async function sendMessage(params: {
     ...(previousResponseId && { previous_response_id: previousResponseId }),
   });
 
-  return parseResponse(response);
+  const result = parseResponse(response);
+  log.info({
+    operation: "openai.sendMessage",
+    message: "OpenAI response received",
+    durationMs: elapsed(),
+    hasImage: !!imageUrl,
+    toolCallCount: result.toolCalls.length,
+  });
+
+  return result;
 }
 
 export async function sendToolResults(params: {
@@ -194,6 +205,7 @@ export async function sendToolResults(params: {
     output: o.output,
   }));
 
+  const elapsed = timed();
   const response = await getOpenAI().responses.create({
     model: "gpt-4o",
     instructions: buildSystemPrompt(profile, channel),
@@ -202,7 +214,16 @@ export async function sendToolResults(params: {
     previous_response_id: previousResponseId,
   });
 
-  return parseResponse(response);
+  const result = parseResponse(response);
+  log.info({
+    operation: "openai.sendToolResults",
+    message: "OpenAI tool results response received",
+    durationMs: elapsed(),
+    toolOutputCount: toolOutputs.length,
+    toolCallCount: result.toolCalls.length,
+  });
+
+  return result;
 }
 
 function parseResponse(response: OpenAI.Responses.Response): SendMessageResult {

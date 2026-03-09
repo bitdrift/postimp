@@ -3,14 +3,18 @@ import { createDbClient } from "@/lib/db/client";
 import { exchangeCodeForToken, getInstagramUsername, getGrantedScopes } from "@/lib/instagram/auth";
 import { upsertInstagramConnection } from "@/lib/db/instagram";
 import { getBaseUrl } from "@/lib/core/url";
+import { log, timed, serializeError } from "@/lib/logger";
 
 export async function GET(request: NextRequest) {
+  const elapsed = timed();
   const { searchParams } = new URL(request.url);
   const code = searchParams.get("code");
   const state = searchParams.get("state");
   const error = searchParams.get("error");
 
   const baseUrl = getBaseUrl(request);
+
+  log.info({ operation: "api.instagram.callback", message: "GET /api/instagram/callback" });
 
   if (error || !code || !state) {
     return NextResponse.redirect(`${baseUrl}/account?error=instagram_denied`);
@@ -42,6 +46,13 @@ export async function GET(request: NextRequest) {
       granted_scopes: grantedScopes,
     });
 
+    log.info({
+      operation: "api.instagram.callback",
+      message: "Instagram connected",
+      profileId: userId,
+      durationMs: elapsed(),
+    });
+
     return NextResponse.redirect(`${baseUrl}/account?instagram=connected`);
   } catch (err) {
     const message =
@@ -50,7 +61,12 @@ export async function GET(request: NextRequest) {
         : typeof err === "object"
           ? JSON.stringify(err)
           : String(err);
-    console.error("Instagram OAuth error:", message);
+    log.error({
+      operation: "api.instagram.callback",
+      message: "Instagram OAuth error",
+      durationMs: elapsed(),
+      error: serializeError(err),
+    });
     return NextResponse.redirect(
       `${baseUrl}/account?error=instagram_failed&detail=${encodeURIComponent(message)}`,
     );

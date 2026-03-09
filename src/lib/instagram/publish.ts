@@ -1,3 +1,5 @@
+import { log, timed, serializeError } from "@/lib/logger";
+
 interface PublishResult {
   success: boolean;
   instagramPostId?: string;
@@ -11,6 +13,7 @@ export async function publishToInstagram(
   imageUrl: string,
   caption: string,
 ): Promise<PublishResult> {
+  const elapsed = timed();
   try {
     // Step 1: Create media container
     const containerResponse = await fetch(`https://graph.instagram.com/v21.0/${igUserId}/media`, {
@@ -33,6 +36,12 @@ export async function publishToInstagram(
     }
 
     const containerId = containerData.id;
+
+    log.info({
+      operation: "instagram.publish",
+      message: "Media container created",
+      containerId,
+    });
 
     // Step 2: Poll container status until FINISHED
     let status = "IN_PROGRESS";
@@ -98,13 +107,26 @@ export async function publishToInstagram(
       // Non-critical — embed just won't be available
     }
 
+    log.info({
+      operation: "instagram.publish",
+      message: "Post published to Instagram",
+      instagramPostId: publishData.id,
+      durationMs: elapsed(),
+      pollAttempts: attempts,
+    });
+
     return {
       success: true,
       instagramPostId: publishData.id,
       permalink,
     };
   } catch (error) {
-    console.error("Instagram publish error:", error);
+    log.error({
+      operation: "instagram.publish",
+      message: "Instagram publish error",
+      durationMs: elapsed(),
+      error: serializeError(error),
+    });
     return {
       success: false,
       error: "An unexpected error occurred while publishing.",

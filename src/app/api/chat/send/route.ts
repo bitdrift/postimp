@@ -4,8 +4,12 @@ import { createDbClient } from "@/lib/db/client";
 import { insertMessage, updateMessage } from "@/lib/db/messages";
 import { makeWebDeliver } from "@/lib/core/deliver";
 import { routeMessage } from "@/lib/core/router";
+import { log, timed } from "@/lib/logger";
 
 export async function POST(request: NextRequest) {
+  const elapsed = timed();
+  log.info({ operation: "api.chat.send", message: "POST /api/chat/send" });
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -41,6 +45,12 @@ export async function POST(request: NextRequest) {
   if (result.postId && inboundMsg) {
     await updateMessage(db, inboundMsg.id, { post_id: result.postId });
   }
+
+  log.info({
+    operation: "api.chat.send",
+    message: "POST /api/chat/send completed",
+    durationMs: elapsed(),
+  });
 
   return NextResponse.json({ ok: true });
 }

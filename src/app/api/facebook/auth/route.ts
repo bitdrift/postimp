@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getFacebookAuthorizationUrl } from "@/lib/facebook/auth";
 import { getBaseUrl } from "@/lib/core/url";
 import { randomBytes } from "crypto";
+import { log } from "@/lib/logger";
 
 export async function GET(request: NextRequest) {
   const baseUrl = getBaseUrl(request);
@@ -17,6 +18,8 @@ export async function GET(request: NextRequest) {
   }
 
   const state = `${user.id}:${randomBytes(16).toString("hex")}`;
+
+  log.info({ operation: "api.facebook.auth", message: "Redirecting to Facebook OAuth" });
 
   const authUrl = getFacebookAuthorizationUrl(state, baseUrl);
   return NextResponse.redirect(authUrl);

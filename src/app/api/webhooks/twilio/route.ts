@@ -5,12 +5,23 @@ import { createDbClient } from "@/lib/db/client";
 import { getProfileByPhone } from "@/lib/db/profiles";
 import { getValidRegistration, insertRegistration } from "@/lib/db/registrations";
 import { insertMessage } from "@/lib/db/messages";
+import { log, timed, maskPhone } from "@/lib/logger";
 
 export async function POST(request: NextRequest) {
+  const elapsed = timed();
   const formData = await request.formData();
   const params: Record<string, string> = {};
   formData.forEach((value, key) => {
     params[key] = value.toString();
+  });
+
+  const from = params.From;
+
+  log.info({
+    operation: "api.webhooks.twilio",
+    message: "POST /api/webhooks/twilio",
+    phone: maskPhone(from || ""),
+    hasMedia: !!params.MediaUrl0,
   });
 
   // Validate Twilio signature
@@ -23,7 +34,6 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  const from = params.From;
   const body = params.Body?.trim() || "";
   const mediaUrl = params.MediaUrl0 || null;
   const messageSid = params.MessageSid || null;
@@ -74,11 +84,16 @@ export async function POST(request: NextRequest) {
       channel: "sms",
     });
   } else {
-    // Registered user — route to SMS handler (Phase 7)
-    // For now, import and call the router
+    // Registered user — route to SMS handler
     const { routeMessage } = await import("@/lib/sms/router");
     await routeMessage(profile.id, from, body, mediaUrl);
   }
+
+  log.info({
+    operation: "api.webhooks.twilio",
+    message: "POST /api/webhooks/twilio completed",
+    durationMs: elapsed(),
+  });
 
   // Return empty TwiML response
   return new NextResponse("<Response/>", {

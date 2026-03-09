@@ -6,8 +6,12 @@ import {
   deletePendingFacebookToken,
   upsertFacebookConnection,
 } from "@/lib/db/facebook";
+import { log, timed, serializeError } from "@/lib/logger";
 
 export async function POST(request: NextRequest) {
+  const elapsed = timed();
+  log.info({ operation: "api.facebook.selectPage", message: "POST /api/facebook/select-page" });
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -59,8 +63,20 @@ export async function POST(request: NextRequest) {
     // Clean up pending token
     await deletePendingFacebookToken(db, user.id);
 
+    log.info({
+      operation: "api.facebook.selectPage",
+      message: "Facebook page connected",
+      durationMs: elapsed(),
+    });
+
     return NextResponse.json({ success: true });
   } catch (err) {
+    log.error({
+      operation: "api.facebook.selectPage",
+      message: "POST /api/facebook/select-page failed",
+      durationMs: elapsed(),
+      error: serializeError(err),
+    });
     const message = err instanceof Error ? err.message : String(err);
     return NextResponse.json({ error: message }, { status: 500 });
   }

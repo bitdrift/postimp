@@ -69,6 +69,17 @@ Required in `.env.local`:
 - `NEXT_PUBLIC_BASE_URL`
 - `CRON_SECRET` (Vercel Cron authentication)
 
+## Logging
+
+- **Structured JSON logging** via `src/lib/logger.ts` — outputs flat JSON to stdout/stderr, parsed natively by Vercel
+- Import: `import { log, timed, serializeError, maskPhone } from "@/lib/logger"`
+- Levels: `log.info({ operation, message, ... })`, `log.warn(...)`, `log.error(...)`
+- Use `timed()` to measure duration of external calls (returns a function that gives elapsed ms)
+- Use `serializeError(err)` to safely serialize Error objects for the `error` field
+- **No `console.log`/`console.error`** — always use `log.*`
+- **Sensitive data rules:** never log message bodies (user PII), tokens are auto-redacted by key name, mask phone numbers with `maskPhone()`
+- **No DB layer logging** — log at the caller with business context instead
+
 ## Testing
 
 - Test runner: Vitest

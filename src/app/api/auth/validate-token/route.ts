@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createDbClient } from "@/lib/db/client";
 import { getRegistrationByToken } from "@/lib/db/registrations";
+import { log } from "@/lib/logger";
 
 export async function POST(request: NextRequest) {
   const { token } = await request.json();
@@ -27,6 +28,11 @@ export async function POST(request: NextRequest) {
       { status: 400 },
     );
   }
+
+  log.info({
+    operation: "api.auth.validateToken",
+    message: "Token validated",
+  });
 
   return NextResponse.json({ phone: registration.phone });
 }

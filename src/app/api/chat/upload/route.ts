@@ -4,8 +4,12 @@ import { createDbClient } from "@/lib/db/client";
 import { insertMessage, updateMessage } from "@/lib/db/messages";
 import { makeWebDeliver } from "@/lib/core/deliver";
 import { routeMessage } from "@/lib/core/router";
+import { log, timed } from "@/lib/logger";
 
 export async function POST(request: NextRequest) {
+  const elapsed = timed();
+  log.info({ operation: "api.chat.upload", message: "POST /api/chat/upload" });
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -56,6 +60,12 @@ export async function POST(request: NextRequest) {
       media_url: result.imageUrl || null,
     });
   }
+
+  log.info({
+    operation: "api.chat.upload",
+    message: "POST /api/chat/upload completed",
+    durationMs: elapsed(),
+  });
 
   return NextResponse.json({ ok: true });
 }

@@ -1,3 +1,5 @@
+import { log, timed } from "@/lib/logger";
+
 const INSTAGRAM_APP_ID = process.env.INSTAGRAM_APP_ID!;
 const INSTAGRAM_APP_SECRET = process.env.INSTAGRAM_APP_SECRET!;
 
@@ -22,6 +24,7 @@ export async function exchangeCodeForToken(
   code: string,
   baseUrl: string,
 ): Promise<{ accessToken: string; userId: string }> {
+  const elapsed = timed();
   const redirectUri = `${baseUrl}/api/instagram/callback`;
   // Exchange code for short-lived token
   const tokenResponse = await fetch("https://api.instagram.com/oauth/access_token", {
@@ -72,6 +75,12 @@ export async function exchangeCodeForToken(
     throw new Error(meData.error.message || "Failed to fetch Instagram user info");
   }
 
+  log.info({
+    operation: "instagram.exchangeToken",
+    message: "Instagram token exchanged",
+    durationMs: elapsed(),
+  });
+
   return {
     accessToken: longLivedData.access_token,
     userId: meData.user_id,
@@ -91,6 +100,7 @@ export function isTokenExpiringSoon(
 export async function refreshInstagramToken(
   currentToken: string,
 ): Promise<{ accessToken: string; expiresAt: Date }> {
+  const elapsed = timed();
   const response = await fetch(
     `https://graph.instagram.com/oauth/access_token?` +
       new URLSearchParams({
@@ -108,6 +118,12 @@ export async function refreshInstagramToken(
   if (data.error) {
     throw new Error(data.error.message || "Failed to refresh Instagram token");
   }
+
+  log.info({
+    operation: "instagram.refreshToken",
+    message: "Instagram token refreshed",
+    durationMs: elapsed(),
+  });
 
   return {
     accessToken: data.access_token,

@@ -1,3 +1,5 @@
+import { log, timed } from "@/lib/logger";
+
 const FACEBOOK_APP_ID = process.env.FACEBOOK_APP_ID!;
 const FACEBOOK_APP_SECRET = process.env.FACEBOOK_APP_SECRET!;
 
@@ -28,6 +30,7 @@ export async function exchangeCodeForToken(
   code: string,
   baseUrl: string,
 ): Promise<{ accessToken: string; userId: string }> {
+  const elapsed = timed();
   const redirectUri = `${baseUrl}/api/facebook/callback`;
   // Exchange code for short-lived token
   const tokenResponse = await fetch(
@@ -74,6 +77,12 @@ export async function exchangeCodeForToken(
   if (meData.error) {
     throw new Error(meData.error.message || "Failed to fetch Facebook user info");
   }
+
+  log.info({
+    operation: "facebook.exchangeToken",
+    message: "Facebook token exchanged",
+    durationMs: elapsed(),
+  });
 
   return {
     accessToken: longLivedData.access_token,

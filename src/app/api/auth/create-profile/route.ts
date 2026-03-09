@@ -3,6 +3,7 @@ import { createDbClient } from "@/lib/db/client";
 import { createClient } from "@/lib/supabase/server";
 import { insertProfile } from "@/lib/db/profiles";
 import { getUnusedRegistrationByToken, markRegistrationUsed } from "@/lib/db/registrations";
+import { log, serializeError } from "@/lib/logger";
 
 export async function POST(request: NextRequest) {
   const { token } = await request.json();
@@ -38,6 +39,13 @@ export async function POST(request: NextRequest) {
   // Create profile
   try {
     await insertProfile(db, { id: user.id, phone });
+
+    log.info({
+      operation: "api.auth.createProfile",
+      message: "Profile created",
+      profileId: user.id,
+      hasPhone: !!phone,
+    });
   } catch (error: unknown) {
     // Profile might already exist if there was a race condition
     const code =
@@ -45,6 +53,11 @@ export async function POST(request: NextRequest) {
         ? (error as { code: string }).code
         : null;
     if (code !== "23505") {
+      log.error({
+        operation: "api.auth.createProfile",
+        message: "Failed to create profile",
+        error: serializeError(error),
+      });
       const message = error instanceof Error ? error.message : String(error);
       return NextResponse.json({ error: message }, { status: 500 });
     }
