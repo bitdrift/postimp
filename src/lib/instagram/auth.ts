@@ -1,13 +1,16 @@
 const INSTAGRAM_APP_ID = process.env.INSTAGRAM_APP_ID!;
 const INSTAGRAM_APP_SECRET = process.env.INSTAGRAM_APP_SECRET!;
 
+import { REQUIRED_INSTAGRAM_SCOPES } from "@/lib/core/scopes";
+
+export { REQUIRED_INSTAGRAM_SCOPES };
+
 export function getAuthorizationUrl(state: string, baseUrl: string): string {
   const redirectUri = `${baseUrl}/api/instagram/callback`;
   const params = new URLSearchParams({
     client_id: INSTAGRAM_APP_ID,
     redirect_uri: redirectUri,
-    scope:
-      "instagram_business_basic,instagram_business_content_publish,instagram_business_manage_insights",
+    scope: REQUIRED_INSTAGRAM_SCOPES.join(","),
     response_type: "code",
     state,
   });
@@ -110,6 +113,27 @@ export async function refreshInstagramToken(
     accessToken: data.access_token,
     expiresAt: new Date(Date.now() + data.expires_in * 1000),
   };
+}
+
+export async function getGrantedScopes(accessToken: string): Promise<string[] | null> {
+  try {
+    const response = await fetch(
+      `https://graph.instagram.com/v21.0/me/permissions?access_token=${accessToken}`,
+    );
+    const data = await response.json();
+
+    if (data.error) {
+      console.error("[getGrantedScopes] Instagram permissions error:", data.error.message);
+      return null;
+    }
+
+    return (data.data || [])
+      .filter((p: { status: string }) => p.status === "granted")
+      .map((p: { permission: string }) => p.permission);
+  } catch (err) {
+    console.error("[getGrantedScopes] Instagram permissions fetch failed:", err);
+    return null;
+  }
 }
 
 export async function getInstagramUsername(

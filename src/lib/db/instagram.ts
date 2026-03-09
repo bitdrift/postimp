@@ -40,6 +40,7 @@ export async function upsertInstagramConnection(
     access_token: string;
     token_expires_at: string;
     instagram_username: string | null;
+    granted_scopes?: string[] | null;
   },
 ): Promise<void> {
   const { error } = await client

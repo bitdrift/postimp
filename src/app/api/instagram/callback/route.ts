@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createDbClient } from "@/lib/db/client";
-import { exchangeCodeForToken, getInstagramUsername } from "@/lib/instagram/auth";
+import { exchangeCodeForToken, getInstagramUsername, getGrantedScopes } from "@/lib/instagram/auth";
 import { upsertInstagramConnection } from "@/lib/db/instagram";
 import { getBaseUrl } from "@/lib/core/url";
 
@@ -25,7 +25,10 @@ export async function GET(request: NextRequest) {
   try {
     const { accessToken, userId: igUserId } = await exchangeCodeForToken(code, baseUrl);
 
-    const username = await getInstagramUsername(igUserId, accessToken);
+    const [username, grantedScopes] = await Promise.all([
+      getInstagramUsername(igUserId, accessToken),
+      getGrantedScopes(accessToken),
+    ]);
 
     const db = createDbClient();
 
@@ -36,11 +39,17 @@ export async function GET(request: NextRequest) {
       access_token: accessToken,
       token_expires_at: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString(), // 60 days
       instagram_username: username,
+      granted_scopes: grantedScopes,
     });
 
     return NextResponse.redirect(`${baseUrl}/account?instagram=connected`);
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
+    const message =
+      err instanceof Error
+        ? err.message
+        : typeof err === "object"
+          ? JSON.stringify(err)
+          : String(err);
     console.error("Instagram OAuth error:", message);
     return NextResponse.redirect(
       `${baseUrl}/account?error=instagram_failed&detail=${encodeURIComponent(message)}`,

@@ -19,6 +19,7 @@ export interface InstagramConnection {
   access_token: string;
   token_expires_at: string | null;
   instagram_username: string | null;
+  granted_scopes: string[] | null;
   created_at: string;
   updated_at: string;
 }
@@ -30,6 +31,7 @@ export interface FacebookConnection {
   facebook_page_id: string;
   page_name: string | null;
   page_access_token: string;
+  granted_scopes: string[] | null;
   created_at: string;
   updated_at: string;
 }

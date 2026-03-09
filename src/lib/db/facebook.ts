@@ -24,6 +24,7 @@ export async function upsertFacebookConnection(
     facebook_page_id: string;
     page_name: string | null;
     page_access_token: string;
+    granted_scopes?: string[] | null;
   },
 ): Promise<void> {
   const { error } = await client
@@ -37,12 +38,14 @@ export async function savePendingFacebookToken(
   profileId: string,
   facebookUserId: string,
   userAccessToken: string,
+  grantedScopes?: string[],
 ): Promise<void> {
   const { error } = await client.from("pending_facebook_tokens").upsert(
     {
       profile_id: profileId,
       facebook_user_id: facebookUserId,
       user_access_token: userAccessToken,
+      granted_scopes: grantedScopes || null,
     },
     { onConflict: "profile_id" },
   );
@@ -52,10 +55,14 @@ export async function savePendingFacebookToken(
 export async function getPendingFacebookToken(
   client: DbClient,
   profileId: string,
-): Promise<{ facebook_user_id: string; user_access_token: string } | null> {
+): Promise<{
+  facebook_user_id: string;
+  user_access_token: string;
+  granted_scopes: string[] | null;
+} | null> {
   const { data, error } = await client
     .from("pending_facebook_tokens")
-    .select("facebook_user_id, user_access_token")
+    .select("facebook_user_id, user_access_token, granted_scopes")
     .eq("profile_id", profileId)
     .single();
   if (error) return null;
