@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createDbClient } from "@/lib/db/client";
 import { exchangeCodeForToken, getInstagramUsername } from "@/lib/instagram/auth";
 import { upsertInstagramConnection } from "@/lib/db/instagram";
+import { getBaseUrl } from "@/lib/core/url";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -9,7 +10,7 @@ export async function GET(request: NextRequest) {
   const state = searchParams.get("state");
   const error = searchParams.get("error");
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL!;
+  const baseUrl = getBaseUrl(request);
 
   if (error || !code || !state) {
     return NextResponse.redirect(`${baseUrl}/account?error=instagram_denied`);
@@ -22,7 +23,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const { accessToken, userId: igUserId } = await exchangeCodeForToken(code);
+    const { accessToken, userId: igUserId } = await exchangeCodeForToken(code, baseUrl);
 
     const username = await getInstagramUsername(igUserId, accessToken);
 

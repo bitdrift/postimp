@@ -1,6 +1,5 @@
 const FACEBOOK_APP_ID = process.env.FACEBOOK_APP_ID!;
 const FACEBOOK_APP_SECRET = process.env.FACEBOOK_APP_SECRET!;
-const REDIRECT_URI = `${process.env.NEXT_PUBLIC_APP_URL}/api/facebook/callback`;
 
 export interface FacebookPage {
   id: string;
@@ -8,10 +7,11 @@ export interface FacebookPage {
   access_token: string;
 }
 
-export function getFacebookAuthorizationUrl(state: string): string {
+export function getFacebookAuthorizationUrl(state: string, baseUrl: string): string {
+  const redirectUri = `${baseUrl}/api/facebook/callback`;
   const params = new URLSearchParams({
     client_id: FACEBOOK_APP_ID,
-    redirect_uri: REDIRECT_URI,
+    redirect_uri: redirectUri,
     scope: "pages_manage_posts,pages_read_engagement",
     response_type: "code",
     state,
@@ -22,14 +22,16 @@ export function getFacebookAuthorizationUrl(state: string): string {
 
 export async function exchangeCodeForToken(
   code: string,
+  baseUrl: string,
 ): Promise<{ accessToken: string; userId: string }> {
+  const redirectUri = `${baseUrl}/api/facebook/callback`;
   // Exchange code for short-lived token
   const tokenResponse = await fetch(
     `https://graph.facebook.com/v21.0/oauth/access_token?` +
       new URLSearchParams({
         client_id: FACEBOOK_APP_ID,
         client_secret: FACEBOOK_APP_SECRET,
-        redirect_uri: REDIRECT_URI,
+        redirect_uri: redirectUri,
         code,
       }),
   );
