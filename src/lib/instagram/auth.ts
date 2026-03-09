@@ -1,11 +1,11 @@
 const INSTAGRAM_APP_ID = process.env.INSTAGRAM_APP_ID!;
 const INSTAGRAM_APP_SECRET = process.env.INSTAGRAM_APP_SECRET!;
-const REDIRECT_URI = `${process.env.NEXT_PUBLIC_APP_URL}/api/instagram/callback`;
 
-export function getAuthorizationUrl(state: string): string {
+export function getAuthorizationUrl(state: string, baseUrl: string): string {
+  const redirectUri = `${baseUrl}/api/instagram/callback`;
   const params = new URLSearchParams({
     client_id: INSTAGRAM_APP_ID,
-    redirect_uri: REDIRECT_URI,
+    redirect_uri: redirectUri,
     scope:
       "instagram_business_basic,instagram_business_content_publish,instagram_business_manage_insights",
     response_type: "code",
@@ -17,7 +17,9 @@ export function getAuthorizationUrl(state: string): string {
 
 export async function exchangeCodeForToken(
   code: string,
+  baseUrl: string,
 ): Promise<{ accessToken: string; userId: string }> {
+  const redirectUri = `${baseUrl}/api/instagram/callback`;
   // Exchange code for short-lived token
   const tokenResponse = await fetch("https://api.instagram.com/oauth/access_token", {
     method: "POST",
@@ -26,7 +28,7 @@ export async function exchangeCodeForToken(
       client_id: INSTAGRAM_APP_ID,
       client_secret: INSTAGRAM_APP_SECRET,
       grant_type: "authorization_code",
-      redirect_uri: REDIRECT_URI,
+      redirect_uri: redirectUri,
       code,
     }),
   });
