@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { log, serializeError } from "@/lib/logger";
 
 export async function POST(request: NextRequest) {
   const { email } = await request.json();
@@ -12,7 +13,11 @@ export async function POST(request: NextRequest) {
   const { data, error } = await supabase.auth.admin.listUsers();
 
   if (error) {
-    console.error("check-email: listUsers failed", error);
+    log.error({
+      operation: "api.auth.checkEmail",
+      message: "listUsers failed",
+      error: serializeError(error),
+    });
     return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
   }
 

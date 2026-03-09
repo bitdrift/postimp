@@ -1,4 +1,5 @@
 import twilio from "twilio";
+import { log, timed, maskPhone } from "@/lib/logger";
 
 let _client: ReturnType<typeof twilio> | null = null;
 function getClient() {
@@ -15,9 +16,17 @@ export const twilioClient = {
 };
 
 export async function sendSms(to: string, body: string) {
-  return getClient().messages.create({
+  const elapsed = timed();
+  const result = await getClient().messages.create({
     body,
     from: process.env.TWILIO_PHONE_NUMBER!,
     to,
   });
+  log.info({
+    operation: "twilio.sendSms",
+    message: "SMS sent",
+    phone: maskPhone(to),
+    durationMs: elapsed(),
+  });
+  return result;
 }

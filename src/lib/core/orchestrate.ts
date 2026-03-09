@@ -7,6 +7,7 @@ import { executePublish } from "./handle-approve";
 import { fetchPostStats, fetchPostComments } from "./instagram-data";
 import { msgStr, formatCaptionMessage } from "./messages";
 import type { MessageContext, DeliverFn } from "./types";
+import { log, timed, serializeError } from "@/lib/logger";
 
 export interface OrchestrateResult {
   postId?: string;
@@ -81,9 +82,19 @@ export async function orchestrate(
     conversationId = existingDraft.openai_conversation_id;
   }
 
+  log.info({
+    operation: "orchestrate",
+    message: "Starting orchestration",
+    profileId: ctx.profileId,
+    channel: ctx.channel,
+    hasMedia: !!hasMedia,
+    postId,
+  });
+
   // Send message to AI
   let result: SendMessageResult;
   try {
+    const elapsed = timed();
     result = await sendMessage({
       text: ctx.body || "Create a caption for this image.",
       imageUrl: newPostResult ? imageUrl : undefined,
@@ -91,8 +102,22 @@ export async function orchestrate(
       profile,
       channel: ctx.channel,
     });
+    log.info({
+      operation: "orchestrate.sendMessage",
+      message: "AI message sent",
+      profileId: ctx.profileId,
+      postId,
+      durationMs: elapsed(),
+      toolCallCount: result.toolCalls.length,
+    });
   } catch (error) {
-    console.error("AI conversation error:", error);
+    log.error({
+      operation: "orchestrate.sendMessage",
+      message: "AI conversation error",
+      profileId: ctx.profileId,
+      postId,
+      error: serializeError(error),
+    });
     await deliver(msgStr("genericError", ctx.channel), postId);
     return { postId, imageUrl };
   }
@@ -110,6 +135,15 @@ export async function orchestrate(
     const toolOutputs: Array<{ callId: string; output: string }> = [];
 
     for (const toolCall of currentResult.toolCalls) {
+      log.info({
+        operation: "orchestrate.toolCall",
+        message: `Executing tool: ${toolCall.name}`,
+        profileId: ctx.profileId,
+        postId,
+        toolName: toolCall.name,
+        round,
+      });
+
       if (toolCall.name === "update_caption") {
         const caption = toolCall.args.caption as string;
         await updatePost(db, postId, { caption });
@@ -168,17 +202,33 @@ export async function orchestrate(
 
     // Send tool results back to AI for follow-up
     try {
+      const elapsed = timed();
       currentResult = await sendToolResults({
         previousResponseId: currentResult.responseId,
         toolOutputs,
         profile,
         channel: ctx.channel,
       });
+      log.info({
+        operation: "orchestrate.sendToolResults",
+        message: "AI tool results sent",
+        profileId: ctx.profileId,
+        postId,
+        durationMs: elapsed(),
+        round,
+      });
 
       // Update conversation ID to latest response
       await updatePost(db, postId, { openai_conversation_id: currentResult.responseId });
     } catch (error) {
-      console.error("AI tool result error:", error);
+      log.error({
+        operation: "orchestrate.sendToolResults",
+        message: "AI tool result error",
+        profileId: ctx.profileId,
+        postId,
+        round,
+        error: serializeError(error),
+      });
       break;
     }
   }

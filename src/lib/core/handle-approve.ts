@@ -6,6 +6,7 @@ import { getFacebookConnection } from "@/lib/db/facebook";
 import { getProfile, updateProfile } from "@/lib/db/profiles";
 import { updatePost, type Post } from "@/lib/db/posts";
 import { refreshInstagramToken, isTokenExpiringSoon } from "@/lib/instagram/auth";
+import { log, timed, serializeError } from "@/lib/logger";
 
 export interface PublishResult {
   success: boolean;
@@ -22,6 +23,16 @@ export async function executePublish(profileId: string, post: Post): Promise<Pub
   // Fetch profile to get publish_platforms preference
   const profile = await getProfile(db, profileId);
   const platforms: string[] = profile?.publish_platforms || ["instagram"];
+
+  log.info({
+    operation: "publish",
+    message: "Starting publish",
+    profileId,
+    postId: post.id,
+    platforms,
+  });
+
+  const elapsed = timed();
 
   // Fetch connections for the preferred platforms in parallel
   const [igConnection, fbConnection] = await Promise.all([
@@ -65,6 +76,17 @@ export async function executePublish(profileId: string, post: Post): Promise<Pub
   const anySuccess = igSuccess || fbSuccess;
   const allSuccess = (!validIg || igSuccess) && (!validFb || fbSuccess);
 
+  log.info({
+    operation: "publish",
+    message: "Publish completed",
+    profileId,
+    postId: post.id,
+    durationMs: elapsed(),
+    igSuccess,
+    fbSuccess,
+    allSuccess,
+  });
+
   if (anySuccess) {
     const updateFields: Record<string, unknown> = {
       status: "published",
@@ -89,7 +111,12 @@ export async function executePublish(profileId: string, post: Post): Promise<Pub
           refreshed.expiresAt.toISOString(),
         );
       } catch (err) {
-        console.error("Opportunistic token refresh failed:", err);
+        log.warn({
+          operation: "publish.tokenRefresh",
+          message: "Opportunistic token refresh failed",
+          profileId,
+          error: serializeError(err),
+        });
       }
     }
 

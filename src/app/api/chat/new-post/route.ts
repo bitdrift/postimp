@@ -4,8 +4,12 @@ import { createDbClient } from "@/lib/db/client";
 import { insertMessage } from "@/lib/db/messages";
 import { makeWebDeliver } from "@/lib/core/deliver";
 import { routeMessage } from "@/lib/core/router";
+import { log, timed } from "@/lib/logger";
 
 export async function POST(request: NextRequest) {
+  const elapsed = timed();
+  log.info({ operation: "api.chat.newPost", message: "POST /api/chat/new-post" });
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -53,6 +57,13 @@ export async function POST(request: NextRequest) {
     channel: "web",
     post_id: result.postId,
     media_url: result.imageUrl || null,
+  });
+
+  log.info({
+    operation: "api.chat.newPost",
+    message: "POST /api/chat/new-post completed",
+    postId: result.postId,
+    durationMs: elapsed(),
   });
 
   return NextResponse.json({ postId: result.postId });

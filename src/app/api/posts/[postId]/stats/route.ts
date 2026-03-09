@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { log, timed, serializeError } from "@/lib/logger";
 
 const STALE_AFTER_MS = 10 * 60 * 1000; // 10 minutes
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ postId: string }> }) {
+  const elapsed = timed();
   const { postId } = await params;
   const supabase = await createClient();
   const {
@@ -100,8 +102,22 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ post
       { onConflict: "post_id" },
     );
 
+    log.info({
+      operation: "api.posts.stats",
+      message: "Stats fetched from Instagram",
+      postId,
+      durationMs: elapsed(),
+    });
+
     return NextResponse.json({ stats: statsData, fetched_at: new Date().toISOString() });
-  } catch {
+  } catch (error) {
+    log.error({
+      operation: "api.posts.stats",
+      message: "Failed to fetch stats",
+      postId,
+      durationMs: elapsed(),
+      error: serializeError(error),
+    });
     if (cached) {
       return NextResponse.json({ stats: cached.data, fetched_at: cached.fetched_at });
     }

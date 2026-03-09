@@ -2,11 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { createDbClient } from "@/lib/db/client";
 import { refreshInstagramToken } from "@/lib/instagram/auth";
 import { updateInstagramToken } from "@/lib/db/instagram";
+import { log, timed, serializeError } from "@/lib/logger";
 
 export async function GET(request: NextRequest) {
+  const elapsed = timed();
+  log.info({ operation: "api.cron.refreshTokens", message: "GET /api/cron/refresh-tokens" });
+
   const cronSecret = process.env.CRON_SECRET;
   if (!cronSecret) {
-    console.error("Cron: CRON_SECRET is not configured");
+    log.error({
+      operation: "api.cron.refreshTokens",
+      message: "CRON_SECRET is not configured",
+    });
     return NextResponse.json({ error: "Server misconfigured" }, { status: 500 });
   }
 
@@ -27,11 +34,20 @@ export async function GET(request: NextRequest) {
     .lt("token_expires_at", sevenDaysFromNow);
 
   if (error) {
-    console.error("Cron: failed to query connections:", error.message);
+    log.error({
+      operation: "api.cron.refreshTokens",
+      message: "Failed to query connections",
+      error: serializeError(error),
+    });
     return NextResponse.json({ error: "Database error" }, { status: 500 });
   }
 
   if (!connections || connections.length === 0) {
+    log.info({
+      operation: "api.cron.refreshTokens",
+      message: "No tokens to refresh",
+      durationMs: elapsed(),
+    });
     return NextResponse.json({ refreshed: 0, failed: 0 });
   }
 
@@ -50,13 +66,21 @@ export async function GET(request: NextRequest) {
       refreshed++;
     } catch (err) {
       failed++;
-      console.error(
-        `Cron: failed to refresh token for profile ${conn.profile_id}:`,
-        err instanceof Error ? err.message : err,
-      );
+      log.error({
+        operation: "api.cron.refreshTokens",
+        message: "Failed to refresh token",
+        profileId: conn.profile_id,
+        error: serializeError(err),
+      });
     }
   }
 
-  console.log(`Cron: refreshed ${refreshed}, failed ${failed}`);
+  log.info({
+    operation: "api.cron.refreshTokens",
+    message: "Token refresh completed",
+    refreshed,
+    failed,
+    durationMs: elapsed(),
+  });
   return NextResponse.json({ refreshed, failed });
 }

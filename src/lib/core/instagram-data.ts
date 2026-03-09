@@ -1,5 +1,6 @@
 import { createDbClient } from "@/lib/db/client";
 import type { Post } from "@/lib/supabase/types";
+import { log, timed } from "@/lib/logger";
 
 async function getAccessToken(profileId: string): Promise<string | null> {
   const db = createDbClient();
@@ -24,6 +25,7 @@ export async function fetchPostStats(
     return { error: "No Instagram connection found. Connect Instagram in account settings." };
   }
 
+  const elapsed = timed();
   try {
     const basicRes = await fetch(
       `https://graph.instagram.com/v21.0/${post.instagram_post_id}?fields=like_count,comments_count,timestamp&access_token=${accessToken}`,
@@ -52,6 +54,14 @@ export async function fetchPostStats(
       }
     }
 
+    log.info({
+      operation: "instagramData.fetchStats",
+      message: "Post stats fetched",
+      profileId,
+      postId: post.id,
+      durationMs: elapsed(),
+    });
+
     return { stats };
   } catch {
     return { error: "Failed to fetch stats from Instagram." };
@@ -73,6 +83,7 @@ export async function fetchPostComments(
     return { error: "No Instagram connection found. Connect Instagram in account settings." };
   }
 
+  const elapsed = timed();
   try {
     const res = await fetch(
       `https://graph.instagram.com/v21.0/${post.instagram_post_id}/comments?fields=username,text,timestamp&limit=50&access_token=${accessToken}`,
@@ -90,6 +101,15 @@ export async function fetchPostComments(
         timestamp: c.timestamp,
       }),
     );
+
+    log.info({
+      operation: "instagramData.fetchComments",
+      message: "Post comments fetched",
+      profileId,
+      postId: post.id,
+      commentCount: comments.length,
+      durationMs: elapsed(),
+    });
 
     return { comments };
   } catch {

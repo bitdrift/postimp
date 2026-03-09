@@ -4,6 +4,7 @@ import { uploadPostImage, getPostImageUrl } from "@/lib/db/storage";
 import { msgStr } from "./messages";
 import type { MessageChannel } from "@/lib/db/messages";
 import type { DeliverFn } from "./types";
+import { log, timed, serializeError } from "@/lib/logger";
 
 export type ImageSource =
   | { kind: "url"; mediaUrl: string }
@@ -51,6 +52,7 @@ export async function uploadAndCreatePost(
     const ext = contentType.includes("png") ? "png" : contentType.includes("webp") ? "webp" : "jpg";
     const fileName = `${profileId}/${Date.now()}.${ext}`;
 
+    const elapsed = timed();
     try {
       await uploadPostImage(db, fileName, imageBuffer, contentType);
     } catch {
@@ -67,9 +69,22 @@ export async function uploadAndCreatePost(
       status: "draft",
     });
 
+    log.info({
+      operation: "handleNewPost",
+      message: "Image uploaded and post created",
+      profileId,
+      postId: post.id,
+      durationMs: elapsed(),
+    });
+
     return { postId: post.id, imageUrl: publicUrl, previewToken: post.preview_token };
   } catch (error) {
-    console.error("Error creating post:", error);
+    log.error({
+      operation: "handleNewPost",
+      message: "Error creating post",
+      profileId,
+      error: serializeError(error),
+    });
     await deliver(msgStr("genericError", channel));
     return null;
   }
