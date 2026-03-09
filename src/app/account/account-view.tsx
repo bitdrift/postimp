@@ -7,6 +7,11 @@ import { createClient } from "@/lib/supabase/client";
 import type { Profile } from "@/lib/db/profiles";
 import type { InstagramConnection } from "@/lib/db/instagram";
 import type { FacebookConnection } from "@/lib/db/facebook";
+import {
+  REQUIRED_INSTAGRAM_SCOPES,
+  REQUIRED_FACEBOOK_SCOPES,
+  needsReauth,
+} from "@/lib/core/scopes";
 
 export default function AccountView() {
   return (
@@ -84,13 +89,13 @@ function AccountContent() {
       setCaptionStyle(p.caption_style || "polished");
       setTargetAudience(p.target_audience || "");
 
-      const [{ data: ig }, { data: fb }] = await Promise.all([
+      const [igResult, fbResult] = await Promise.all([
         supabase.from("instagram_connections").select("*").eq("profile_id", user.id).maybeSingle(),
         supabase.from("facebook_connections").select("*").eq("profile_id", user.id).maybeSingle(),
       ]);
 
-      setInstagram(ig);
-      setFacebook(fb);
+      setInstagram(igResult.data);
+      setFacebook(fbResult.data);
       setChecking(false);
     }
     load();
@@ -320,19 +325,34 @@ function AccountContent() {
             <div className="bg-error/10 text-error rounded-lg p-3 text-sm mb-4">{igError}</div>
           )}
           {instagram ? (
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">@{instagram.instagram_username || "Connected"}</p>
-                <p className="text-sm text-base-content/50">
-                  Connected {new Date(instagram.created_at).toLocaleDateString()}
-                </p>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">@{instagram.instagram_username || "Connected"}</p>
+                  <p className="text-sm text-base-content/50">
+                    Connected {new Date(instagram.created_at).toLocaleDateString()}
+                  </p>
+                </div>
+                <a
+                  href="/api/instagram/auth"
+                  className="text-sm text-primary font-medium hover:underline"
+                >
+                  Reconnect
+                </a>
               </div>
-              <a
-                href="/api/instagram/auth"
-                className="text-sm text-primary font-medium hover:underline"
-              >
-                Reconnect
-              </a>
+              {needsReauth(instagram.granted_scopes, REQUIRED_INSTAGRAM_SCOPES) && (
+                <div className="bg-warning/10 border border-warning/30 rounded-lg p-3 flex items-center justify-between gap-3">
+                  <p className="text-sm text-warning">
+                    New permissions required. Please re-authorize to continue using all features.
+                  </p>
+                  <a
+                    href="/api/instagram/auth"
+                    className="shrink-0 text-sm font-medium text-warning hover:underline"
+                  >
+                    Re-authorize
+                  </a>
+                </div>
+              )}
             </div>
           ) : (
             <a
@@ -350,19 +370,34 @@ function AccountContent() {
             <div className="bg-error/10 text-error rounded-lg p-3 text-sm mb-4">{fbError}</div>
           )}
           {facebook ? (
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">{facebook.page_name || "Connected"}</p>
-                <p className="text-sm text-base-content/50">
-                  Connected {new Date(facebook.created_at).toLocaleDateString()}
-                </p>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">{facebook.page_name || "Connected"}</p>
+                  <p className="text-sm text-base-content/50">
+                    Connected {new Date(facebook.created_at).toLocaleDateString()}
+                  </p>
+                </div>
+                <a
+                  href="/api/facebook/auth"
+                  className="text-sm text-info font-medium hover:underline"
+                >
+                  Reconnect
+                </a>
               </div>
-              <a
-                href="/api/facebook/auth"
-                className="text-sm text-info font-medium hover:underline"
-              >
-                Reconnect
-              </a>
+              {needsReauth(facebook.granted_scopes, REQUIRED_FACEBOOK_SCOPES) && (
+                <div className="bg-warning/10 border border-warning/30 rounded-lg p-3 flex items-center justify-between gap-3">
+                  <p className="text-sm text-warning">
+                    New permissions required. Please re-authorize to continue using all features.
+                  </p>
+                  <a
+                    href="/api/facebook/auth"
+                    className="shrink-0 text-sm font-medium text-warning hover:underline"
+                  >
+                    Re-authorize
+                  </a>
+                </div>
+              )}
             </div>
           ) : (
             <a

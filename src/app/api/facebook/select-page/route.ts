@@ -38,6 +38,7 @@ export async function POST(request: NextRequest) {
       facebook_page_id: page_id,
       page_name: page_name || null,
       page_access_token,
+      granted_scopes: pending.granted_scopes,
     });
 
     // Add "facebook" to publish_platforms if not already present

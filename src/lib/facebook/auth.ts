@@ -7,12 +7,16 @@ export interface FacebookPage {
   access_token: string;
 }
 
+import { REQUIRED_FACEBOOK_SCOPES } from "@/lib/core/scopes";
+
+export { REQUIRED_FACEBOOK_SCOPES };
+
 export function getFacebookAuthorizationUrl(state: string, baseUrl: string): string {
   const redirectUri = `${baseUrl}/api/facebook/callback`;
   const params = new URLSearchParams({
     client_id: FACEBOOK_APP_ID,
     redirect_uri: redirectUri,
-    scope: "pages_manage_posts,pages_read_engagement",
+    scope: REQUIRED_FACEBOOK_SCOPES.join(","),
     response_type: "code",
     state,
   });
@@ -75,6 +79,27 @@ export async function exchangeCodeForToken(
     accessToken: longLivedData.access_token,
     userId: meData.id,
   };
+}
+
+export async function getGrantedScopes(accessToken: string): Promise<string[] | null> {
+  try {
+    const response = await fetch(
+      `https://graph.facebook.com/v21.0/me/permissions?access_token=${accessToken}`,
+    );
+    const data = await response.json();
+
+    if (data.error) {
+      console.error("[getGrantedScopes] Facebook permissions error:", data.error.message);
+      return null;
+    }
+
+    return (data.data || [])
+      .filter((p: { status: string }) => p.status === "granted")
+      .map((p: { permission: string }) => p.permission);
+  } catch (err) {
+    console.error("[getGrantedScopes] Facebook permissions fetch failed:", err);
+    return null;
+  }
 }
 
 export async function listPages(userAccessToken: string): Promise<FacebookPage[]> {
