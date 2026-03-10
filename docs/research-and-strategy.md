@@ -37,49 +37,49 @@ Currently every conversation is tied to a specific post. This feature introduces
 
 ## Backlog
 
-Tasks are ordered by suggested priority but can be reprioritized as we go. Each task is independently buildable and testable.
+Each item is a small, testable feature — a vertical slice that delivers something you can see working end-to-end. Features build on each other but each is independently committable. No tables or code are created until a feature needs them.
 
-### Infrastructure
+### Done
 
-- [ ] **Add Facebook Login auth path** — Required for Business Discovery API (reading other accounts' posts) and hashtag search. Add alongside existing Instagram Login without disrupting current flow.
-- [ ] **Research data model & migrations** — Create tables: `research_accounts` (tracked IG accounts, relationship type), `research_posts` (stored posts with local image copies), `research_hashtags` (tracked tags), `research_hashtag_posts` (discovered posts). Store images in Supabase Storage since Instagram CDN URLs expire.
-- [ ] **Business Discovery API integration** — Given a username, fetch their profile info and recent posts (last ~5) via `GET /<IG_USER_ID>?fields=business_discovery.fields(...)`. Store results in research tables.
-- [ ] **Hashtag search API integration** — Given a hashtag, fetch recent public media via `ig_hashtag_search`. Store results. Note: limited to 30 unique hashtags per 7-day window per user.
-- [ ] **Own account post ingestion** — Pull the user's own posts via `GET /<IG_USER_ID>/media`. Start with last ~5, store images + metadata. Can expand to full history later.
-- [ ] **Background data refresh** — Cron job or on-demand trigger to re-pull research data periodically (daily). Update engagement metrics on previously stored posts.
+- [x] **Facebook Login: Business Discovery scope** — Added `instagram_basic` to Facebook Login scopes, enabling the Business Discovery API for reading other accounts' posts.
 
-### Onboarding & Settings
+### Up Next
 
-- [ ] **Onboarding: Instagram username step** — New step after existing onboarding: "What's your Instagram username?" (optional — account may be new). Triggers own-account ingestion if provided.
-- [ ] **Onboarding: inspiration accounts step** — "Add accounts you'd like to learn from" — username input, up to 10. Triggers Business Discovery pull for each.
-- [ ] **Onboarding: hashtag step** — "What hashtags describe your niche?" — tag input. AI suggests a few based on brand description. Triggers hashtag search.
-- [ ] **Account settings: manage research sources** — New section in account page to add/remove inspiration accounts and hashtags. Re-trigger data pull when sources change.
+- [ ] **Look up any Instagram account** — Enter a username, see their profile info and last ~5 posts (image, caption, likes, comments). Displayed on a new page. Uses Business Discovery API via Facebook Login. Creates whatever storage is needed for the fetched data.
 
-### Caption Enrichment
+- [ ] **Save inspiration accounts** — From the account lookup page, tap "Save as inspiration." Saved accounts appear in a list on a new "Research" screen. User can add up to 10 and remove any. Data model is created as needed.
 
-- [ ] **AI analysis pipeline** — When research data is pulled/refreshed, run a GPT-4o analysis pass that extracts patterns: caption length, hashtag usage, hooks/CTAs, tone, posting cadence, engagement correlations. Store summary per account and as an aggregate "niche profile."
-- [ ] **Enrich system prompt with research insights** — Extend `buildSystemPrompt` to include niche context: "High-performing posts in this niche tend to...", "The user's best posts share these traits...", etc. Keep it concise — summarized insights, not raw data.
-- [ ] **Business type profile templates** — Curate static seed data for common business types (restaurant, fitness, retail, creator, etc.). Use as a bootstrap when research data is sparse. AI personalizes based on user's brand description.
+- [ ] **Pull your own post history** — New section on the Research screen: "Your Posts." Pulls and displays your last ~5 Instagram posts with images, captions, and engagement stats. Uses `GET /<IG_USER_ID>/media`.
 
-### Post Ideas
+- [ ] **AI-powered niche analysis** — After saving at least one inspiration account (or having your own posts pulled), a button triggers an AI analysis pass. AI looks at the collected posts and produces a written summary: what's working, common patterns (tone, length, hashtags, hooks, CTAs), engagement trends. Summary is displayed on the Research screen.
 
-- [ ] **Post Ideas screen** — New screen accessible from hamburger menu. Browsable list of AI-generated post ideas, each with title, brief description, and optional reference image from research.
-- [ ] **Idea generation engine** — AI generates ideas based on: trending content in hashtags, inspiration account patterns, gaps in user's posting history, seasonal opportunities. Batch-generate ~10, store in a table, mark as used/dismissed. Regenerate when stock runs low.
-- [ ] **Idea → post flow** — "Start" CTA on an idea opens a new chat thread with context pre-loaded (AI knows the idea and what kind of photo to expect). "Upload" CTA goes to image upload with idea context attached.
-- [ ] **Pre-image ideation in chat** — Allow users to start a chat without an image. Chat with the AI about what to post, get suggestions for photo concepts/compositions, then upload when ready.
+- [ ] **Smarter captions from research** — The niche analysis summary is fed into the caption generation system prompt. When composing a new post, the AI draws on research insights to write better captions. No UI change — captions just get better.
 
-### Strategy & Goals
+- [ ] **Hashtag search** — Enter a hashtag on the Research screen, see recent public posts for that tag. Save hashtags for later reference. Limited to 30 unique hashtags per 7-day window (Instagram API limit). Uses `ig_hashtag_search`.
 
-- [ ] **Account-level strategy conversation** — New persistent thread not tied to a post. Accessible from the app. Starts during onboarding, AI asks about goals and makes initial recommendations. User can revisit anytime.
-- [ ] **Goal setting** — AI helps user set quantitative goals (follower targets, engagement rates, posting frequency) and qualitative goals (brand awareness, community building). Stored on profile, referenced in post-level conversations.
-- [ ] **Content calendar suggestions** — AI suggests a posting schedule based on goals and niche patterns. Presented as recommendations in the strategy thread. Before each post is finalized, AI considers the calendar context.
-- [ ] **Proactive engagement** — Weekly summary of posting activity vs. goals. Nudges when the user hasn't posted in a while. Delivered in strategy thread (and optionally via SMS).
+- [ ] **Onboarding: research setup** — After existing onboarding, new optional steps: (1) "What's your Instagram username?" triggers own-post pull, (2) "Accounts you admire?" triggers inspiration saves, (3) "Hashtags for your niche?" triggers hashtag search. Each step is skippable.
 
-### Scheduling
+- [ ] **Manage research sources in settings** — New section on account/settings page to add/remove inspiration accounts and hashtags. Changes trigger fresh data pulls.
 
-- [ ] **Schedule a post** — "Schedule" option alongside "Approve" when finalizing. Date/time picker. Stored as a scheduled post.
-- [ ] **Scheduled post publishing** — Cron job to publish posts at their scheduled time. Scheduled posts visible in a list or calendar view.
-- [ ] **AI-suggested posting times** — Based on research data, suggest optimal times to post for the user's niche.
+- [ ] **Refresh research data** — Button to manually re-pull all research sources (new posts, updated engagement metrics). Later: daily cron job to do this automatically.
+
+- [ ] **Strategy conversation** — New persistent AI chat thread at the account level (not tied to a post). Accessible from the app nav. AI has context from research data and can discuss goals, brand voice, and content direction.
+
+- [ ] **Post ideas list** — New screen showing AI-generated post ideas based on research data. Each idea has a title and brief description. User can dismiss or act on ideas. "Start" opens a new post chat with the idea as context.
+
+- [ ] **Chat without an image** — Allow starting a post conversation without uploading a photo first. Discuss what to post with the AI, get suggestions for photo concepts, then upload when ready.
+
+- [ ] **Goal setting** — In the strategy conversation, AI helps set goals (posting frequency, engagement targets, brand direction). Goals are stored and referenced in post-level conversations ("You said you wanted to post 3x/week — you're at 1 so far").
+
+- [ ] **Content calendar** — AI suggests a posting schedule based on goals and niche patterns. Visual calendar view. When finalizing a post, AI considers what's already planned.
+
+- [ ] **Schedule a post** — "Schedule" option alongside "Approve" when finalizing. Date/time picker. Scheduled posts are visible in the calendar and publish automatically via cron.
+
+- [ ] **Weekly recap** — Proactive weekly summary in the strategy thread: posts published, engagement stats vs. goals, suggestions for next week. Optionally delivered via SMS.
+
+- [ ] **AI-suggested posting times** — When scheduling, AI recommends optimal times based on niche engagement patterns from research data.
+
+- [ ] **Business type templates** — Seed data for common business types (restaurant, fitness, retail, creator). Bootstraps the system prompt when research data is sparse. AI personalizes based on user's brand description.
 
 ---
 
