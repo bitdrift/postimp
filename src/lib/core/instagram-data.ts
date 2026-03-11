@@ -2,12 +2,12 @@ import { createDbClient } from "@/lib/db/client";
 import type { Post } from "@/lib/supabase/types";
 import { log, timed } from "@/lib/logger";
 
-async function getAccessToken(profileId: string): Promise<string | null> {
+async function getAccessToken(organizationId: string): Promise<string | null> {
   const db = createDbClient();
   const { data } = await db
     .from("instagram_connections")
     .select("access_token")
-    .eq("profile_id", profileId)
+    .eq("organization_id", organizationId)
     .single();
   return data?.access_token ?? null;
 }
@@ -20,7 +20,11 @@ export async function fetchPostStats(
     return { error: "No Instagram post ID found." };
   }
 
-  const accessToken = await getAccessToken(profileId);
+  if (!post.organization_id) {
+    return { error: "Post is not associated with an organization." };
+  }
+
+  const accessToken = await getAccessToken(post.organization_id);
   if (!accessToken) {
     return { error: "No Instagram connection found. Connect Instagram in account settings." };
   }
@@ -78,7 +82,11 @@ export async function fetchPostComments(
     return { error: "No Instagram post ID found." };
   }
 
-  const accessToken = await getAccessToken(profileId);
+  if (!post.organization_id) {
+    return { error: "Post is not associated with an organization." };
+  }
+
+  const accessToken = await getAccessToken(post.organization_id);
   if (!accessToken) {
     return { error: "No Instagram connection found. Connect Instagram in account settings." };
   }

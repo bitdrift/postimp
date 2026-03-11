@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createDbClient } from "@/lib/db/client";
 import { getPendingFacebookToken } from "@/lib/db/facebook";
+import { getActiveOrganization } from "@/lib/db/organizations";
 import { listPages } from "@/lib/facebook/auth";
 import { log, timed, serializeError } from "@/lib/logger";
 
@@ -17,7 +18,11 @@ export async function GET() {
   }
 
   const db = createDbClient();
-  const pending = await getPendingFacebookToken(db, user.id);
+  const org = await getActiveOrganization(db, user.id);
+  if (!org) {
+    return NextResponse.json({ error: "No organization found" }, { status: 404 });
+  }
+  const pending = await getPendingFacebookToken(db, org.id);
 
   if (!pending) {
     return NextResponse.json({ error: "No pending Facebook token found" }, { status: 404 });

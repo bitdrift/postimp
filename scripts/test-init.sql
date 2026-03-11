@@ -5,11 +5,37 @@
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 -- Auth schema (profiles FK references auth.users)
+-- Includes columns needed by both tests (minimal) and dev seed (GoTrue-compatible).
 CREATE SCHEMA IF NOT EXISTS auth;
 CREATE TABLE IF NOT EXISTS auth.users (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  email text
+  instance_id uuid,
+  email text,
+  encrypted_password text,
+  email_confirmed_at timestamptz,
+  aud text DEFAULT 'authenticated',
+  role text DEFAULT 'authenticated',
+  raw_app_meta_data jsonb DEFAULT '{}'::jsonb,
+  raw_user_meta_data jsonb DEFAULT '{}'::jsonb,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now(),
+  confirmation_token text DEFAULT '',
+  recovery_token text DEFAULT '',
+  email_change_token_new text DEFAULT '',
+  email_change text DEFAULT ''
 );
+CREATE TABLE IF NOT EXISTS auth.identities (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  provider_id text NOT NULL,
+  provider text NOT NULL DEFAULT 'email',
+  identity_data jsonb DEFAULT '{}'::jsonb,
+  last_sign_in_at timestamptz,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now(),
+  UNIQUE (provider_id, provider)
+);
+
 CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid
   AS $$ SELECT (current_setting('request.jwt.claims', true)::json->>'sub')::uuid $$
   LANGUAGE sql STABLE;

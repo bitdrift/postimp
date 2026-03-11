@@ -6,6 +6,7 @@ import {
   deletePendingFacebookToken,
   upsertFacebookConnection,
 } from "@/lib/db/facebook";
+import { getActiveOrganization } from "@/lib/db/organizations";
 import { log, timed, serializeError } from "@/lib/logger";
 
 export async function POST(request: NextRequest) {
@@ -28,7 +29,11 @@ export async function POST(request: NextRequest) {
   }
 
   const db = createDbClient();
-  const pending = await getPendingFacebookToken(db, user.id);
+  const org = await getActiveOrganization(db, user.id);
+  if (!org) {
+    return NextResponse.json({ error: "No organization found" }, { status: 404 });
+  }
+  const pending = await getPendingFacebookToken(db, org.id);
 
   if (!pending) {
     return NextResponse.json({ error: "No pending Facebook token found" }, { status: 404 });
@@ -37,7 +42,8 @@ export async function POST(request: NextRequest) {
   try {
     // Save the Facebook page connection
     await upsertFacebookConnection(db, {
-      profile_id: user.id,
+      organization_id: org.id,
+      connected_by_user_id: user.id,
       facebook_user_id: pending.facebook_user_id,
       facebook_page_id: page_id,
       page_name: page_name || null,
@@ -61,7 +67,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Clean up pending token
-    await deletePendingFacebookToken(db, user.id);
+    await deletePendingFacebookToken(db, org.id);
 
     log.info({
       operation: "api.facebook.selectPage",

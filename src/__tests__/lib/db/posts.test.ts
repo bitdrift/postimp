@@ -1,11 +1,11 @@
 import { describe, it, expect, afterEach } from "vitest";
 import { createDbClient } from "@/lib/db/client";
-import { seedProfile, seedPost, cleanAll } from "../../helpers/seed";
+import { seedProfile, seedPost, seedOrganization, cleanAll } from "../../helpers/seed";
 import {
   getActiveDraft,
   getPostById,
   getPostByPreviewToken,
-  getPostsByProfile,
+  getPostsByOrganization,
   getRecentCaptions,
   insertPost,
   updatePost,
@@ -45,7 +45,18 @@ describe("posts", () => {
       const { id: profileId } = await seedProfile();
       const { id: postId } = await seedPost(profileId);
 
-      const post = await getPostById(db, postId, profileId);
+      const post = await getPostById(db, postId, { profileId });
+      expect(post).not.toBeNull();
+      expect(post!.id).toBe(postId);
+    });
+
+    it("returns post when id and organizationId match", async () => {
+      const { id: profileId } = await seedProfile();
+      const { id: orgId } = await seedOrganization(profileId);
+      const { id: postId } = await seedPost(profileId, { organization_id: orgId });
+
+      // Another user in the same org can look up by orgId
+      const post = await getPostById(db, postId, { organizationId: orgId });
       expect(post).not.toBeNull();
       expect(post!.id).toBe(postId);
     });
@@ -55,13 +66,23 @@ describe("posts", () => {
       const { id: postId } = await seedPost(profileId);
       const { id: otherId } = await seedProfile();
 
-      const post = await getPostById(db, postId, otherId);
+      const post = await getPostById(db, postId, { profileId: otherId });
+      expect(post).toBeNull();
+    });
+
+    it("returns null when organizationId does not match", async () => {
+      const { id: profileId } = await seedProfile();
+      const { id: orgId } = await seedOrganization(profileId);
+      const { id: otherOrgId } = await seedOrganization(profileId, { name: "Other Org" });
+      const { id: postId } = await seedPost(profileId, { organization_id: orgId });
+
+      const post = await getPostById(db, postId, { organizationId: otherOrgId });
       expect(post).toBeNull();
     });
 
     it("returns null for nonexistent post", async () => {
       const { id: profileId } = await seedProfile();
-      const post = await getPostById(db, crypto.randomUUID(), profileId);
+      const post = await getPostById(db, crypto.randomUUID(), { profileId });
       expect(post).toBeNull();
     });
   });
@@ -82,14 +103,15 @@ describe("posts", () => {
     });
   });
 
-  describe("getPostsByProfile", () => {
+  describe("getPostsByOrganization", () => {
     it("returns non-cancelled posts in desc order", async () => {
       const { id } = await seedProfile();
-      await seedPost(id, { caption: "draft one", status: "draft" });
-      await seedPost(id, { caption: "published one", status: "published" });
-      await seedPost(id, { caption: "cancelled one", status: "cancelled" });
+      const { id: orgId } = await seedOrganization(id);
+      await seedPost(id, { caption: "draft one", status: "draft", organization_id: orgId });
+      await seedPost(id, { caption: "published one", status: "published", organization_id: orgId });
+      await seedPost(id, { caption: "cancelled one", status: "cancelled", organization_id: orgId });
 
-      const posts = await getPostsByProfile(db, id);
+      const posts = await getPostsByOrganization(db, orgId);
       expect(posts).toHaveLength(2);
       // Most recent first
       expect(posts[0].caption).toBe("published one");
@@ -98,10 +120,26 @@ describe("posts", () => {
       expect(posts.every((p) => p.status !== "cancelled")).toBe(true);
     });
 
-    it("returns empty array for user with no posts", async () => {
+    it("returns empty array for org with no posts", async () => {
       const { id } = await seedProfile();
-      const posts = await getPostsByProfile(db, id);
+      const { id: orgId } = await seedOrganization(id);
+      const posts = await getPostsByOrganization(db, orgId);
       expect(posts).toEqual([]);
+    });
+
+    it("filters by profileId when provided", async () => {
+      const { id: user1 } = await seedProfile();
+      const { id: user2 } = await seedProfile();
+      const { id: orgId } = await seedOrganization(user1);
+      await seedPost(user1, { caption: "user1 post", organization_id: orgId });
+      await seedPost(user2, { caption: "user2 post", organization_id: orgId });
+
+      const myPosts = await getPostsByOrganization(db, orgId, user1);
+      expect(myPosts).toHaveLength(1);
+      expect(myPosts[0].caption).toBe("user1 post");
+
+      const allPosts = await getPostsByOrganization(db, orgId);
+      expect(allPosts).toHaveLength(2);
     });
   });
 
@@ -139,7 +177,7 @@ describe("posts", () => {
       expect(result.id).toBeDefined();
       expect(result.preview_token).toBeDefined();
 
-      const post = await getPostById(db, result.id, profileId);
+      const post = await getPostById(db, result.id, { profileId });
       expect(post!.caption).toBe("test caption");
     });
   });
@@ -154,28 +192,47 @@ describe("posts", () => {
         status: "published",
       });
 
-      const post = await getPostById(db, postId, profileId);
+      const post = await getPostById(db, postId, { profileId });
       expect(post!.caption).toBe("updated caption");
       expect(post!.status).toBe("published");
     });
   });
 
   describe("cancelDrafts", () => {
-    it("cancels all draft posts for a profile", async () => {
+    it("cancels all draft posts for a profile in an org", async () => {
       const { id } = await seedProfile();
-      await seedPost(id, { status: "draft" });
-      await seedPost(id, { status: "draft" });
-      await seedPost(id, { status: "published" });
+      const { id: orgId } = await seedOrganization(id);
+      await seedPost(id, { status: "draft", organization_id: orgId });
+      await seedPost(id, { status: "draft", organization_id: orgId });
+      await seedPost(id, { status: "published", organization_id: orgId });
 
-      await cancelDrafts(db, id);
+      await cancelDrafts(db, id, orgId);
 
       const draft = await getActiveDraft(db, id);
       expect(draft).toBeNull();
 
       // Published post should be unaffected
-      const posts = await getPostsByProfile(db, id);
+      const posts = await getPostsByOrganization(db, orgId);
       expect(posts).toHaveLength(1);
       expect(posts[0].status).toBe("published");
+    });
+
+    it("only cancels drafts in the specified org", async () => {
+      const { id } = await seedProfile();
+      const { id: org1 } = await seedOrganization(id, { name: "Org 1" });
+      const { id: org2 } = await seedOrganization(id, { name: "Org 2" });
+      await seedPost(id, { status: "draft", organization_id: org1 });
+      await seedPost(id, { status: "draft", organization_id: org2 });
+
+      await cancelDrafts(db, id, org1);
+
+      const org1Posts = await getPostsByOrganization(db, org1);
+      expect(org1Posts).toHaveLength(0);
+
+      // Org2 draft should be untouched
+      const org2Posts = await getPostsByOrganization(db, org2);
+      expect(org2Posts).toHaveLength(1);
+      expect(org2Posts[0].status).toBe("draft");
     });
   });
 });

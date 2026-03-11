@@ -8,6 +8,7 @@ import { getInstagramConnection } from "@/lib/db/instagram";
 import type { Post } from "@/lib/db/posts";
 import {
   seedProfile,
+  seedOrganization,
   seedPost,
   seedInstagramConnection,
   seedFacebookConnection,
@@ -46,7 +47,8 @@ describe("executePublish", () => {
 
   it("returns error when no connections", async () => {
     const { id } = await seedProfile();
-    const post = await seedPost(id);
+    const org = await seedOrganization(id);
+    const post = await seedPost(id, { organization_id: org.id });
     const fullPost = await getPost(post.id);
 
     const result = await executePublish(id, fullPost);
@@ -57,9 +59,10 @@ describe("executePublish", () => {
 
   it("returns error when IG token expired and no FB", async () => {
     const { id } = await seedProfile();
-    const post = await seedPost(id);
+    const org = await seedOrganization(id);
+    const post = await seedPost(id, { organization_id: org.id });
     const fullPost = await getPost(post.id);
-    await seedInstagramConnection(id, {
+    await seedInstagramConnection(org.id, {
       token_expires_at: new Date(Date.now() - 86400000).toISOString(),
     });
 
@@ -71,9 +74,10 @@ describe("executePublish", () => {
 
   it("publishes to Instagram successfully", async () => {
     const { id } = await seedProfile();
-    const post = await seedPost(id);
+    const org = await seedOrganization(id);
+    const post = await seedPost(id, { organization_id: org.id });
     const fullPost = await getPost(post.id);
-    await seedInstagramConnection(id);
+    await seedInstagramConnection(org.id);
 
     const result = await executePublish(id, fullPost);
 
@@ -88,13 +92,14 @@ describe("executePublish", () => {
   it("publishes to Facebook only when only FB connected", async () => {
     const db = createDbClient();
     const { id } = await seedProfile();
+    const org = await seedOrganization(id);
     await db
       .from("profiles")
       .update({ publish_platforms: ["facebook"] })
       .eq("id", id);
-    const post = await seedPost(id);
+    const post = await seedPost(id, { organization_id: org.id });
     const fullPost = await getPost(post.id);
-    await seedFacebookConnection(id);
+    await seedFacebookConnection(org.id);
 
     const result = await executePublish(id, fullPost);
 
@@ -109,14 +114,15 @@ describe("executePublish", () => {
   it("publishes to both platforms when both connected", async () => {
     const db = createDbClient();
     const { id } = await seedProfile();
+    const org = await seedOrganization(id);
     await db
       .from("profiles")
       .update({ publish_platforms: ["instagram", "facebook"] })
       .eq("id", id);
-    const post = await seedPost(id);
+    const post = await seedPost(id, { organization_id: org.id });
     const fullPost = await getPost(post.id);
-    await seedInstagramConnection(id);
-    await seedFacebookConnection(id);
+    await seedInstagramConnection(org.id);
+    await seedFacebookConnection(org.id);
 
     const result = await executePublish(id, fullPost);
 
@@ -138,14 +144,15 @@ describe("executePublish", () => {
 
     const db = createDbClient();
     const { id } = await seedProfile();
+    const org = await seedOrganization(id);
     await db
       .from("profiles")
       .update({ publish_platforms: ["instagram", "facebook"] })
       .eq("id", id);
-    const post = await seedPost(id);
+    const post = await seedPost(id, { organization_id: org.id });
     const fullPost = await getPost(post.id);
-    await seedInstagramConnection(id);
-    await seedFacebookConnection(id);
+    await seedInstagramConnection(org.id);
+    await seedFacebookConnection(org.id);
 
     const result = await executePublish(id, fullPost);
 
@@ -166,9 +173,10 @@ describe("executePublish", () => {
     });
 
     const { id } = await seedProfile();
-    const post = await seedPost(id);
+    const org = await seedOrganization(id);
+    const post = await seedPost(id, { organization_id: org.id });
     const fullPost = await getPost(post.id);
-    await seedInstagramConnection(id);
+    await seedInstagramConnection(org.id);
 
     const result = await executePublish(id, fullPost);
 
@@ -183,16 +191,17 @@ describe("executePublish", () => {
     mockIsExpiring.mockReturnValue(true);
 
     const { id } = await seedProfile();
-    const post = await seedPost(id);
+    const org = await seedOrganization(id);
+    const post = await seedPost(id, { organization_id: org.id });
     const fullPost = await getPost(post.id);
-    await seedInstagramConnection(id);
+    await seedInstagramConnection(org.id);
 
     await executePublish(id, fullPost);
 
     expect(mockRefresh).toHaveBeenCalledWith("test_access_token");
 
     const db = createDbClient();
-    const connection = await getInstagramConnection(db, id);
+    const connection = await getInstagramConnection(db, org.id);
     expect(connection!.access_token).toBe("refreshed_tok");
   });
 
@@ -201,9 +210,10 @@ describe("executePublish", () => {
     mockRefresh.mockRejectedValueOnce(new Error("refresh failed"));
 
     const { id } = await seedProfile();
-    const post = await seedPost(id);
+    const org = await seedOrganization(id);
+    const post = await seedPost(id, { organization_id: org.id });
     const fullPost = await getPost(post.id);
-    await seedInstagramConnection(id);
+    await seedInstagramConnection(org.id);
 
     const result = await executePublish(id, fullPost);
 

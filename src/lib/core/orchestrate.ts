@@ -38,7 +38,13 @@ export async function orchestrate(
         ? { kind: "buffer", imageBuffer: ctx.imageBuffer, contentType: ctx.contentType }
         : { kind: "url", mediaUrl: ctx.mediaUrl! };
 
-    newPostResult = await uploadAndCreatePost(ctx.profileId, source, ctx.channel, deliver);
+    newPostResult = await uploadAndCreatePost(
+      ctx.profileId,
+      source,
+      ctx.channel,
+      deliver,
+      ctx.body,
+    );
     if (!newPostResult) return {};
   }
 

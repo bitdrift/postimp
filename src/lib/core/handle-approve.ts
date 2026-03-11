@@ -24,20 +24,27 @@ export async function executePublish(profileId: string, post: Post): Promise<Pub
   const profile = await getProfile(db, profileId);
   const platforms: string[] = profile?.publish_platforms || ["instagram"];
 
+  const orgId = post.organization_id;
+
   log.info({
     operation: "publish",
     message: "Starting publish",
     profileId,
+    orgId,
     postId: post.id,
     platforms,
   });
+
+  if (!orgId) {
+    return { success: false, error: "Post is not associated with an organization." };
+  }
 
   const elapsed = timed();
 
   // Fetch connections for the preferred platforms in parallel
   const [igConnection, fbConnection] = await Promise.all([
-    platforms.includes("instagram") ? getInstagramConnection(db, profileId) : null,
-    platforms.includes("facebook") ? getFacebookConnection(db, profileId) : null,
+    platforms.includes("instagram") ? getInstagramConnection(db, orgId) : null,
+    platforms.includes("facebook") ? getFacebookConnection(db, orgId) : null,
   ]);
 
   // Filter to valid connections
@@ -106,7 +113,7 @@ export async function executePublish(profileId: string, post: Post): Promise<Pub
         const refreshed = await refreshInstagramToken(igConnection!.access_token);
         await updateInstagramToken(
           db,
-          profileId,
+          orgId,
           refreshed.accessToken,
           refreshed.expiresAt.toISOString(),
         );

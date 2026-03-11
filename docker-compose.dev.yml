@@ -1,0 +1,17 @@
+services:
+  dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3456:3000"
+      - "54399:54321"
+    volumes:
+      - ./src:/app/src
+      - ./supabase:/app/supabase
+      - ./scripts:/app/scripts
+    tty: true
+    stdin_open: true
+    # Safety: all env vars inside the container use fake API keys/secrets.
+    # The container has no production credentials, so even with network access
+    # it cannot affect production systems.

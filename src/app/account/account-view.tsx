@@ -13,7 +13,7 @@ import {
   needsReauth,
 } from "@/lib/core/scopes";
 
-export default function AccountView() {
+export default function AccountView({ activeOrgId }: { activeOrgId: string | null }) {
   return (
     <Suspense
       fallback={
@@ -22,12 +22,12 @@ export default function AccountView() {
         </div>
       }
     >
-      <AccountContent />
+      <AccountContent activeOrgId={activeOrgId} />
     </Suspense>
   );
 }
 
-function AccountContent() {
+function AccountContent({ activeOrgId }: { activeOrgId: string | null }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [instagram, setInstagram] = useState<InstagramConnection | null>(null);
   const [facebook, setFacebook] = useState<FacebookConnection | null>(null);
@@ -89,13 +89,23 @@ function AccountContent() {
       setCaptionStyle(p.caption_style || "polished");
       setTargetAudience(p.target_audience || "");
 
-      const [igResult, fbResult] = await Promise.all([
-        supabase.from("instagram_connections").select("*").eq("profile_id", user.id).maybeSingle(),
-        supabase.from("facebook_connections").select("*").eq("profile_id", user.id).maybeSingle(),
-      ]);
-
-      setInstagram(igResult.data);
-      setFacebook(fbResult.data);
+      // Use the active org (resolved server-side from cookie) to find connections
+      if (activeOrgId) {
+        const [igResult, fbResult] = await Promise.all([
+          supabase
+            .from("instagram_connections")
+            .select("*")
+            .eq("organization_id", activeOrgId)
+            .maybeSingle(),
+          supabase
+            .from("facebook_connections")
+            .select("*")
+            .eq("organization_id", activeOrgId)
+            .maybeSingle(),
+        ]);
+        setInstagram(igResult.data);
+        setFacebook(fbResult.data);
+      }
       setChecking(false);
     }
     load();
@@ -129,6 +139,7 @@ function AccountContent() {
 
   async function handleLogout() {
     await supabase.auth.signOut();
+    document.cookie = "active_org=; path=/; max-age=0";
     router.push("/login");
   }
 

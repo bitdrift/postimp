@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createDbClient } from "@/lib/db/client";
 import { exchangeCodeForToken, getInstagramUsername, getGrantedScopes } from "@/lib/instagram/auth";
 import { upsertInstagramConnection } from "@/lib/db/instagram";
+import { getActiveOrganization } from "@/lib/db/organizations";
 import { getBaseUrl } from "@/lib/core/url";
 import { log, timed, serializeError } from "@/lib/logger";
 
@@ -36,9 +37,16 @@ export async function GET(request: NextRequest) {
 
     const db = createDbClient();
 
+    // Look up the user's organization
+    const org = await getActiveOrganization(db, userId);
+    if (!org) {
+      return NextResponse.redirect(`${baseUrl}/account?error=no_organization`);
+    }
+
     // Upsert the connection
     await upsertInstagramConnection(db, {
-      profile_id: userId,
+      organization_id: org.id,
+      connected_by_user_id: userId,
       instagram_user_id: igUserId,
       access_token: accessToken,
       token_expires_at: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString(), // 60 days

@@ -14,7 +14,8 @@ export interface Profile {
 
 export interface InstagramConnection {
   id: string;
-  profile_id: string;
+  organization_id: string;
+  connected_by_user_id: string | null;
   instagram_user_id: string;
   access_token: string;
   token_expires_at: string | null;
@@ -26,7 +27,8 @@ export interface InstagramConnection {
 
 export interface FacebookConnection {
   id: string;
-  profile_id: string;
+  organization_id: string;
+  connected_by_user_id: string | null;
   facebook_user_id: string;
   facebook_page_id: string;
   page_name: string | null;
@@ -41,6 +43,7 @@ export type PostStatus = "draft" | "published" | "cancelled";
 export interface Post {
   id: string;
   profile_id: string;
+  organization_id: string | null;
   image_url: string;
   caption: string | null;
   status: PostStatus;
@@ -88,5 +91,29 @@ export interface PendingRegistration {
   token: string;
   expires_at: string;
   used: boolean;
+  created_at: string;
+}
+
+export type OrgRole = "owner" | "manager" | "member";
+
+export interface Organization {
+  id: string;
+  name: string;
+  creator_user_id: string | null;
+  brand_name: string | null;
+  brand_description: string | null;
+  tone: string | null;
+  target_audience: string | null;
+  caption_style: string;
+  publish_platforms: string[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface OrganizationMember {
+  id: string;
+  organization_id: string;
+  user_id: string;
+  role: OrgRole;
   created_at: string;
 }

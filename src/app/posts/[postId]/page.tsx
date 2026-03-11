@@ -4,6 +4,7 @@ import { createDbClient } from "@/lib/db/client";
 import { getPostById } from "@/lib/db/posts";
 import { getMessages } from "@/lib/db/messages";
 import { getInstagramConnection } from "@/lib/db/instagram";
+import { getActiveOrganization } from "@/lib/db/organizations";
 import ThreadView from "./thread-view";
 
 async function fetchInstagramProfile(
@@ -40,15 +41,19 @@ export default async function ThreadPage({ params }: { params: Promise<{ postId:
 
   const db = createDbClient();
 
-  // Fetch post and Instagram connection in parallel
-  const [post, igConnection] = await Promise.all([
-    getPostById(db, postId, user.id),
-    getInstagramConnection(db, user.id),
-  ]);
+  const org = await getActiveOrganization(db, user.id);
+
+  // Look up post by org membership (allows viewing other members' posts)
+  const post = org
+    ? await getPostById(db, postId, { organizationId: org.id })
+    : await getPostById(db, postId, { profileId: user.id });
 
   if (!post) {
     notFound();
   }
+
+  // Fetch Instagram connection if org exists
+  const igConnection = org ? await getInstagramConnection(db, org.id) : null;
 
   // Fetch messages and Instagram profile in parallel
   const [messages, igProfile] = await Promise.all([

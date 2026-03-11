@@ -19,14 +19,16 @@ export async function getActiveDraft(client: DbClient, profileId: string): Promi
 export async function getPostById(
   client: DbClient,
   postId: string,
-  profileId: string,
+  options: { profileId?: string; organizationId?: string },
 ): Promise<Post | null> {
-  const { data, error } = await client
-    .from("posts")
-    .select("*")
-    .eq("id", postId)
-    .eq("profile_id", profileId)
-    .single();
+  let query = client.from("posts").select("*").eq("id", postId);
+  if (options.organizationId) {
+    query = query.eq("organization_id", options.organizationId);
+  }
+  if (options.profileId) {
+    query = query.eq("profile_id", options.profileId);
+  }
+  const { data, error } = await query.single();
   if (error) return null;
   return data;
 }
@@ -41,13 +43,21 @@ export async function getPostByPreviewToken(client: DbClient, token: string): Pr
   return data;
 }
 
-export async function getPostsByProfile(client: DbClient, profileId: string): Promise<Post[]> {
-  const { data, error } = await client
+export async function getPostsByOrganization(
+  client: DbClient,
+  organizationId: string,
+  profileId?: string,
+): Promise<Post[]> {
+  let query = client
     .from("posts")
     .select("*")
-    .eq("profile_id", profileId)
+    .eq("organization_id", organizationId)
     .neq("status", "cancelled")
     .order("created_at", { ascending: false });
+  if (profileId) {
+    query = query.eq("profile_id", profileId);
+  }
+  const { data, error } = await query;
   if (error) throw error;
   return data || [];
 }
@@ -71,6 +81,7 @@ export async function insertPost(
   client: DbClient,
   fields: {
     profile_id: string;
+    organization_id?: string | null;
     image_url: string;
     caption: string;
     status: string;
@@ -94,11 +105,19 @@ export async function updatePost(
   if (error) throw error;
 }
 
-export async function cancelDrafts(client: DbClient, profileId: string): Promise<void> {
-  const { error } = await client
+export async function cancelDrafts(
+  client: DbClient,
+  profileId: string,
+  organizationId?: string,
+): Promise<void> {
+  let query = client
     .from("posts")
     .update({ status: "cancelled" })
     .eq("profile_id", profileId)
     .eq("status", "draft");
+  if (organizationId) {
+    query = query.eq("organization_id", organizationId);
+  }
+  const { error } = await query;
   if (error) throw error;
 }

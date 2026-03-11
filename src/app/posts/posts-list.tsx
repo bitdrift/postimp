@@ -5,6 +5,9 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import type { Post } from "@/lib/db/posts";
 import Image from "next/image";
+import OrgSwitcher from "./org-switcher";
+
+type Filter = "mine" | "all";
 
 const statusColors: Record<string, string> = {
   draft: "bg-warning/10 text-warning",
@@ -12,16 +15,31 @@ const statusColors: Record<string, string> = {
   cancelled: "bg-base-200 text-base-content/50",
 };
 
-export default function PostsList({ posts: initialPosts }: { posts: Post[] }) {
+export default function PostsList({
+  myPosts,
+  allPosts,
+  activeOrgId,
+  activeOrgName,
+}: {
+  myPosts: Post[];
+  allPosts: Post[];
+  activeOrgId: string;
+  activeOrgName: string;
+}) {
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [posts, setPosts] = useState(initialPosts);
+  const [filter, setFilter] = useState<Filter>("mine");
+  const [deletedIds, setDeletedIds] = useState<Set<string>>(new Set());
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const hasOtherPosts = allPosts.length > myPosts.length;
+  const posts = (filter === "mine" ? myPosts : allPosts).filter((p) => !deletedIds.has(p.id));
 
   async function handleLogout() {
     const supabase = createClient();
     await supabase.auth.signOut();
+    document.cookie = "active_org=; path=/; max-age=0";
     router.push("/login");
   }
 
@@ -32,7 +50,7 @@ export default function PostsList({ posts: initialPosts }: { posts: Post[] }) {
     try {
       const res = await fetch(`/api/posts/${postId}/delete`, { method: "POST" });
       if (res.ok) {
-        setPosts((prev) => prev.filter((p) => p.id !== postId));
+        setDeletedIds((prev) => new Set(prev).add(postId));
       } else {
         setDeleteError("Could not delete post. Please try again.");
       }
@@ -70,6 +88,24 @@ export default function PostsList({ posts: initialPosts }: { posts: Post[] }) {
             <line x1="3" y1="18" x2="21" y2="18" />
           </svg>
         </button>
+      </div>
+
+      {/* Filter bar */}
+      <div className="bg-base-100 border-b border-base-300 px-4 py-2 flex items-center gap-1 shrink-0">
+        <span className="text-xs text-base-content/40 mr-2 truncate">{activeOrgName}</span>
+        <span className="text-xs font-medium text-base-content/70">My Posts</span>
+        {hasOtherPosts && (
+          <button
+            onClick={() => setFilter(filter === "mine" ? "all" : "mine")}
+            className={`px-3 py-1 text-xs rounded-full font-medium transition-colors ${
+              filter === "all"
+                ? "bg-neutral text-neutral-content"
+                : "text-base-content/50 hover:bg-base-200"
+            }`}
+          >
+            All Posts
+          </button>
+        )}
       </div>
 
       {/* Slide-in menu backdrop */}
@@ -132,6 +168,7 @@ export default function PostsList({ posts: initialPosts }: { posts: Post[] }) {
             Support
           </a>
         </nav>
+        <OrgSwitcher currentOrgId={activeOrgId} />
         <div className="border-t border-base-300 px-4 py-3">
           <button
             onClick={handleLogout}
@@ -158,7 +195,11 @@ export default function PostsList({ posts: initialPosts }: { posts: Post[] }) {
         {posts.length === 0 && (
           <div className="text-center text-base-content/40 mt-20">
             <p className="text-lg mb-1">No posts yet</p>
-            <p className="text-sm">Tap the button below to create your first post.</p>
+            <p className="text-sm">
+              {filter === "mine"
+                ? "You haven't created any posts for this org yet."
+                : "No posts in this organization yet."}
+            </p>
           </div>
         )}
         {posts.map((post) => {

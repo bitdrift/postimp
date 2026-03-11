@@ -5,12 +5,12 @@ export type { InstagramConnection } from "@/lib/supabase/types";
 
 export async function getInstagramConnection(
   client: DbClient,
-  profileId: string,
+  orgId: string,
 ): Promise<InstagramConnection | null> {
   const { data, error } = await client
     .from("instagram_connections")
     .select("*")
-    .eq("profile_id", profileId)
+    .eq("organization_id", orgId)
     .single();
   if (error) return null;
   return data;
@@ -18,7 +18,7 @@ export async function getInstagramConnection(
 
 export async function updateInstagramToken(
   client: DbClient,
-  profileId: string,
+  orgId: string,
   accessToken: string,
   tokenExpiresAt: string,
 ): Promise<void> {
@@ -28,14 +28,15 @@ export async function updateInstagramToken(
       access_token: accessToken,
       token_expires_at: tokenExpiresAt,
     })
-    .eq("profile_id", profileId);
+    .eq("organization_id", orgId);
   if (error) throw error;
 }
 
 export async function upsertInstagramConnection(
   client: DbClient,
   fields: {
-    profile_id: string;
+    organization_id: string;
+    connected_by_user_id?: string | null;
     instagram_user_id: string;
     access_token: string;
     token_expires_at: string;
@@ -45,6 +46,6 @@ export async function upsertInstagramConnection(
 ): Promise<void> {
   const { error } = await client
     .from("instagram_connections")
-    .upsert(fields, { onConflict: "profile_id" });
+    .upsert(fields, { onConflict: "organization_id" });
   if (error) throw error;
 }
