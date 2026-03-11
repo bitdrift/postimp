@@ -119,6 +119,15 @@ export default function PostsList({ posts: initialPosts }: { posts: Post[] }) {
           <button
             onClick={() => {
               setMenuOpen(false);
+              router.push("/insights");
+            }}
+            className="w-full text-left px-4 py-3 text-sm hover:bg-base-200 transition-colors"
+          >
+            Insights
+          </button>
+          <button
+            onClick={() => {
+              setMenuOpen(false);
               router.push("/account");
             }}
             className="w-full text-left px-4 py-3 text-sm hover:bg-base-200 transition-colors"

@@ -31,6 +31,7 @@ function AccountContent() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [instagram, setInstagram] = useState<InstagramConnection | null>(null);
   const [facebook, setFacebook] = useState<FacebookConnection | null>(null);
+  const [hasPendingFb, setHasPendingFb] = useState(false);
   const [brandName, setBrandName] = useState("");
   const [brandDescription, setBrandDescription] = useState("");
   const [tone, setTone] = useState("");
@@ -89,13 +90,19 @@ function AccountContent() {
       setCaptionStyle(p.caption_style || "polished");
       setTargetAudience(p.target_audience || "");
 
-      const [igResult, fbResult] = await Promise.all([
+      const [igResult, fbResult, pendingFbResult] = await Promise.all([
         supabase.from("instagram_connections").select("*").eq("profile_id", user.id).maybeSingle(),
         supabase.from("facebook_connections").select("*").eq("profile_id", user.id).maybeSingle(),
+        supabase
+          .from("pending_facebook_tokens")
+          .select("facebook_user_id")
+          .eq("profile_id", user.id)
+          .maybeSingle(),
       ]);
 
       setInstagram(igResult.data);
       setFacebook(fbResult.data);
+      setHasPendingFb(!!pendingFbResult.data);
       setChecking(false);
     }
     load();
@@ -398,6 +405,21 @@ function AccountContent() {
                   </a>
                 </div>
               )}
+            </div>
+          ) : hasPendingFb ? (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">Connected</p>
+                  <p className="text-sm text-base-content/50">No Facebook Page selected</p>
+                </div>
+                <a
+                  href="/api/facebook/auth"
+                  className="text-sm text-info font-medium hover:underline"
+                >
+                  Reconnect
+                </a>
+              </div>
             </div>
           ) : (
             <a

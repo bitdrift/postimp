@@ -5,6 +5,7 @@ export const REQUIRED_INSTAGRAM_SCOPES = [
 ];
 
 export const REQUIRED_FACEBOOK_SCOPES = [
+  "pages_show_list",
   "pages_manage_posts",
   "pages_read_engagement",
   "instagram_basic",

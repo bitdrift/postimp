@@ -112,14 +112,74 @@ export async function getGrantedScopes(accessToken: string): Promise<string[] | 
 }
 
 export async function listPages(userAccessToken: string): Promise<FacebookPage[]> {
-  const response = await fetch(
-    `https://graph.facebook.com/v21.0/me/accounts?fields=id,name,access_token&access_token=${userAccessToken}`,
-  );
+  // Try /me/accounts first (works with regular Facebook Login)
+  const url = `https://graph.facebook.com/v21.0/me/accounts?fields=id,name,access_token&access_token=${userAccessToken}`;
+  const response = await fetch(url);
   const data = await response.json();
 
   if (data.error) {
     throw new Error(data.error.message || "Failed to list Facebook pages");
   }
 
-  return (data.data || []) as FacebookPage[];
+  if (data.data?.length > 0) {
+    log.info({
+      operation: "facebook.listPages",
+      message: "Pages found via /me/accounts",
+      pageCount: data.data.length,
+    });
+    return data.data as FacebookPage[];
+  }
+
+  // Facebook Login for Business: /me/accounts may return empty.
+  // Fall back to extracting page IDs from the token's granular_scopes.
+  log.info({
+    operation: "facebook.listPages",
+    message: "/me/accounts empty, trying granular_scopes fallback",
+  });
+
+  const debugRes = await fetch(
+    `https://graph.facebook.com/v21.0/debug_token?input_token=${userAccessToken}&access_token=${userAccessToken}`,
+  );
+  const debugData = await debugRes.json();
+
+  const granularScopes: { scope: string; target_ids?: string[] }[] =
+    debugData.data?.granular_scopes || [];
+  const pageIds = granularScopes.find((s) => s.scope === "pages_show_list")?.target_ids || [];
+
+  if (pageIds.length === 0) {
+    log.info({
+      operation: "facebook.listPages",
+      message: "No page IDs in granular_scopes",
+    });
+    return [];
+  }
+
+  // Fetch each page individually to get name and page access token
+  const pages = await Promise.all(
+    pageIds.map(async (pageId) => {
+      const pageRes = await fetch(
+        `https://graph.facebook.com/v21.0/${pageId}?fields=id,name,access_token&access_token=${userAccessToken}`,
+      );
+      const pageData = await pageRes.json();
+      if (pageData.error) {
+        log.warn({
+          operation: "facebook.listPages",
+          message: `Failed to fetch page ${pageId}`,
+          error: pageData.error,
+        });
+        return null;
+      }
+      return pageData as FacebookPage;
+    }),
+  );
+
+  const validPages = pages.filter((p): p is FacebookPage => p !== null);
+
+  log.info({
+    operation: "facebook.listPages",
+    message: "Pages found via granular_scopes fallback",
+    pageCount: validPages.length,
+  });
+
+  return validPages;
 }

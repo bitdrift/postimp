@@ -1,5 +1,10 @@
+import { Suspense } from "react";
 import FacebookPageSelector from "./facebook-page-selector";
 
 export default function FacebookPagesPage() {
-  return <FacebookPageSelector />;
+  return (
+    <Suspense>
+      <FacebookPageSelector />
+    </Suspense>
+  );
 }

@@ -142,6 +142,21 @@ Each post gets its own AI conversation. All user messages go to the AI, which de
 3. Publish the container
 4. Store Instagram post ID on success
 
+## 6b. Facebook Integration
+
+**OAuth Flow (Facebook Login for Business):**
+- Scopes: `pages_show_list`, `pages_manage_posts`, `pages_read_engagement`, `instagram_basic`
+- User selects which Facebook Pages and Instagram accounts to grant access to
+- Short-lived token exchanged for long-lived token
+- Page listing uses `granular_scopes` fallback (FLB doesn't support `/me/accounts`)
+- User selects a Facebook Page; page access token stored in `facebook_connections`
+- `returnTo` parameter threads through OAuth flow for redirect after completion
+
+**Insights (via `graph.facebook.com`):**
+- Business Discovery API: look up any public Instagram business/creator account
+- Requires `instagram_basic` scope via Facebook Login (not available via Instagram Login)
+- Blocked on App Review approval for production use
+
 ## 7. Data Model
 
 | Table | Purpose |
@@ -151,6 +166,8 @@ Each post gets its own AI conversation. All user messages go to the AI, which de
 | `messages` | All conversation messages: direction, body, channel (sms/web), phone, post_id, media_url |
 | `post_stats` | Cached engagement metrics: data (JSONB), fetched_at |
 | `instagram_connections` | OAuth credentials: access_token, token_expires_at, instagram_user_id, instagram_username |
+| `facebook_connections` | Facebook page connection: page_access_token, facebook_page_id, page_name, granted_scopes |
+| `pending_facebook_tokens` | Temporary storage for Facebook user token during page selection flow |
 | `pending_registrations` | SMS signup tokens: phone, token, used, expires_at |
 
 ## 8. Third-Party Services
@@ -193,6 +210,8 @@ The product currently includes:
 - Post management (list, view, delete)
 - User onboarding and profile management
 - Instagram OAuth connection
+- Facebook OAuth connection (Facebook Login for Business)
+- Insights hub with Instagram account lookup (Business Discovery API)
 - Public shareable post previews
 - Copy-to-clipboard for links
 - Mobile-first responsive design
