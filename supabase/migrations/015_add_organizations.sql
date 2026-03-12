@@ -244,6 +244,8 @@ DROP POLICY IF EXISTS "Users can insert own facebook connection" ON facebook_con
 DROP POLICY IF EXISTS "Users can update own facebook connection" ON facebook_connections;
 DROP POLICY IF EXISTS "Users can delete own facebook connection" ON facebook_connections;
 
+DROP POLICY IF EXISTS "Users can read own pending tokens" ON pending_facebook_tokens;
+
 -- =============================================================================
 -- 13. Drop old profile_id columns and constraints from connection tables
 -- =============================================================================
@@ -308,7 +310,27 @@ CREATE POLICY "Org owners can delete facebook connections"
   USING (is_org_owner(organization_id));
 
 -- =============================================================================
--- 15. Add org-member policies on posts (alongside existing user policies)
+-- 15b. New org-based RLS policies on pending_facebook_tokens
+-- =============================================================================
+
+CREATE POLICY "Org members can view pending facebook tokens"
+  ON pending_facebook_tokens FOR SELECT
+  USING (is_org_member(organization_id));
+
+CREATE POLICY "Org owners can insert pending facebook tokens"
+  ON pending_facebook_tokens FOR INSERT
+  WITH CHECK (is_org_owner(organization_id));
+
+CREATE POLICY "Org owners can update pending facebook tokens"
+  ON pending_facebook_tokens FOR UPDATE
+  USING (is_org_owner(organization_id));
+
+CREATE POLICY "Org owners can delete pending facebook tokens"
+  ON pending_facebook_tokens FOR DELETE
+  USING (is_org_owner(organization_id));
+
+-- =============================================================================
+-- 16. Add org-member policies on posts (alongside existing user policies)
 -- =============================================================================
 
 CREATE POLICY "Org members can view org posts"
