@@ -1,4 +1,4 @@
-.PHONY: test test-up test-down
+.PHONY: test test-up test-down dev dev-down
 
 # Run all tests or a specific test file/pattern in Docker
 # Usage:
@@ -19,3 +19,12 @@ test-up:
 # Remove test containers and images
 test-down:
 	docker compose -f docker-compose.test.yml down --rmi local --volumes
+
+# Start dev environment (Postgres + Auth + Next.js)
+# App: http://localhost:3456  |  Login: evrhet@postimp.com / password123
+dev:
+	docker compose -f docker-compose.dev.yml up --build
+
+# Stop dev environment
+dev-down:
+	docker compose -f docker-compose.dev.yml down --volumes

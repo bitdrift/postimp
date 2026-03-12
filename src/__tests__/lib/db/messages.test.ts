@@ -181,8 +181,6 @@ describe("messages", () => {
         channel: "web",
       });
 
-      // Small delay to ensure distinct timestamps
-      await new Promise((r) => setTimeout(r, 50));
       const recent = await insertMessage(db, {
         profile_id: profileId,
         direction: "inbound",

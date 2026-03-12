@@ -24,7 +24,7 @@ async function main() {
   // Find published posts with an instagram_post_id but no permalink
   const { data: posts, error } = await db
     .from("posts")
-    .select("id, profile_id, instagram_post_id")
+    .select("id, profile_id, organization_id, instagram_post_id")
     .eq("status", "published")
     .not("instagram_post_id", "is", null)
     .is("instagram_permalink", null);
@@ -41,25 +41,25 @@ async function main() {
 
   console.log(`Found ${posts.length} post(s) to backfill.\n`);
 
-  // Get unique profile IDs and fetch their access tokens
-  const profileIds = [...new Set(posts.map((p) => p.profile_id))];
+  // Get unique org IDs from posts and fetch their access tokens
+  const orgIds = [...new Set(posts.map((p) => p.organization_id).filter(Boolean))];
   const { data: connections } = await db
     .from("instagram_connections")
-    .select("profile_id, access_token")
-    .in("profile_id", profileIds);
+    .select("organization_id, access_token")
+    .in("organization_id", orgIds);
 
   const tokenMap = new Map<string, string>();
   for (const conn of connections || []) {
-    tokenMap.set(conn.profile_id, conn.access_token);
+    tokenMap.set(conn.organization_id, conn.access_token);
   }
 
   let updated = 0;
   let failed = 0;
 
   for (const post of posts) {
-    const accessToken = tokenMap.get(post.profile_id);
+    const accessToken = post.organization_id ? tokenMap.get(post.organization_id) : null;
     if (!accessToken) {
-      console.log(`  SKIP ${post.id} — no Instagram connection for profile ${post.profile_id}`);
+      console.log(`  SKIP ${post.id} — no Instagram connection for org ${post.organization_id}`);
       failed++;
       continue;
     }

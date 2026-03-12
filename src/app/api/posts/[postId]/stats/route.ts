@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getActiveOrganization } from "@/lib/db/organizations";
 import { log, timed, serializeError } from "@/lib/logger";
 
 const STALE_AFTER_MS = 10 * 60 * 1000; // 10 minutes
@@ -49,11 +50,14 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ post
   }
 
   // Fetch fresh stats from Instagram
-  const { data: ig } = await admin
-    .from("instagram_connections")
-    .select("access_token")
-    .eq("profile_id", user.id)
-    .single();
+  const org = await getActiveOrganization(admin, user.id);
+  const { data: ig } = org
+    ? await admin
+        .from("instagram_connections")
+        .select("access_token")
+        .eq("organization_id", org.id)
+        .single()
+    : { data: null };
 
   if (!ig) {
     return NextResponse.json({ stats: cached?.data || null, fetched_at: cached?.fetched_at });

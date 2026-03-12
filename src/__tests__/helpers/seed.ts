@@ -2,6 +2,9 @@ import { vi } from "vitest";
 import { createDbClient } from "@/lib/db/client";
 import type { DeliverFn } from "@/lib/core/types";
 
+/** 60-day token lifetime used by Instagram long-lived tokens */
+export const TOKEN_LIFETIME_MS = 60 * 24 * 60 * 60 * 1000;
+
 // Track seeded user IDs so cleanAll only deletes what this test suite created
 const seededUserIds: string[] = [];
 
@@ -59,18 +62,48 @@ export async function seedPost(
   return data!;
 }
 
+export async function seedOrganization(
+  userId: string,
+  overrides: Record<string, unknown> = {},
+): Promise<{ id: string }> {
+  const db = createDbClient();
+  const { data, error } = await db
+    .from("organizations")
+    .insert({
+      name: "Test Organization",
+      creator_user_id: userId,
+      ...overrides,
+    })
+    .select("id")
+    .single();
+
+  if (error) throw new Error(`seedOrganization: ${error.message || JSON.stringify(error)}`);
+
+  const { error: memberError } = await db.from("organization_members").insert({
+    organization_id: data!.id,
+    user_id: userId,
+    role: "owner",
+  });
+  if (memberError)
+    throw new Error(
+      `seedOrganization membership: ${memberError.message || JSON.stringify(memberError)}`,
+    );
+
+  return data!;
+}
+
 export async function seedInstagramConnection(
-  profileId: string,
+  orgId: string,
   overrides: Record<string, unknown> = {},
 ): Promise<{ id: string }> {
   const db = createDbClient();
   const { data, error } = await db
     .from("instagram_connections")
     .insert({
-      profile_id: profileId,
+      organization_id: orgId,
       instagram_user_id: "ig_user_123",
       access_token: "test_access_token",
-      token_expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      token_expires_at: new Date(Date.now() + TOKEN_LIFETIME_MS).toISOString(),
       instagram_username: "testuser",
       ...overrides,
     })
@@ -82,14 +115,14 @@ export async function seedInstagramConnection(
 }
 
 export async function seedFacebookConnection(
-  profileId: string,
+  orgId: string,
   overrides: Record<string, unknown> = {},
 ): Promise<{ id: string }> {
   const db = createDbClient();
   const { data, error } = await db
     .from("facebook_connections")
     .insert({
-      profile_id: profileId,
+      organization_id: orgId,
       facebook_user_id: "fb_user_123",
       facebook_page_id: "fb_page_123",
       page_name: "Test Page",
@@ -127,6 +160,15 @@ export async function cleanAll() {
 
   const { error: pendingFbErr } = await db.from("pending_facebook_tokens").delete().neq("id", NIL);
   if (pendingFbErr) console.error("cleanAll pending_facebook_tokens:", pendingFbErr.message);
+
+  const { error: pendingRegErr } = await db.from("pending_registrations").delete().neq("id", NIL);
+  if (pendingRegErr) console.error("cleanAll pending_registrations:", pendingRegErr.message);
+
+  const { error: memberErr } = await db.from("organization_members").delete().neq("id", NIL);
+  if (memberErr) console.error("cleanAll organization_members:", memberErr.message);
+
+  const { error: orgErr } = await db.from("organizations").delete().neq("id", NIL);
+  if (orgErr) console.error("cleanAll organizations:", orgErr.message);
 
   const { error: profErr } = await db.from("profiles").delete().neq("id", NIL);
   if (profErr) console.error("cleanAll profiles:", profErr.message);

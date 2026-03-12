@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createDbClient } from "@/lib/db/client";
 import { exchangeCodeForToken, getGrantedScopes } from "@/lib/facebook/auth";
 import { savePendingFacebookToken } from "@/lib/db/facebook";
+import { getActiveOrganization } from "@/lib/db/organizations";
 import { getBaseUrl } from "@/lib/core/url";
 import { log, timed, serializeError } from "@/lib/logger";
 
@@ -33,8 +34,14 @@ export async function GET(request: NextRequest) {
 
     const db = createDbClient();
 
+    // Look up the user's organization
+    const org = await getActiveOrganization(db, userId);
+    if (!org) {
+      return NextResponse.redirect(`${baseUrl}/account?error=no_organization`);
+    }
+
     // Save token to pending table (not in URL) for page selection step
-    await savePendingFacebookToken(db, userId, fbUserId, accessToken, grantedScopes ?? undefined);
+    await savePendingFacebookToken(db, org.id, fbUserId, accessToken, grantedScopes ?? undefined);
 
     log.info({
       operation: "api.facebook.callback",

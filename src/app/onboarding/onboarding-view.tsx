@@ -81,6 +81,29 @@ export default function OnboardingView() {
       return;
     }
 
+    // Rename the default org to match the brand name (best-effort, non-blocking)
+    if (brandName) {
+      try {
+        const { data: membership } = await supabase
+          .from("organization_members")
+          .select("organization_id")
+          .eq("user_id", user.id)
+          .limit(1)
+          .single();
+        if (membership) {
+          const { error: renameError } = await supabase
+            .from("organizations")
+            .update({ name: brandName })
+            .eq("id", membership.organization_id);
+          if (renameError) {
+            console.warn("Failed to rename default organization:", renameError.message);
+          }
+        }
+      } catch (err) {
+        console.warn("Failed to rename default organization:", err);
+      }
+    }
+
     router.push("/posts");
   }
 

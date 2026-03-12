@@ -12,8 +12,15 @@ import {
   REQUIRED_FACEBOOK_SCOPES,
   needsReauth,
 } from "@/lib/core/scopes";
+import OrgSwitcher from "@/app/posts/org-switcher";
 
-export default function AccountView() {
+export default function AccountView({
+  activeOrgId,
+  activeOrgName,
+}: {
+  activeOrgId: string | null;
+  activeOrgName: string | null;
+}) {
   return (
     <Suspense
       fallback={
@@ -22,12 +29,18 @@ export default function AccountView() {
         </div>
       }
     >
-      <AccountContent />
+      <AccountContent activeOrgId={activeOrgId} activeOrgName={activeOrgName} />
     </Suspense>
   );
 }
 
-function AccountContent() {
+function AccountContent({
+  activeOrgId,
+  activeOrgName,
+}: {
+  activeOrgId: string | null;
+  activeOrgName: string | null;
+}) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [instagram, setInstagram] = useState<InstagramConnection | null>(null);
   const [facebook, setFacebook] = useState<FacebookConnection | null>(null);
@@ -90,19 +103,29 @@ function AccountContent() {
       setCaptionStyle(p.caption_style || "polished");
       setTargetAudience(p.target_audience || "");
 
-      const [igResult, fbResult, pendingFbResult] = await Promise.all([
-        supabase.from("instagram_connections").select("*").eq("profile_id", user.id).maybeSingle(),
-        supabase.from("facebook_connections").select("*").eq("profile_id", user.id).maybeSingle(),
-        supabase
-          .from("pending_facebook_tokens")
-          .select("facebook_user_id")
-          .eq("profile_id", user.id)
-          .maybeSingle(),
-      ]);
-
-      setInstagram(igResult.data);
-      setFacebook(fbResult.data);
-      setHasPendingFb(!!pendingFbResult.data);
+      // Use the active org (resolved server-side from cookie) to find connections
+      if (activeOrgId) {
+        const [igResult, fbResult, pendingFbResult] = await Promise.all([
+          supabase
+            .from("instagram_connections")
+            .select("*")
+            .eq("organization_id", activeOrgId)
+            .maybeSingle(),
+          supabase
+            .from("facebook_connections")
+            .select("*")
+            .eq("organization_id", activeOrgId)
+            .maybeSingle(),
+          supabase
+            .from("pending_facebook_tokens")
+            .select("facebook_user_id")
+            .eq("profile_id", user.id)
+            .maybeSingle(),
+        ]);
+        setInstagram(igResult.data);
+        setFacebook(fbResult.data);
+        setHasPendingFb(!!pendingFbResult.data);
+      }
       setChecking(false);
     }
     load();
@@ -136,6 +159,7 @@ function AccountContent() {
 
   async function handleLogout() {
     await supabase.auth.signOut();
+    document.cookie = "active_org=; path=/; max-age=0";
     router.push("/login");
   }
 
@@ -326,110 +350,126 @@ function AccountContent() {
           )}
         </div>
 
+        {/* Organization connections card */}
         <div className="bg-base-100 rounded-2xl shadow-sm border border-base-300 p-8">
-          <h2 className="text-lg font-semibold mb-4">Instagram Connection</h2>
-          {igError && (
-            <div className="bg-error/10 text-error rounded-lg p-3 text-sm mb-4">{igError}</div>
-          )}
-          {instagram ? (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">@{instagram.instagram_username || "Connected"}</p>
-                  <p className="text-sm text-base-content/50">
-                    Connected {new Date(instagram.created_at).toLocaleDateString()}
-                  </p>
-                </div>
-                <a
-                  href="/api/instagram/auth"
-                  className="text-sm text-primary font-medium hover:underline"
-                >
-                  Reconnect
-                </a>
-              </div>
-              {needsReauth(instagram.granted_scopes, REQUIRED_INSTAGRAM_SCOPES) && (
-                <div className="bg-warning/10 border border-warning/30 rounded-lg p-3 flex items-center justify-between gap-3">
-                  <p className="text-sm text-warning">
-                    New permissions required. Please re-authorize to continue using all features.
-                  </p>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold">{activeOrgName || "Organization"}</h2>
+            <OrgSwitcher currentOrgId={activeOrgId} compact />
+          </div>
+          <p className="text-sm text-base-content/50 mb-6">
+            Social accounts linked to this organization.
+          </p>
+
+          {/* Instagram */}
+          <div className="mb-6">
+            <h3 className="text-sm font-medium text-base-content/70 mb-2">Instagram</h3>
+            {igError && (
+              <div className="bg-error/10 text-error rounded-lg p-3 text-sm mb-3">{igError}</div>
+            )}
+            {instagram ? (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">@{instagram.instagram_username || "Connected"}</p>
+                    <p className="text-sm text-base-content/50">
+                      Connected {new Date(instagram.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
                   <a
                     href="/api/instagram/auth"
-                    className="shrink-0 text-sm font-medium text-warning hover:underline"
+                    className="text-sm text-primary font-medium hover:underline"
                   >
-                    Re-authorize
+                    Reconnect
                   </a>
                 </div>
-              )}
-            </div>
-          ) : (
-            <a
-              href="/api/instagram/auth"
-              className="inline-block bg-gradient-to-r from-secondary to-primary text-neutral-content rounded-lg px-6 py-2.5 font-medium hover:opacity-90 transition-opacity"
-            >
-              Connect Instagram
-            </a>
-          )}
-        </div>
-
-        <div className="bg-base-100 rounded-2xl shadow-sm border border-base-300 p-8">
-          <h2 className="text-lg font-semibold mb-4">Facebook Connection</h2>
-          {fbError && (
-            <div className="bg-error/10 text-error rounded-lg p-3 text-sm mb-4">{fbError}</div>
-          )}
-          {facebook ? (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">{facebook.page_name || "Connected"}</p>
-                  <p className="text-sm text-base-content/50">
-                    Connected {new Date(facebook.created_at).toLocaleDateString()}
-                  </p>
-                </div>
-                <a
-                  href="/api/facebook/auth"
-                  className="text-sm text-info font-medium hover:underline"
-                >
-                  Reconnect
-                </a>
+                {needsReauth(instagram.granted_scopes, REQUIRED_INSTAGRAM_SCOPES) && (
+                  <div className="bg-warning/10 border border-warning/30 rounded-lg p-3 flex items-center justify-between gap-3">
+                    <p className="text-sm text-warning">
+                      New permissions required. Please re-authorize to continue using all features.
+                    </p>
+                    <a
+                      href="/api/instagram/auth"
+                      className="shrink-0 text-sm font-medium text-warning hover:underline"
+                    >
+                      Re-authorize
+                    </a>
+                  </div>
+                )}
               </div>
-              {needsReauth(facebook.granted_scopes, REQUIRED_FACEBOOK_SCOPES) && (
-                <div className="bg-warning/10 border border-warning/30 rounded-lg p-3 flex items-center justify-between gap-3">
-                  <p className="text-sm text-warning">
-                    New permissions required. Please re-authorize to continue using all features.
-                  </p>
+            ) : (
+              <a
+                href="/api/instagram/auth"
+                className="inline-block bg-gradient-to-r from-secondary to-primary text-neutral-content rounded-lg px-6 py-2.5 font-medium hover:opacity-90 transition-opacity"
+              >
+                Connect Instagram
+              </a>
+            )}
+          </div>
+
+          {/* Facebook */}
+          <div>
+            <h3 className="text-sm font-medium text-base-content/70 mb-2">Facebook</h3>
+            {fbError && (
+              <div className="bg-error/10 text-error rounded-lg p-3 text-sm mb-3">{fbError}</div>
+            )}
+            {facebook ? (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">{facebook.page_name || "Connected"}</p>
+                    <p className="text-sm text-base-content/50">
+                      Connected {new Date(facebook.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
                   <a
                     href="/api/facebook/auth"
-                    className="shrink-0 text-sm font-medium text-warning hover:underline"
+                    className="text-sm text-info font-medium hover:underline"
                   >
-                    Re-authorize
+                    Reconnect
                   </a>
                 </div>
-              )}
-            </div>
-          ) : hasPendingFb ? (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Connected</p>
-                  <p className="text-sm text-base-content/50">No Facebook Page selected</p>
-                </div>
-                <a
-                  href="/api/facebook/auth"
-                  className="text-sm text-info font-medium hover:underline"
-                >
-                  Reconnect
-                </a>
+                {needsReauth(facebook.granted_scopes, REQUIRED_FACEBOOK_SCOPES) && (
+                  <div className="bg-warning/10 border border-warning/30 rounded-lg p-3 flex items-center justify-between gap-3">
+                    <p className="text-sm text-warning">
+                      New permissions required. Please re-authorize to continue using all features.
+                    </p>
+                    <a
+                      href="/api/facebook/auth"
+                      className="shrink-0 text-sm font-medium text-warning hover:underline"
+                    >
+                      Re-authorize
+                    </a>
+                  </div>
+                )}
               </div>
-            </div>
-          ) : (
-            <a
-              href="/api/facebook/auth"
-              className="inline-block bg-info text-neutral-content rounded-lg px-6 py-2.5 font-medium hover:bg-info/80 transition-colors"
-            >
-              Connect Facebook
-            </a>
-          )}
+            ) : hasPendingFb ? (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">Connected</p>
+                    <p className="text-sm text-base-content/50">No Facebook Page selected</p>
+                  </div>
+                  <a
+                    href="/api/facebook/auth"
+                    className="text-sm text-info font-medium hover:underline"
+                  >
+                    Reconnect
+                  </a>
+                </div>
+              </div>
+            ) : (
+              <a
+                href="/api/facebook/auth"
+                className="inline-block bg-info text-neutral-content rounded-lg px-6 py-2.5 font-medium hover:bg-info/80 transition-colors"
+              >
+                Connect Facebook
+              </a>
+            )}
+          </div>
         </div>
+
+        {/* New Organization */}
+        <NewOrgForm />
 
         {profile?.phone && (
           <div className="bg-base-100 rounded-2xl shadow-sm border border-base-300 p-8">
@@ -438,6 +478,96 @@ function AccountContent() {
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+function NewOrgForm() {
+  const [showForm, setShowForm] = useState(false);
+  const [name, setName] = useState("");
+  const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState("");
+
+  async function handleCreate(e: React.FormEvent) {
+    e.preventDefault();
+    if (!name.trim()) return;
+    setCreating(true);
+    setCreateError("");
+
+    try {
+      const res = await fetch("/api/org/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: name.trim() }),
+      });
+      if (res.ok) {
+        // API auto-switches to the new org via cookie — reload to show it
+        window.location.reload();
+      } else {
+        const data = await res.json();
+        setCreateError(data.error || "Failed to create organization.");
+        setCreating(false);
+      }
+    } catch {
+      setCreateError("Something went wrong. Please try again.");
+      setCreating(false);
+    }
+  }
+
+  if (!showForm) {
+    return (
+      <button
+        onClick={() => setShowForm(true)}
+        className="w-full border border-dashed border-base-300 rounded-2xl py-4 text-sm font-medium text-base-content/50 hover:text-base-content/70 hover:border-base-content/30 transition-colors"
+      >
+        + New Organization
+      </button>
+    );
+  }
+
+  return (
+    <div className="bg-base-100 rounded-2xl shadow-sm border border-base-300 p-8">
+      <h2 className="text-lg font-semibold mb-4">New Organization</h2>
+      <form onSubmit={handleCreate} className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-base-content/70 mb-1">
+            Organization Name
+          </label>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+            maxLength={100}
+            autoFocus
+            placeholder="e.g. Pizza Planet"
+            className="w-full rounded-lg border border-base-300 px-4 py-2.5 text-base-content focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+          />
+        </div>
+        {createError && (
+          <div className="bg-error/10 text-error rounded-lg p-3 text-sm">{createError}</div>
+        )}
+        <div className="flex gap-3">
+          <button
+            type="submit"
+            disabled={creating}
+            className="flex-1 bg-neutral text-neutral-content rounded-lg py-2.5 font-medium hover:bg-neutral/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            {creating ? "Creating..." : "Create"}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setShowForm(false);
+              setName("");
+              setCreateError("");
+            }}
+            className="px-6 rounded-lg border border-base-300 py-2.5 text-sm font-medium text-base-content/70 hover:bg-base-200 transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      </form>
     </div>
   );
 }

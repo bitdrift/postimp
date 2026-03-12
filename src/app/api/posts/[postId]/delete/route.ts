@@ -23,7 +23,7 @@ export async function POST(
   const db = createDbClient();
 
   // Verify post belongs to user
-  const post = await getPostById(db, postId, user.id);
+  const post = await getPostById(db, postId, { profileId: user.id });
 
   if (!post) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });

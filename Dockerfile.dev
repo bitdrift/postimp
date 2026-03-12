@@ -1,0 +1,55 @@
+FROM node:20-bookworm
+
+# Install Postgres 17
+RUN apt-get update && \
+    apt-get install -y gnupg2 lsb-release wget curl && \
+    echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" \
+      > /etc/apt/sources.list.d/pgdg.list && \
+    wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - && \
+    apt-get update && \
+    apt-get install -y postgresql-17 && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install PostgREST
+RUN ARCH=$(dpkg --print-architecture) && \
+    if [ "$ARCH" = "arm64" ]; then \
+      PGRST_URL="https://github.com/PostgREST/postgrest/releases/download/v12.2.3/postgrest-v12.2.3-ubuntu-aarch64.tar.xz"; \
+    else \
+      PGRST_URL="https://github.com/PostgREST/postgrest/releases/download/v12.2.3/postgrest-v12.2.3-linux-static-x64.tar.xz"; \
+    fi && \
+    wget -qO /tmp/postgrest.tar.xz "$PGRST_URL" && \
+    tar xJf /tmp/postgrest.tar.xz -C /usr/local/bin && \
+    rm /tmp/postgrest.tar.xz
+
+# Install GoTrue (Supabase Auth)
+RUN ARCH=$(dpkg --print-architecture) && \
+    if [ "$ARCH" = "arm64" ]; then \
+      GOTRUE_URL="https://github.com/supabase/auth/releases/download/v2.186.0/auth-v2.186.0-arm64.tar.gz"; \
+    else \
+      GOTRUE_URL="https://github.com/supabase/auth/releases/download/v2.186.0/auth-v2.186.0-x86.tar.gz"; \
+    fi && \
+    wget -qO /tmp/gotrue.tar.gz "$GOTRUE_URL" && \
+    tar xzf /tmp/gotrue.tar.gz -C /usr/local/bin auth && \
+    rm /tmp/gotrue.tar.gz
+
+# Allow postgres to run without being the postgres user
+RUN sed -i "s/peer/trust/g" /etc/postgresql/17/main/pg_hba.conf && \
+    sed -i "s/scram-sha-256/trust/g" /etc/postgresql/17/main/pg_hba.conf && \
+    sed -i "s/#listen_addresses.*/listen_addresses = '*'/" /etc/postgresql/17/main/postgresql.conf && \
+    chown -R postgres:postgres /var/run/postgresql
+
+WORKDIR /app
+
+# Install dependencies first (layer caching)
+COPY package.json package-lock.json ./
+RUN npm ci
+
+# Copy source
+COPY . .
+
+RUN chmod +x scripts/dev-entrypoint.sh && \
+    chown -R postgres:postgres /app
+
+USER postgres
+EXPOSE 3000
+ENTRYPOINT ["scripts/dev-entrypoint.sh"]

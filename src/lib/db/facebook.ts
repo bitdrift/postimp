@@ -5,12 +5,12 @@ export type { FacebookConnection } from "@/lib/supabase/types";
 
 export async function getFacebookConnection(
   client: DbClient,
-  profileId: string,
+  orgId: string,
 ): Promise<FacebookConnection | null> {
   const { data, error } = await client
     .from("facebook_connections")
     .select("*")
-    .eq("profile_id", profileId)
+    .eq("organization_id", orgId)
     .single();
   if (error) return null;
   return data;
@@ -19,7 +19,8 @@ export async function getFacebookConnection(
 export async function upsertFacebookConnection(
   client: DbClient,
   fields: {
-    profile_id: string;
+    organization_id: string;
+    user_id?: string | null;
     facebook_user_id: string;
     facebook_page_id: string;
     page_name: string | null;
@@ -29,32 +30,32 @@ export async function upsertFacebookConnection(
 ): Promise<void> {
   const { error } = await client
     .from("facebook_connections")
-    .upsert(fields, { onConflict: "profile_id" });
+    .upsert(fields, { onConflict: "organization_id" });
   if (error) throw error;
 }
 
 export async function savePendingFacebookToken(
   client: DbClient,
-  profileId: string,
+  orgId: string,
   facebookUserId: string,
   userAccessToken: string,
   grantedScopes?: string[],
 ): Promise<void> {
   const { error } = await client.from("pending_facebook_tokens").upsert(
     {
-      profile_id: profileId,
+      organization_id: orgId,
       facebook_user_id: facebookUserId,
       user_access_token: userAccessToken,
       granted_scopes: grantedScopes || null,
     },
-    { onConflict: "profile_id" },
+    { onConflict: "organization_id" },
   );
   if (error) throw error;
 }
 
 export async function getPendingFacebookToken(
   client: DbClient,
-  profileId: string,
+  orgId: string,
 ): Promise<{
   facebook_user_id: string;
   user_access_token: string;
@@ -63,19 +64,16 @@ export async function getPendingFacebookToken(
   const { data, error } = await client
     .from("pending_facebook_tokens")
     .select("facebook_user_id, user_access_token, granted_scopes")
-    .eq("profile_id", profileId)
+    .eq("organization_id", orgId)
     .single();
   if (error) return null;
   return data;
 }
 
-export async function deletePendingFacebookToken(
-  client: DbClient,
-  profileId: string,
-): Promise<void> {
+export async function deletePendingFacebookToken(client: DbClient, orgId: string): Promise<void> {
   const { error } = await client
     .from("pending_facebook_tokens")
     .delete()
-    .eq("profile_id", profileId);
+    .eq("organization_id", orgId);
   if (error) throw error;
 }

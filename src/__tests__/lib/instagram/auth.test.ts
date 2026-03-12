@@ -1,4 +1,7 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
+
+vi.unmock("@/lib/instagram/auth");
+
 import { isTokenExpiringSoon } from "@/lib/instagram/auth";
 
 describe("isTokenExpiringSoon", () => {

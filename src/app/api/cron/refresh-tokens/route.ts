@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
 
   const { data: connections, error } = await db
     .from("instagram_connections")
-    .select("profile_id, access_token, token_expires_at")
+    .select("organization_id, access_token, token_expires_at")
     .not("token_expires_at", "is", null)
     .gt("token_expires_at", now)
     .lt("token_expires_at", sevenDaysFromNow);
@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
       const result = await refreshInstagramToken(conn.access_token);
       await updateInstagramToken(
         db,
-        conn.profile_id,
+        conn.organization_id,
         result.accessToken,
         result.expiresAt.toISOString(),
       );
@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
       log.error({
         operation: "api.cron.refreshTokens",
         message: "Failed to refresh token",
-        profileId: conn.profile_id,
+        orgId: conn.organization_id,
         error: serializeError(err),
       });
     }
