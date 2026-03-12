@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import type { Profile } from "@/lib/db/profiles";
@@ -13,6 +12,7 @@ import {
   needsReauth,
 } from "@/lib/core/scopes";
 import OrgSwitcher from "@/app/posts/org-switcher";
+import AppHeader from "@/app/components/app-header";
 
 export default function AccountView({
   activeOrgId,
@@ -157,12 +157,6 @@ function AccountContent({
     setLoading(false);
   }
 
-  async function handleLogout() {
-    await supabase.auth.signOut();
-    document.cookie = "active_org=; path=/; max-age=0";
-    router.push("/login");
-  }
-
   if (checking) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-base-200">
@@ -172,311 +166,303 @@ function AccountContent({
   }
 
   return (
-    <div className="min-h-screen bg-base-200 px-4 py-6">
-      <div className="w-full max-w-lg mx-auto space-y-6">
-        {/* Header bar */}
-        <div className="flex items-center justify-between">
+    <div className="flex flex-col min-h-screen bg-base-200">
+      <AppHeader activeOrgId={activeOrgId} />
+
+      <div className="flex-1 px-4 py-6">
+        <div className="w-full max-w-lg mx-auto space-y-6">
           <h1 className="text-2xl font-bold">Account</h1>
-          <div className="flex items-center gap-4">
-            <Link href="/posts" className="text-sm text-base-content/50 hover:text-base-content/70">
-              Posts
-            </Link>
-            <button
-              onClick={handleLogout}
-              className="text-sm text-base-content/50 hover:text-base-content/70"
-            >
-              Log out
-            </button>
-          </div>
-        </div>
 
-        {/* Profile card */}
-        <div className="bg-base-100 rounded-2xl shadow-sm border border-base-300 p-8">
-          <h2 className="text-lg font-semibold mb-4">Profile</h2>
+          {/* Profile card */}
+          <div className="bg-base-100 rounded-2xl shadow-sm border border-base-300 p-8">
+            <h2 className="text-lg font-semibold mb-4">Profile</h2>
 
-          {editing ? (
-            <form onSubmit={handleSave} className="space-y-5">
-              <div>
-                <label className="block text-sm font-medium text-base-content/70 mb-1">
-                  Brand Name
-                </label>
-                <input
-                  type="text"
-                  value={brandName}
-                  onChange={(e) => setBrandName(e.target.value)}
-                  required
-                  className="w-full rounded-lg border border-base-300 px-4 py-2.5 text-base-content focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-base-content/70 mb-1">
-                  Brand Description
-                </label>
-                <textarea
-                  value={brandDescription}
-                  onChange={(e) => setBrandDescription(e.target.value)}
-                  required
-                  rows={3}
-                  className="w-full rounded-lg border border-base-300 px-4 py-2.5 text-base-content focus:ring-2 focus:ring-primary focus:border-transparent outline-none resize-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-base-content/70 mb-1">
-                  Tone / Voice
-                </label>
-                <input
-                  type="text"
-                  value={tone}
-                  onChange={(e) => setTone(e.target.value)}
-                  required
-                  className="w-full rounded-lg border border-base-300 px-4 py-2.5 text-base-content focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-base-content/70 mb-2">
-                  Caption Style
-                </label>
-                <div className="grid grid-cols-3 gap-3">
-                  {(
-                    [
-                      ["polished", "Polished", "Structured, catchy, emojis & hashtags"],
-                      ["casual", "Casual", "Natural, conversational, minimal extras"],
-                      ["minimal", "Minimal", "Short & clean, no hashtags or emojis"],
-                    ] as const
-                  ).map(([value, label, desc]) => (
-                    <button
-                      key={value}
-                      type="button"
-                      onClick={() => setCaptionStyle(value)}
-                      className={`rounded-lg border p-3 text-left transition-colors ${
-                        captionStyle === value
-                          ? "border-primary bg-primary/10"
-                          : "border-base-300 hover:border-base-content/30"
-                      }`}
-                    >
-                      <p className="text-sm font-medium">{label}</p>
-                      <p className="text-xs text-base-content/50 mt-0.5">{desc}</p>
-                    </button>
-                  ))}
+            {editing ? (
+              <form onSubmit={handleSave} className="space-y-5">
+                <div>
+                  <label className="block text-sm font-medium text-base-content/70 mb-1">
+                    Brand Name
+                  </label>
+                  <input
+                    type="text"
+                    value={brandName}
+                    onChange={(e) => setBrandName(e.target.value)}
+                    required
+                    className="w-full rounded-lg border border-base-300 px-4 py-2.5 text-base-content focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                  />
                 </div>
-              </div>
 
-              <div>
-                <label className="block text-sm font-medium text-base-content/70 mb-1">
-                  Target Audience
-                </label>
-                <input
-                  type="text"
-                  value={targetAudience}
-                  onChange={(e) => setTargetAudience(e.target.value)}
-                  required
-                  className="w-full rounded-lg border border-base-300 px-4 py-2.5 text-base-content focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
-                />
-              </div>
+                <div>
+                  <label className="block text-sm font-medium text-base-content/70 mb-1">
+                    Brand Description
+                  </label>
+                  <textarea
+                    value={brandDescription}
+                    onChange={(e) => setBrandDescription(e.target.value)}
+                    required
+                    rows={3}
+                    className="w-full rounded-lg border border-base-300 px-4 py-2.5 text-base-content focus:ring-2 focus:ring-primary focus:border-transparent outline-none resize-none"
+                  />
+                </div>
 
-              {error && (
-                <div className="bg-error/10 text-error rounded-lg p-3 text-sm">{error}</div>
-              )}
-              {success && (
-                <div className="bg-success/10 text-success rounded-lg p-3 text-sm">{success}</div>
-              )}
+                <div>
+                  <label className="block text-sm font-medium text-base-content/70 mb-1">
+                    Tone / Voice
+                  </label>
+                  <input
+                    type="text"
+                    value={tone}
+                    onChange={(e) => setTone(e.target.value)}
+                    required
+                    className="w-full rounded-lg border border-base-300 px-4 py-2.5 text-base-content focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                  />
+                </div>
 
-              <div className="flex gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-base-content/70 mb-2">
+                    Caption Style
+                  </label>
+                  <div className="grid grid-cols-3 gap-3">
+                    {(
+                      [
+                        ["polished", "Polished", "Structured, catchy, emojis & hashtags"],
+                        ["casual", "Casual", "Natural, conversational, minimal extras"],
+                        ["minimal", "Minimal", "Short & clean, no hashtags or emojis"],
+                      ] as const
+                    ).map(([value, label, desc]) => (
+                      <button
+                        key={value}
+                        type="button"
+                        onClick={() => setCaptionStyle(value)}
+                        className={`rounded-lg border p-3 text-left transition-colors ${
+                          captionStyle === value
+                            ? "border-primary bg-primary/10"
+                            : "border-base-300 hover:border-base-content/30"
+                        }`}
+                      >
+                        <p className="text-sm font-medium">{label}</p>
+                        <p className="text-xs text-base-content/50 mt-0.5">{desc}</p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-base-content/70 mb-1">
+                    Target Audience
+                  </label>
+                  <input
+                    type="text"
+                    value={targetAudience}
+                    onChange={(e) => setTargetAudience(e.target.value)}
+                    required
+                    className="w-full rounded-lg border border-base-300 px-4 py-2.5 text-base-content focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                  />
+                </div>
+
+                {error && (
+                  <div className="bg-error/10 text-error rounded-lg p-3 text-sm">{error}</div>
+                )}
+                {success && (
+                  <div className="bg-success/10 text-success rounded-lg p-3 text-sm">{success}</div>
+                )}
+
+                <div className="flex gap-3">
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="flex-1 bg-neutral text-neutral-content rounded-lg py-2.5 font-medium hover:bg-neutral/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {loading ? "Saving..." : "Save Changes"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBrandName(profile?.brand_name || "");
+                      setBrandDescription(profile?.brand_description || "");
+                      setTone(profile?.tone || "");
+                      setCaptionStyle(profile?.caption_style || "polished");
+                      setTargetAudience(profile?.target_audience || "");
+                      setError("");
+                      setSuccess("");
+                      setEditing(false);
+                    }}
+                    className="px-6 rounded-lg border border-base-300 py-2.5 text-sm font-medium text-base-content/70 hover:bg-base-200 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <div className="space-y-5">
+                <div>
+                  <p className="text-sm font-medium text-base-content/50">Brand Name</p>
+                  <p className="text-base-content mt-1">{brandName}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-base-content/50">Brand Description</p>
+                  <p className="text-base-content mt-1">{brandDescription}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-base-content/50">Tone / Voice</p>
+                  <p className="text-base-content mt-1">{tone}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-base-content/50">Caption Style</p>
+                  <p className="text-base-content mt-1 capitalize">{captionStyle}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-base-content/50">Target Audience</p>
+                  <p className="text-base-content mt-1">{targetAudience}</p>
+                </div>
+
+                {success && (
+                  <div className="bg-success/10 text-success rounded-lg p-3 text-sm">{success}</div>
+                )}
+
                 <button
-                  type="submit"
-                  disabled={loading}
-                  className="flex-1 bg-neutral text-neutral-content rounded-lg py-2.5 font-medium hover:bg-neutral/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  {loading ? "Saving..." : "Save Changes"}
-                </button>
-                <button
-                  type="button"
                   onClick={() => {
-                    setBrandName(profile?.brand_name || "");
-                    setBrandDescription(profile?.brand_description || "");
-                    setTone(profile?.tone || "");
-                    setCaptionStyle(profile?.caption_style || "polished");
-                    setTargetAudience(profile?.target_audience || "");
-                    setError("");
                     setSuccess("");
-                    setEditing(false);
+                    setEditing(true);
                   }}
-                  className="px-6 rounded-lg border border-base-300 py-2.5 text-sm font-medium text-base-content/70 hover:bg-base-200 transition-colors"
+                  className="w-full border border-base-300 rounded-lg py-2.5 text-sm font-medium text-base-content/70 hover:bg-base-200 transition-colors"
                 >
-                  Cancel
+                  Edit Profile
                 </button>
               </div>
-            </form>
-          ) : (
-            <div className="space-y-5">
-              <div>
-                <p className="text-sm font-medium text-base-content/50">Brand Name</p>
-                <p className="text-base-content mt-1">{brandName}</p>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-base-content/50">Brand Description</p>
-                <p className="text-base-content mt-1">{brandDescription}</p>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-base-content/50">Tone / Voice</p>
-                <p className="text-base-content mt-1">{tone}</p>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-base-content/50">Caption Style</p>
-                <p className="text-base-content mt-1 capitalize">{captionStyle}</p>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-base-content/50">Target Audience</p>
-                <p className="text-base-content mt-1">{targetAudience}</p>
-              </div>
+            )}
+          </div>
 
-              {success && (
-                <div className="bg-success/10 text-success rounded-lg p-3 text-sm">{success}</div>
+          {/* Organization connections card */}
+          <div className="bg-base-100 rounded-2xl shadow-sm border border-base-300 p-8">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold">{activeOrgName || "Organization"}</h2>
+              <OrgSwitcher currentOrgId={activeOrgId} compact />
+            </div>
+            <p className="text-sm text-base-content/50 mb-6">
+              Social accounts linked to this organization.
+            </p>
+
+            {/* Instagram */}
+            <div className="mb-6">
+              <h3 className="text-sm font-medium text-base-content/70 mb-2">Instagram</h3>
+              {igError && (
+                <div className="bg-error/10 text-error rounded-lg p-3 text-sm mb-3">{igError}</div>
               )}
+              {instagram ? (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">@{instagram.instagram_username || "Connected"}</p>
+                      <p className="text-sm text-base-content/50">
+                        Connected {new Date(instagram.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <a
+                      href="/api/instagram/auth"
+                      className="text-sm text-primary font-medium hover:underline"
+                    >
+                      Reconnect
+                    </a>
+                  </div>
+                  {needsReauth(instagram.granted_scopes, REQUIRED_INSTAGRAM_SCOPES) && (
+                    <div className="bg-warning/10 border border-warning/30 rounded-lg p-3 flex items-center justify-between gap-3">
+                      <p className="text-sm text-warning">
+                        New permissions required. Please re-authorize to continue using all
+                        features.
+                      </p>
+                      <a
+                        href="/api/instagram/auth"
+                        className="shrink-0 text-sm font-medium text-warning hover:underline"
+                      >
+                        Re-authorize
+                      </a>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <a
+                  href="/api/instagram/auth"
+                  className="inline-block bg-gradient-to-r from-secondary to-primary text-neutral-content rounded-lg px-6 py-2.5 font-medium hover:opacity-90 transition-opacity"
+                >
+                  Connect Instagram
+                </a>
+              )}
+            </div>
 
-              <button
-                onClick={() => {
-                  setSuccess("");
-                  setEditing(true);
-                }}
-                className="w-full border border-base-300 rounded-lg py-2.5 text-sm font-medium text-base-content/70 hover:bg-base-200 transition-colors"
-              >
-                Edit Profile
-              </button>
+            {/* Facebook */}
+            <div>
+              <h3 className="text-sm font-medium text-base-content/70 mb-2">Facebook</h3>
+              {fbError && (
+                <div className="bg-error/10 text-error rounded-lg p-3 text-sm mb-3">{fbError}</div>
+              )}
+              {facebook ? (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">{facebook.page_name || "Connected"}</p>
+                      <p className="text-sm text-base-content/50">
+                        Connected {new Date(facebook.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <a
+                      href="/api/facebook/auth"
+                      className="text-sm text-info font-medium hover:underline"
+                    >
+                      Reconnect
+                    </a>
+                  </div>
+                  {needsReauth(facebook.granted_scopes, REQUIRED_FACEBOOK_SCOPES) && (
+                    <div className="bg-warning/10 border border-warning/30 rounded-lg p-3 flex items-center justify-between gap-3">
+                      <p className="text-sm text-warning">
+                        New permissions required. Please re-authorize to continue using all
+                        features.
+                      </p>
+                      <a
+                        href="/api/facebook/auth"
+                        className="shrink-0 text-sm font-medium text-warning hover:underline"
+                      >
+                        Re-authorize
+                      </a>
+                    </div>
+                  )}
+                </div>
+              ) : hasPendingFb ? (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">Connected</p>
+                      <p className="text-sm text-base-content/50">No Facebook Page selected</p>
+                    </div>
+                    <a
+                      href="/api/facebook/auth"
+                      className="text-sm text-info font-medium hover:underline"
+                    >
+                      Reconnect
+                    </a>
+                  </div>
+                </div>
+              ) : (
+                <a
+                  href="/api/facebook/auth"
+                  className="inline-block bg-info text-neutral-content rounded-lg px-6 py-2.5 font-medium hover:bg-info/80 transition-colors"
+                >
+                  Connect Facebook
+                </a>
+              )}
+            </div>
+          </div>
+
+          {/* New Organization */}
+          <NewOrgForm />
+
+          {profile?.phone && (
+            <div className="bg-base-100 rounded-2xl shadow-sm border border-base-300 p-8">
+              <h2 className="text-lg font-semibold mb-2">Phone</h2>
+              <p className="text-base-content/60">{profile.phone}</p>
             </div>
           )}
         </div>
-
-        {/* Organization connections card */}
-        <div className="bg-base-100 rounded-2xl shadow-sm border border-base-300 p-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold">{activeOrgName || "Organization"}</h2>
-            <OrgSwitcher currentOrgId={activeOrgId} compact />
-          </div>
-          <p className="text-sm text-base-content/50 mb-6">
-            Social accounts linked to this organization.
-          </p>
-
-          {/* Instagram */}
-          <div className="mb-6">
-            <h3 className="text-sm font-medium text-base-content/70 mb-2">Instagram</h3>
-            {igError && (
-              <div className="bg-error/10 text-error rounded-lg p-3 text-sm mb-3">{igError}</div>
-            )}
-            {instagram ? (
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">@{instagram.instagram_username || "Connected"}</p>
-                    <p className="text-sm text-base-content/50">
-                      Connected {new Date(instagram.created_at).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <a
-                    href="/api/instagram/auth"
-                    className="text-sm text-primary font-medium hover:underline"
-                  >
-                    Reconnect
-                  </a>
-                </div>
-                {needsReauth(instagram.granted_scopes, REQUIRED_INSTAGRAM_SCOPES) && (
-                  <div className="bg-warning/10 border border-warning/30 rounded-lg p-3 flex items-center justify-between gap-3">
-                    <p className="text-sm text-warning">
-                      New permissions required. Please re-authorize to continue using all features.
-                    </p>
-                    <a
-                      href="/api/instagram/auth"
-                      className="shrink-0 text-sm font-medium text-warning hover:underline"
-                    >
-                      Re-authorize
-                    </a>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <a
-                href="/api/instagram/auth"
-                className="inline-block bg-gradient-to-r from-secondary to-primary text-neutral-content rounded-lg px-6 py-2.5 font-medium hover:opacity-90 transition-opacity"
-              >
-                Connect Instagram
-              </a>
-            )}
-          </div>
-
-          {/* Facebook */}
-          <div>
-            <h3 className="text-sm font-medium text-base-content/70 mb-2">Facebook</h3>
-            {fbError && (
-              <div className="bg-error/10 text-error rounded-lg p-3 text-sm mb-3">{fbError}</div>
-            )}
-            {facebook ? (
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">{facebook.page_name || "Connected"}</p>
-                    <p className="text-sm text-base-content/50">
-                      Connected {new Date(facebook.created_at).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <a
-                    href="/api/facebook/auth"
-                    className="text-sm text-info font-medium hover:underline"
-                  >
-                    Reconnect
-                  </a>
-                </div>
-                {needsReauth(facebook.granted_scopes, REQUIRED_FACEBOOK_SCOPES) && (
-                  <div className="bg-warning/10 border border-warning/30 rounded-lg p-3 flex items-center justify-between gap-3">
-                    <p className="text-sm text-warning">
-                      New permissions required. Please re-authorize to continue using all features.
-                    </p>
-                    <a
-                      href="/api/facebook/auth"
-                      className="shrink-0 text-sm font-medium text-warning hover:underline"
-                    >
-                      Re-authorize
-                    </a>
-                  </div>
-                )}
-              </div>
-            ) : hasPendingFb ? (
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Connected</p>
-                    <p className="text-sm text-base-content/50">No Facebook Page selected</p>
-                  </div>
-                  <a
-                    href="/api/facebook/auth"
-                    className="text-sm text-info font-medium hover:underline"
-                  >
-                    Reconnect
-                  </a>
-                </div>
-              </div>
-            ) : (
-              <a
-                href="/api/facebook/auth"
-                className="inline-block bg-info text-neutral-content rounded-lg px-6 py-2.5 font-medium hover:bg-info/80 transition-colors"
-              >
-                Connect Facebook
-              </a>
-            )}
-          </div>
-        </div>
-
-        {/* New Organization */}
-        <NewOrgForm />
-
-        {profile?.phone && (
-          <div className="bg-base-100 rounded-2xl shadow-sm border border-base-300 p-8">
-            <h2 className="text-lg font-semibold mb-2">Phone</h2>
-            <p className="text-base-content/60">{profile.phone}</p>
-          </div>
-        )}
       </div>
     </div>
   );

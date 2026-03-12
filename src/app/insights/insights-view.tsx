@@ -1,30 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import AppHeader from "@/app/components/app-header";
 
-export default function InsightsView() {
+export default function InsightsView({ activeOrgId }: { activeOrgId: string | null }) {
   return (
     <div className="flex flex-col h-[100dvh] bg-base-200">
-      {/* Header */}
-      <div className="bg-base-100 border-b border-base-300 px-4 py-3 flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-2">
-          <Link href="/posts" className="text-base-content/50 hover:text-base-content/70">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="w-5 h-5"
-            >
-              <polyline points="15 18 9 12 15 6" />
-            </svg>
-          </Link>
-          <h1 className="text-lg font-semibold">Insights</h1>
-        </div>
-      </div>
+      <AppHeader activeOrgId={activeOrgId} />
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto px-4 py-8">

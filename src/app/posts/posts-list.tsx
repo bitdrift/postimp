@@ -2,10 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
 import type { Post } from "@/lib/db/posts";
-import Image from "next/image";
-import OrgSwitcher from "./org-switcher";
+import AppHeader from "@/app/components/app-header";
 
 type Filter = "mine" | "all";
 
@@ -27,7 +25,6 @@ export default function PostsList({
   activeOrgName: string;
 }) {
   const router = useRouter();
-  const [menuOpen, setMenuOpen] = useState(false);
   const [filter, setFilter] = useState<Filter>("mine");
   const [deletedIds, setDeletedIds] = useState<Set<string>>(new Set());
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -35,13 +32,6 @@ export default function PostsList({
 
   const hasOtherPosts = allPosts.length > myPosts.length;
   const posts = (filter === "mine" ? myPosts : allPosts).filter((p) => !deletedIds.has(p.id));
-
-  async function handleLogout() {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    document.cookie = "active_org=; path=/; max-age=0";
-    router.push("/login");
-  }
 
   async function handleDelete(postId: string) {
     if (!window.confirm("Delete this post?")) return;
@@ -63,32 +53,7 @@ export default function PostsList({
 
   return (
     <div className="flex flex-col h-[100dvh] bg-base-200">
-      {/* Header */}
-      <div className="bg-base-100 border-b border-base-300 px-4 py-3 flex items-center justify-between shrink-0">
-        <span className="flex items-center gap-1.5">
-          <Image src="/postimp_logo.png" alt="" width={28} height={32} className="h-7 w-auto" />
-          <h1 className="text-lg font-[family-name:var(--font-logo)] translate-y-1">Post Imp</h1>
-        </span>
-        <button
-          onClick={() => setMenuOpen(true)}
-          className="p-1 text-base-content/50 hover:text-base-content/70"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="w-6 h-6"
-          >
-            <line x1="3" y1="6" x2="21" y2="6" />
-            <line x1="3" y1="12" x2="21" y2="12" />
-            <line x1="3" y1="18" x2="21" y2="18" />
-          </svg>
-        </button>
-      </div>
+      <AppHeader activeOrgId={activeOrgId} />
 
       {/* Filter bar */}
       <div className="bg-base-100 border-b border-base-300 px-4 py-2 flex items-center gap-1 shrink-0">
@@ -106,86 +71,6 @@ export default function PostsList({
             All Posts
           </button>
         )}
-      </div>
-
-      {/* Slide-in menu backdrop */}
-      <div
-        className={`fixed inset-0 bg-neutral/40 z-40 transition-opacity duration-300 ${
-          menuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-        }`}
-        onClick={() => setMenuOpen(false)}
-      />
-      {/* Slide-in menu panel */}
-      <div
-        className={`fixed top-0 right-0 bottom-0 w-64 bg-base-100 z-50 shadow-xl flex flex-col transition-transform duration-300 ease-in-out ${
-          menuOpen ? "translate-x-0" : "translate-x-full"
-        }`}
-      >
-        <div className="px-4 py-4 border-b border-base-300 flex items-center justify-between">
-          <span className="font-semibold">Menu</span>
-          <button
-            onClick={() => setMenuOpen(false)}
-            className="text-base-content/40 hover:text-base-content/60"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="w-5 h-5"
-            >
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
-        </div>
-        <nav className="flex-1 py-2">
-          <button
-            onClick={() => {
-              setMenuOpen(false);
-              router.push("/posts/new");
-            }}
-            className="w-full text-left px-4 py-3 text-sm hover:bg-base-200 transition-colors"
-          >
-            New Post
-          </button>
-          <button
-            onClick={() => {
-              setMenuOpen(false);
-              router.push("/insights");
-            }}
-            className="w-full text-left px-4 py-3 text-sm hover:bg-base-200 transition-colors"
-          >
-            Insights
-          </button>
-          <button
-            onClick={() => {
-              setMenuOpen(false);
-              router.push("/account");
-            }}
-            className="w-full text-left px-4 py-3 text-sm hover:bg-base-200 transition-colors"
-          >
-            Account
-          </button>
-          <a
-            href="mailto:support@postimp.com"
-            className="block px-4 py-3 text-sm hover:bg-base-200 transition-colors"
-          >
-            Support
-          </a>
-        </nav>
-        <OrgSwitcher currentOrgId={activeOrgId} />
-        <div className="border-t border-base-300 px-4 py-3">
-          <button
-            onClick={handleLogout}
-            className="w-full text-left text-sm text-base-content/50 hover:text-base-content/70"
-          >
-            Log Out
-          </button>
-        </div>
       </div>
 
       {/* Posts list */}
