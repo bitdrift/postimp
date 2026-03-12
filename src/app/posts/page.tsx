@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createDbClient } from "@/lib/db/client";
 import { getProfile } from "@/lib/db/profiles";
 import { getPostsByOrganization } from "@/lib/db/posts";
-import { getActiveOrganization } from "@/lib/db/organizations";
+import { getActiveOrganization, createOrganization } from "@/lib/db/organizations";
 import PostsList from "./posts-list";
 
 export default async function ChatPage() {
@@ -18,7 +18,7 @@ export default async function ChatPage() {
 
   const db = createDbClient();
 
-  const [profile, org] = await Promise.all([
+  const [profile, existingOrg] = await Promise.all([
     getProfile(db, user.id),
     getActiveOrganization(db, user.id),
   ]);
@@ -27,9 +27,9 @@ export default async function ChatPage() {
     redirect("/onboarding");
   }
 
-  if (!org) {
-    redirect("/onboarding");
-  }
+  // Auto-create a default org for existing users who don't have one
+  const org =
+    existingOrg ?? (await createOrganization(db, user.id, profile.brand_name || "My Brand"));
 
   // Fetch both views in parallel: my posts and all org posts
   const [myPosts, allPosts] = await Promise.all([
