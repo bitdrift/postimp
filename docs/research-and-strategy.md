@@ -42,10 +42,9 @@ Each item is a small, testable feature — a vertical slice that delivers someth
 ### Done
 
 - [x] **Facebook Login: Business Discovery scope** — Added `instagram_basic` to Facebook Login scopes, enabling the Business Discovery API for reading other accounts' posts.
+- [x] **Look up any Instagram account** — Insights hub at `/insights`, account lookup at `/insights/lookup`. Search by username, see profile info and last ~5 posts (image, caption, likes, comments, links to original). Uses Business Discovery API via Facebook Login. Added Insights to hamburger menu nav. Facebook connect prompt with `returnTo` flow. Fixed Facebook Login for Business page listing via `granular_scopes` fallback. *Blocked on App Review for `instagram_basic` approval.*
 
 ### Up Next
-
-- [ ] **Look up any Instagram account** — Enter a username, see their profile info and last ~5 posts (image, caption, likes, comments). Displayed on a new page. Uses Business Discovery API via Facebook Login. Creates whatever storage is needed for the fetched data.
 
 - [ ] **Save inspiration accounts** — From the account lookup page, tap "Save as inspiration." Saved accounts appear in a list on a new "Research" screen. User can add up to 10 and remove any. Data model is created as needed.
 

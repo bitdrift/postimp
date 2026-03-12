@@ -23,7 +23,7 @@ export function getAuthorizationUrl(state: string, baseUrl: string): string {
 export async function exchangeCodeForToken(
   code: string,
   baseUrl: string,
-): Promise<{ accessToken: string; userId: string }> {
+): Promise<{ accessToken: string; userId: string; permissions: string[] }> {
   const elapsed = timed();
   const redirectUri = `${baseUrl}/api/instagram/callback`;
   // Exchange code for short-lived token
@@ -48,6 +48,11 @@ export async function exchangeCodeForToken(
   }
 
   const shortLivedToken = tokenData.access_token;
+  const permissions: string[] = Array.isArray(tokenData.permissions)
+    ? tokenData.permissions
+    : typeof tokenData.permissions === "string"
+      ? tokenData.permissions.split(",").map((s: string) => s.trim())
+      : [];
 
   // Exchange for long-lived token (60 days)
   const longLivedResponse = await fetch(
@@ -84,6 +89,7 @@ export async function exchangeCodeForToken(
   return {
     accessToken: longLivedData.access_token,
     userId: meData.user_id,
+    permissions,
   };
 }
 
@@ -129,27 +135,6 @@ export async function refreshInstagramToken(
     accessToken: data.access_token,
     expiresAt: new Date(Date.now() + data.expires_in * 1000),
   };
-}
-
-export async function getGrantedScopes(accessToken: string): Promise<string[] | null> {
-  try {
-    const response = await fetch(
-      `https://graph.instagram.com/v21.0/me/permissions?access_token=${accessToken}`,
-    );
-    const data = await response.json();
-
-    if (data.error) {
-      console.error("[getGrantedScopes] Instagram permissions error:", data.error.message);
-      return null;
-    }
-
-    return (data.data || [])
-      .filter((p: { status: string }) => p.status === "granted")
-      .map((p: { permission: string }) => p.permission);
-  } catch (err) {
-    console.error("[getGrantedScopes] Instagram permissions fetch failed:", err);
-    return null;
-  }
 }
 
 export async function getInstagramUsername(

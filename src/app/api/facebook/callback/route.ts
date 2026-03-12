@@ -21,7 +21,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${baseUrl}/account?error=facebook_denied`);
   }
 
-  const userId = state.split(":")[0];
+  const stateParts = state.split(":");
+  const userId = stateParts[0];
+  const returnTo = stateParts.slice(2).join(":") || "/account";
   if (!userId) {
     return NextResponse.redirect(`${baseUrl}/account?error=invalid_state`);
   }
@@ -48,7 +50,9 @@ export async function GET(request: NextRequest) {
       durationMs: elapsed(),
     });
 
-    return NextResponse.redirect(`${baseUrl}/account/facebook-pages`);
+    return NextResponse.redirect(
+      `${baseUrl}/account/facebook-pages?returnTo=${encodeURIComponent(returnTo)}`,
+    );
   } catch (err) {
     const message =
       err instanceof Error

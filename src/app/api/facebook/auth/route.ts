@@ -17,7 +17,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${baseUrl}/login`);
   }
 
-  const state = `${user.id}:${randomBytes(16).toString("hex")}`;
+  const returnTo = request.nextUrl.searchParams.get("returnTo") || "/account";
+  const state = `${user.id}:${randomBytes(16).toString("hex")}:${returnTo}`;
 
   log.info({ operation: "api.facebook.auth", message: "Redirecting to Facebook OAuth" });
 

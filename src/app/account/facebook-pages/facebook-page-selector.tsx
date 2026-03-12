@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 interface FacebookPage {
   id: string;
@@ -16,6 +16,8 @@ export default function FacebookPageSelector() {
   const [selectedPage, setSelectedPage] = useState<FacebookPage | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const returnTo = searchParams.get("returnTo") || "/account";
 
   useEffect(() => {
     async function fetchPages() {
@@ -28,7 +30,11 @@ export default function FacebookPageSelector() {
           return;
         }
 
-        setPages(data.pages || []);
+        const fetchedPages = data.pages || [];
+        setPages(fetchedPages);
+        if (fetchedPages.length === 1) {
+          setSelectedPage(fetchedPages[0]);
+        }
       } catch {
         setError("Failed to load Facebook pages. Please try again.");
       } finally {
@@ -62,7 +68,7 @@ export default function FacebookPageSelector() {
         return;
       }
 
-      router.push("/account?facebook=connected");
+      router.push(returnTo.startsWith("/") ? returnTo : "/account");
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
@@ -89,30 +95,52 @@ export default function FacebookPageSelector() {
         {pages.length === 0 ? (
           <div className="bg-base-100 rounded-2xl shadow-sm border border-base-300 p-8 text-center">
             <p className="text-base-content/60 mb-4">
-              No Facebook Pages found. You need a Facebook Page to publish posts.
+              No Facebook Pages found. If you have a Page linked to your Instagram account, make
+              sure you granted page permissions during login.
             </p>
-            <a href="/account" className="text-sm text-info font-medium hover:underline">
-              Back to Account
-            </a>
+            <div className="flex flex-col gap-3">
+              <button
+                type="button"
+                onClick={() => router.push(returnTo.startsWith("/") ? returnTo : "/account")}
+                className="w-full bg-info text-neutral-content rounded-lg py-2.5 font-medium hover:bg-info/80 transition-colors"
+              >
+                Continue without a Page
+              </button>
+              <a href="/account" className="text-sm text-base-content/50 hover:underline">
+                Back to Account
+              </a>
+            </div>
           </div>
         ) : (
           <>
             <div className="space-y-3">
-              {pages.map((page) => (
-                <button
-                  key={page.id}
-                  type="button"
-                  onClick={() => setSelectedPage(page)}
-                  className={`w-full text-left bg-base-100 rounded-2xl shadow-sm border p-6 transition-colors ${
-                    selectedPage?.id === page.id
-                      ? "border-info bg-info/10"
-                      : "border-base-300 hover:border-base-content/30"
-                  }`}
-                >
-                  <p className="font-medium">{page.name}</p>
-                  <p className="text-sm text-base-content/50 mt-1">Page ID: {page.id}</p>
-                </button>
-              ))}
+              {pages.map((page) => {
+                const selected = selectedPage?.id === page.id;
+                return (
+                  <button
+                    key={page.id}
+                    type="button"
+                    onClick={() => setSelectedPage(page)}
+                    className={`w-full text-left bg-base-100 rounded-2xl shadow-sm border p-6 transition-colors flex items-center gap-4 ${
+                      selected
+                        ? "border-info bg-info/10"
+                        : "border-base-300 hover:border-base-content/30"
+                    }`}
+                  >
+                    <div
+                      className={`w-5 h-5 rounded-full border-2 shrink-0 flex items-center justify-center ${
+                        selected ? "border-info" : "border-base-content/30"
+                      }`}
+                    >
+                      {selected && <div className="w-2.5 h-2.5 rounded-full bg-info" />}
+                    </div>
+                    <div>
+                      <p className="font-medium">{page.name}</p>
+                      <p className="text-sm text-base-content/50 mt-1">Page ID: {page.id}</p>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
 
             <button
