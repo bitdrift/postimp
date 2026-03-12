@@ -1,6 +1,7 @@
 import { describe, it, expect, afterEach } from "vitest";
 import { createDbClient } from "@/lib/db/client";
 import {
+  TOKEN_LIFETIME_MS,
   seedProfile,
   seedOrganization,
   seedInstagramConnection,
@@ -45,12 +46,12 @@ describe("instagram connections", () => {
       const org = await seedOrganization(id);
       await seedInstagramConnection(org.id);
 
-      const newExpiry = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString();
+      const newExpiry = new Date(Date.now() + TOKEN_LIFETIME_MS).toISOString();
       await updateInstagramToken(db, org.id, "refreshed_token", newExpiry);
 
       const connection = await getInstagramConnection(db, org.id);
       expect(connection!.access_token).toBe("refreshed_token");
-      expect(connection!.token_expires_at).toBe(newExpiry);
+      expect(new Date(connection!.token_expires_at!).getTime()).toBe(new Date(newExpiry).getTime());
       // Other fields unchanged
       expect(connection!.instagram_user_id).toBe("ig_user_123");
       expect(connection!.instagram_username).toBe("testuser");
@@ -65,7 +66,7 @@ describe("instagram connections", () => {
         organization_id: org.id,
         instagram_user_id: "ig_456",
         access_token: "token_abc",
-        token_expires_at: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString(),
+        token_expires_at: new Date(Date.now() + TOKEN_LIFETIME_MS).toISOString(),
         instagram_username: "newuser",
       });
 
@@ -83,7 +84,7 @@ describe("instagram connections", () => {
         organization_id: org.id,
         instagram_user_id: "ig_updated",
         access_token: "new_token",
-        token_expires_at: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString(),
+        token_expires_at: new Date(Date.now() + TOKEN_LIFETIME_MS).toISOString(),
         instagram_username: "updateduser",
       });
 

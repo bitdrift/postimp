@@ -20,7 +20,7 @@ export async function upsertFacebookConnection(
   client: DbClient,
   fields: {
     organization_id: string;
-    connected_by_user_id?: string | null;
+    user_id?: string | null;
     facebook_user_id: string;
     facebook_page_id: string;
     page_name: string | null;

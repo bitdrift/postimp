@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
     // Upsert the connection
     await upsertInstagramConnection(db, {
       organization_id: org.id,
-      connected_by_user_id: userId,
+      user_id: userId,
       instagram_user_id: igUserId,
       access_token: accessToken,
       token_expires_at: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString(), // 60 days

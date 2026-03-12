@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     // Save the Facebook page connection
     await upsertFacebookConnection(db, {
       organization_id: org.id,
-      connected_by_user_id: user.id,
+      user_id: user.id,
       facebook_user_id: pending.facebook_user_id,
       facebook_page_id: page_id,
       page_name: page_name || null,

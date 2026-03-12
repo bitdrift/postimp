@@ -111,13 +111,36 @@ CREATE POLICY "Owners can remove members"
   USING (is_org_owner(organization_id));
 
 -- =============================================================================
+-- 5b. Atomic org creation RPC
+-- =============================================================================
+
+CREATE OR REPLACE FUNCTION create_organization(p_user_id uuid, p_name text)
+RETURNS organizations
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  new_org organizations;
+BEGIN
+  INSERT INTO organizations (name, creator_user_id)
+  VALUES (p_name, p_user_id)
+  RETURNING * INTO new_org;
+
+  INSERT INTO organization_members (organization_id, user_id, role)
+  VALUES (new_org.id, p_user_id, 'owner');
+
+  RETURN new_org;
+END;
+$$;
+
+-- =============================================================================
 -- 6. Alter instagram_connections
 -- =============================================================================
 
 -- Add new columns
 ALTER TABLE instagram_connections
   ADD COLUMN organization_id uuid REFERENCES organizations(id) ON DELETE CASCADE,
-  ADD COLUMN connected_by_user_id uuid REFERENCES auth.users(id) ON DELETE SET NULL;
+  ADD COLUMN user_id uuid REFERENCES auth.users(id) ON DELETE SET NULL;
 
 -- =============================================================================
 -- 7. Alter facebook_connections
@@ -125,7 +148,7 @@ ALTER TABLE instagram_connections
 
 ALTER TABLE facebook_connections
   ADD COLUMN organization_id uuid REFERENCES organizations(id) ON DELETE CASCADE,
-  ADD COLUMN connected_by_user_id uuid REFERENCES auth.users(id) ON DELETE SET NULL;
+  ADD COLUMN user_id uuid REFERENCES auth.users(id) ON DELETE SET NULL;
 
 -- =============================================================================
 -- 8. Alter pending_facebook_tokens
@@ -164,11 +187,11 @@ BEGIN
 
     -- Backfill connections
     UPDATE instagram_connections
-    SET organization_id = new_org_id, connected_by_user_id = rec.id
+    SET organization_id = new_org_id, user_id = rec.id
     WHERE profile_id = rec.id;
 
     UPDATE facebook_connections
-    SET organization_id = new_org_id, connected_by_user_id = rec.id
+    SET organization_id = new_org_id, user_id = rec.id
     WHERE profile_id = rec.id;
 
     UPDATE pending_facebook_tokens

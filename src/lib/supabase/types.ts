@@ -15,7 +15,7 @@ export interface Profile {
 export interface InstagramConnection {
   id: string;
   organization_id: string;
-  connected_by_user_id: string | null;
+  user_id: string | null;
   instagram_user_id: string;
   access_token: string;
   token_expires_at: string | null;
@@ -28,7 +28,7 @@ export interface InstagramConnection {
 export interface FacebookConnection {
   id: string;
   organization_id: string;
-  connected_by_user_id: string | null;
+  user_id: string | null;
   facebook_user_id: string;
   facebook_page_id: string;
   page_name: string | null;

@@ -36,7 +36,7 @@ export async function upsertInstagramConnection(
   client: DbClient,
   fields: {
     organization_id: string;
-    connected_by_user_id?: string | null;
+    user_id?: string | null;
     instagram_user_id: string;
     access_token: string;
     token_expires_at: string;

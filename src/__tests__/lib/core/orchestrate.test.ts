@@ -8,6 +8,7 @@ import { createDbClient } from "@/lib/db/client";
 import {
   seedProfile,
   seedPost,
+  seedOrganization,
   seedInstagramConnection,
   cleanAll,
   makeTestDeliver,
@@ -90,8 +91,9 @@ describe("orchestrate", () => {
 
   it("handles publish_post tool call", async () => {
     const { id } = await seedProfile();
-    await seedPost(id);
-    await seedInstagramConnection(id);
+    const org = await seedOrganization(id);
+    await seedPost(id, { organization_id: org.id });
+    await seedInstagramConnection(org.id);
 
     mockSendMessage.mockResolvedValueOnce({
       responseId: "resp_pub_1",

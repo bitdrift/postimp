@@ -45,6 +45,25 @@ export async function getOrganizationForUser(
 }
 
 /**
+ * Create an organization and add the user as owner (atomic via RPC).
+ */
+export async function createOrganization(
+  client: DbClient,
+  userId: string,
+  name: string,
+): Promise<Organization> {
+  const { data, error } = await client
+    .rpc("create_organization", {
+      p_user_id: userId,
+      p_name: name,
+    })
+    .single();
+  if (error || !data) throw error ?? new Error("Failed to create organization");
+
+  return data as Organization;
+}
+
+/**
  * Get all organizations a user belongs to, ordered by join date.
  */
 export async function getOrganizationsForUser(

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createDbClient } from "@/lib/db/client";
 import { createClient } from "@/lib/supabase/server";
 import { insertProfile } from "@/lib/db/profiles";
+import { createOrganization } from "@/lib/db/organizations";
 import { getUnusedRegistrationByToken, markRegistrationUsed } from "@/lib/db/registrations";
 import { log, serializeError } from "@/lib/logger";
 
@@ -40,9 +41,12 @@ export async function POST(request: NextRequest) {
   try {
     await insertProfile(db, { id: user.id, phone });
 
+    // Create a default organization for the user
+    await createOrganization(db, user.id, "My Organization");
+
     log.info({
       operation: "api.auth.createProfile",
-      message: "Profile created",
+      message: "Profile and default organization created",
       profileId: user.id,
       hasPhone: !!phone,
     });

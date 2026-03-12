@@ -13,6 +13,7 @@ import {
   seedInstagramConnection,
   seedFacebookConnection,
   cleanAll,
+  TOKEN_LIFETIME_MS,
 } from "../../helpers/seed";
 
 const mockIgPublish = vi.mocked(publishToInstagram);
@@ -35,7 +36,7 @@ describe("executePublish", () => {
     mockIsExpiring.mockReturnValue(false);
     mockRefresh.mockResolvedValue({
       accessToken: "refreshed_tok",
-      expiresAt: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
+      expiresAt: new Date(Date.now() + TOKEN_LIFETIME_MS),
     });
   });
 
@@ -58,6 +59,8 @@ describe("executePublish", () => {
   });
 
   it("returns error when IG token expired and no FB", async () => {
+    mockIsExpiring.mockReturnValue(true);
+
     const { id } = await seedProfile();
     const org = await seedOrganization(id);
     const post = await seedPost(id, { organization_id: org.id });
@@ -188,7 +191,7 @@ describe("executePublish", () => {
   });
 
   it("refreshes token after publish when expiring soon", async () => {
-    mockIsExpiring.mockReturnValue(true);
+    mockIsExpiring.mockImplementation((_token: string | null, windowMs?: number) => windowMs !== 0);
 
     const { id } = await seedProfile();
     const org = await seedOrganization(id);
@@ -206,7 +209,7 @@ describe("executePublish", () => {
   });
 
   it("still succeeds when opportunistic refresh fails", async () => {
-    mockIsExpiring.mockReturnValue(true);
+    mockIsExpiring.mockImplementation((_token: string | null, windowMs?: number) => windowMs !== 0);
     mockRefresh.mockRejectedValueOnce(new Error("refresh failed"));
 
     const { id } = await seedProfile();
@@ -220,5 +223,16 @@ describe("executePublish", () => {
     expect(result.success).toBe(true);
     const updated = await getPost(post.id);
     expect(updated.status).toBe("published");
+  });
+
+  it("returns error when post has no organization_id", async () => {
+    const { id } = await seedProfile();
+    const post = await seedPost(id);
+    const fullPost = await getPost(post.id);
+
+    const result = await executePublish(id, fullPost);
+
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("not associated with an organization");
   });
 });

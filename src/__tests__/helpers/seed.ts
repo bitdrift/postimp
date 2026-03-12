@@ -2,6 +2,9 @@ import { vi } from "vitest";
 import { createDbClient } from "@/lib/db/client";
 import type { DeliverFn } from "@/lib/core/types";
 
+/** 60-day token lifetime used by Instagram long-lived tokens */
+export const TOKEN_LIFETIME_MS = 60 * 24 * 60 * 60 * 1000;
+
 // Track seeded user IDs so cleanAll only deletes what this test suite created
 const seededUserIds: string[] = [];
 
@@ -100,7 +103,7 @@ export async function seedInstagramConnection(
       organization_id: orgId,
       instagram_user_id: "ig_user_123",
       access_token: "test_access_token",
-      token_expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      token_expires_at: new Date(Date.now() + TOKEN_LIFETIME_MS).toISOString(),
       instagram_username: "testuser",
       ...overrides,
     })
@@ -157,6 +160,9 @@ export async function cleanAll() {
 
   const { error: pendingFbErr } = await db.from("pending_facebook_tokens").delete().neq("id", NIL);
   if (pendingFbErr) console.error("cleanAll pending_facebook_tokens:", pendingFbErr.message);
+
+  const { error: pendingRegErr } = await db.from("pending_registrations").delete().neq("id", NIL);
+  if (pendingRegErr) console.error("cleanAll pending_registrations:", pendingRegErr.message);
 
   const { error: memberErr } = await db.from("organization_members").delete().neq("id", NIL);
   if (memberErr) console.error("cleanAll organization_members:", memberErr.message);

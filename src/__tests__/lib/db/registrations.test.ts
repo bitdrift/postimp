@@ -13,8 +13,6 @@ const db = createDbClient();
 
 describe("pending registrations", () => {
   afterEach(async () => {
-    const NIL = "00000000-0000-0000-0000-000000000000";
-    await db.from("pending_registrations").delete().neq("id", NIL);
     await cleanAll();
   });
 

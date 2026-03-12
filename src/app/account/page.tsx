@@ -19,5 +19,5 @@ export default async function AccountPage() {
   const db = createDbClient();
   const org = await getActiveOrganization(db, user.id);
 
-  return <AccountView activeOrgId={org?.id ?? null} />;
+  return <AccountView activeOrgId={org?.id ?? null} activeOrgName={org?.name ?? null} />;
 }
