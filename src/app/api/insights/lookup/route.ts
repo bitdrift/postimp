@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createDbClient } from "@/lib/db/client";
 import { getInstagramConnection } from "@/lib/db/instagram";
 import { getFacebookConnection, getPendingFacebookToken } from "@/lib/db/facebook";
+import { getActiveOrganization } from "@/lib/db/organizations";
 import { log, timed, serializeError } from "@/lib/logger";
 
 async function getIgUserIdFromToken(accessToken: string): Promise<string | null> {
@@ -41,10 +42,16 @@ export async function GET(req: NextRequest) {
   }
 
   const db = createDbClient();
+  const org = await getActiveOrganization(db, user.id);
+
+  if (!org) {
+    return NextResponse.json({ error: "No organization found" }, { status: 400 });
+  }
+
   const [igConnection, fbConnection, pendingFb] = await Promise.all([
-    getInstagramConnection(db, user.id),
-    getFacebookConnection(db, user.id),
-    getPendingFacebookToken(db, user.id),
+    getInstagramConnection(db, org.id),
+    getFacebookConnection(db, org.id),
+    getPendingFacebookToken(db, org.id),
   ]);
 
   // Business Discovery requires a Facebook Login token on graph.facebook.com
