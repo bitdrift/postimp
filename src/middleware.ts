@@ -2,14 +2,6 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
-  // Redirect www → non-www (canonical domain)
-  const host = request.headers.get("host") || "";
-  if (host.startsWith("www.")) {
-    const url = request.nextUrl.clone();
-    url.host = host.replace(/^www\./, "");
-    return NextResponse.redirect(url, 301);
-  }
-
   let supabaseResponse = NextResponse.next({
     request,
   });
