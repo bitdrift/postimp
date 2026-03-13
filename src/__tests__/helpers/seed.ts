@@ -8,20 +8,25 @@ export const TOKEN_LIFETIME_MS = 60 * 24 * 60 * 60 * 1000;
 // Track seeded user IDs so cleanAll only deletes what this test suite created
 const seededUserIds: string[] = [];
 
+/**
+ * Creates an auth.users row and tracks the ID for cleanup.
+ * Use this when you need a user without a profile (e.g. testing the signup flow).
+ */
+export async function seedAuthUser(): Promise<string> {
+  const db = createDbClient();
+  const id = crypto.randomUUID();
+  const { error } = await db.rpc("test_create_user", { user_id: id });
+  if (error)
+    throw new Error(`seedAuthUser: create user failed: ${error.message || JSON.stringify(error)}`);
+  seededUserIds.push(id);
+  return id;
+}
+
 export async function seedProfile(
   overrides: Record<string, unknown> = {},
 ): Promise<{ id: string }> {
   const db = createDbClient();
-  const id = crypto.randomUUID();
-
-  // Insert into auth.users via RPC (PostgREST only exposes public schema)
-  const { error: rpcError } = await db.rpc("test_create_user", { user_id: id });
-  if (rpcError)
-    throw new Error(
-      `seedProfile: create user failed: ${rpcError.message || JSON.stringify(rpcError)}`,
-    );
-
-  seededUserIds.push(id);
+  const id = await seedAuthUser();
 
   // Use UUID fragment for phone uniqueness across parallel test files
   const phoneSuffix = id.replace(/-/g, "").slice(0, 10);
