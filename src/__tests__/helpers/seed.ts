@@ -175,6 +175,12 @@ export async function cleanAll() {
   const { error: orgErr } = await db.from("organizations").delete().neq("id", NIL);
   if (orgErr) console.error("cleanAll organizations:", orgErr.message);
 
+  const { error: threadErr } = await db.from("marketing_article_threads").delete().neq("id", NIL);
+  if (threadErr) console.error("cleanAll marketing_article_threads:", threadErr.message);
+
+  const { error: articleErr } = await db.from("marketing_articles").delete().neq("id", NIL);
+  if (articleErr) console.error("cleanAll marketing_articles:", articleErr.message);
+
   const { error: profErr } = await db.from("profiles").delete().neq("id", NIL);
   if (profErr) console.error("cleanAll profiles:", profErr.message);
 

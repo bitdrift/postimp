@@ -68,6 +68,7 @@ Required in `.env.local`:
 - `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER`
 - `NEXT_PUBLIC_BASE_URL`
 - `CRON_SECRET` (Vercel Cron authentication)
+- `SLACK_BOT_TOKEN`, `SLACK_SIGNING_SECRET` (Slack bot for article generation)
 
 ## Logging
 
