@@ -39,7 +39,24 @@ if [[ -z "$prod_vars" ]]; then
 fi
 
 echo "Pulling production env values for comparison..."
-prod_pulled=$(vercel env pull /dev/stdout --environment production 2>/dev/null || true)
+prod_pulled_raw=$(vercel env pull /dev/stdout --environment production 2>/dev/null || true)
+
+# Build an associative array of prod key=value pairs for reliable lookup
+declare -A prod_values
+while IFS= read -r pline; do
+  [[ -z "$pline" || "$pline" =~ ^[[:space:]]*# ]] && continue
+  if [[ "$pline" =~ ^([A-Za-z_][A-Za-z0-9_]*)=(.*) ]]; then
+    pkey="${BASH_REMATCH[1]}"
+    pval="${BASH_REMATCH[2]}"
+    if [[ "$pval" =~ ^\"(.*)\"$ ]] || [[ "$pval" =~ ^\'(.*)\'$ ]]; then
+      pval="${BASH_REMATCH[1]}"
+    fi
+    prod_values["$pkey"]="$pval"
+  fi
+done <<< "$prod_pulled_raw"
+
+# Sentinel to distinguish "key exists with empty value" from "key not found"
+_NOTFOUND_="__%NOTFOUND%__"
 
 mask_value() {
   local v="$1"
@@ -79,11 +96,11 @@ while IFS= read -r line; do
       value="${BASH_REMATCH[1]}"
     fi
 
-    # Check if the key exists in prod (exact word match)
-    if echo "$prod_vars" | grep -qw "$key"; then
-      # Key exists — compare against pulled values
-      current_value=$(echo "$prod_pulled" | grep "^${key}=" | sed "s/^${key}=//" || true)
+    # Check if the key exists in prod using associative array
+    current_value="${prod_values[$key]:-$_NOTFOUND_}"
 
+    if [[ "$current_value" != "$_NOTFOUND_" ]]; then
+      # Key exists in prod — compare values
       if [[ "$current_value" == "$value" ]]; then
         echo "[=] $key — already matches prod, skipping"
         skipped=$((skipped + 1))
