@@ -1,4 +1,17 @@
 #!/usr/bin/env bash
+# sync-env.sh — Push local env vars to Vercel production
+#
+# Reads each KEY=VALUE pair from .env.local and compares it against the
+# current production environment on Vercel. For each variable it will:
+#   [=] Skip if the value already matches prod
+#   [~] Prompt to update if the value differs from prod
+#   [+] Prompt to add if the key doesn't exist on prod yet
+#
+# Usage:
+#   npm run vercel:env:push          # interactive — prompts for each change
+#   npm run vercel:env:push -- --yes # auto-approve all changes
+#
+# Requires: vercel CLI (npm i -g vercel), project linked via `vercel link`
 set -euo pipefail
 
 ENV_FILE=".env.local"
@@ -41,22 +54,23 @@ fi
 echo "Pulling production env values for comparison..."
 prod_pulled_raw=$(vercel env pull /dev/stdout --environment production 2>/dev/null || true)
 
-# Build an associative array of prod key=value pairs for reliable lookup
-declare -A prod_values
-while IFS= read -r pline; do
-  [[ -z "$pline" || "$pline" =~ ^[[:space:]]*# ]] && continue
-  if [[ "$pline" =~ ^([A-Za-z_][A-Za-z0-9_]*)=(.*) ]]; then
-    pkey="${BASH_REMATCH[1]}"
-    pval="${BASH_REMATCH[2]}"
-    if [[ "$pval" =~ ^\"(.*)\"$ ]] || [[ "$pval" =~ ^\'(.*)\'$ ]]; then
-      pval="${BASH_REMATCH[1]}"
-    fi
-    prod_values["$pkey"]="$pval"
+# Look up a key's value from the pulled prod env content.
+# Returns 0 (true) if found, 1 (false) if not. Prints the value to stdout.
+prod_lookup() {
+  local search_key="$1"
+  local found_line
+  found_line=$(echo "$prod_pulled_raw" | grep "^${search_key}=" | head -1) || true
+  if [[ -z "$found_line" ]]; then
+    return 1
   fi
-done <<< "$prod_pulled_raw"
-
-# Sentinel to distinguish "key exists with empty value" from "key not found"
-_NOTFOUND_="__%NOTFOUND%__"
+  local val="${found_line#*=}"
+  # Strip surrounding quotes if present
+  if [[ "$val" =~ ^\"(.*)\"$ ]] || [[ "$val" =~ ^\'(.*)\'$ ]]; then
+    val="${BASH_REMATCH[1]}"
+  fi
+  printf '%s' "$val"
+  return 0
+}
 
 mask_value() {
   local v="$1"
@@ -96,10 +110,8 @@ while IFS= read -r line; do
       value="${BASH_REMATCH[1]}"
     fi
 
-    # Check if the key exists in prod using associative array
-    current_value="${prod_values[$key]:-$_NOTFOUND_}"
-
-    if [[ "$current_value" != "$_NOTFOUND_" ]]; then
+    # Check if the key exists in prod
+    if current_value=$(prod_lookup "$key"); then
       # Key exists in prod — compare values
       if [[ "$current_value" == "$value" ]]; then
         echo "[=] $key — already matches prod, skipping"
