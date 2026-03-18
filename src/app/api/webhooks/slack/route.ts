@@ -5,7 +5,7 @@ import { postSlackMessage } from "@/lib/slack/client";
 import { orchestrateArticle } from "@/lib/slack/orchestrate-article";
 import { createDbClient } from "@/lib/db/client";
 import { insertArticle, insertArticleThread, getThreadBySlack } from "@/lib/db/articles";
-import { sendArticleMessage, sendArticleToolResults } from "@/lib/openai/article-writer";
+import { captureDraftFromAI } from "@/lib/core/article-tools";
 import { log, timed, serializeError } from "@/lib/logger";
 
 // Track recently processed event IDs to prevent duplicate handling from Slack retries
@@ -115,45 +115,9 @@ async function handleNewArticle(event: {
   );
 
   try {
-    // Send to AI — it should call update_article tool with initial draft
-    let result = await sendArticleMessage({
-      text: `Write a blog article based on this idea:\n\n${idea}`,
-    });
+    const draft = await captureDraftFromAI(idea);
 
-    // Extract article fields from the first update_article tool call.
-    // This initial loop only captures fields and responds to tool calls —
-    // it intentionally differs from orchestrateArticle because the article
-    // row doesn't exist in the DB yet.
-    let articleFields: Record<string, unknown> | null = null;
-    const MAX_ROUNDS = 5;
-
-    for (let round = 0; round < MAX_ROUNDS && result.toolCalls.length > 0; round++) {
-      const toolOutputs: Array<{ callId: string; output: string }> = [];
-
-      for (const toolCall of result.toolCalls) {
-        if (toolCall.name === "update_article") {
-          articleFields = toolCall.args;
-          toolOutputs.push({ callId: toolCall.callId, output: "Article saved as draft." });
-        } else if (toolCall.name === "publish_article") {
-          toolOutputs.push({
-            callId: toolCall.callId,
-            output: "Article saved as draft. The team will review before publishing.",
-          });
-        } else {
-          toolOutputs.push({
-            callId: toolCall.callId,
-            output: `Unknown tool: ${toolCall.name}`,
-          });
-        }
-      }
-
-      result = await sendArticleToolResults({
-        previousResponseId: result.responseId,
-        toolOutputs,
-      });
-    }
-
-    if (!articleFields) {
+    if (!draft.articleFields) {
       await postSlackMessage(
         event.channel,
         "Something went wrong — AI didn't generate article content. Try again.",
@@ -162,16 +126,16 @@ async function handleNewArticle(event: {
       return;
     }
 
-    // Save article and thread
     const db = createDbClient();
+    const fields = draft.articleFields;
     const saved = await insertArticle(db, {
-      slug: articleFields.slug as string,
-      title: articleFields.title as string,
-      description: articleFields.description as string,
-      content: articleFields.content as string,
-      tags: articleFields.tags as string[],
-      og_title: (articleFields.og_title as string) || null,
-      og_description: (articleFields.og_description as string) || null,
+      slug: fields.slug,
+      title: fields.title,
+      description: fields.description,
+      content: fields.content,
+      tags: fields.tags,
+      og_title: fields.og_title || null,
+      og_description: fields.og_description || null,
       author: "Post Imp Team",
       published: false,
     });
@@ -180,7 +144,7 @@ async function handleNewArticle(event: {
       article_id: saved.id,
       slack_channel_id: event.channel,
       slack_thread_ts: event.ts,
-      openai_response_id: result.responseId,
+      openai_response_id: draft.responseId,
       created_by_slack_user: event.user,
     });
 
@@ -201,8 +165,8 @@ async function handleNewArticle(event: {
       event.ts,
     );
 
-    if (result.textResponse) {
-      await postSlackMessage(event.channel, result.textResponse, event.ts);
+    if (draft.textResponse) {
+      await postSlackMessage(event.channel, draft.textResponse, event.ts);
     }
 
     log.info({
