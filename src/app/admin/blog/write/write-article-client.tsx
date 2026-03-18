@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+import { useState, useRef, useEffect, useCallback } from "react";
+import type { MDXEditorMethods } from "@mdxeditor/editor";
+import MarkdownEditor from "./editor-dynamic";
 
 interface ArticleData {
   title: string;
@@ -44,10 +44,41 @@ export default function WriteArticleClient({ initialArticle }: WriteArticleClien
   const [articleId, setArticleId] = useState<string | null>(initialArticle?.id ?? null);
   const [responseId, setResponseId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [dirty, setDirty] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const editorRef = useRef<MDXEditorMethods>(null);
+  const lastAiContent = useRef<string | null>(null);
 
   const published = article?.published ?? false;
+
+  const handleEditorChange = useCallback((markdown: string) => {
+    setArticle((prev) => (prev ? { ...prev, content: markdown } : prev));
+    setDirty(true);
+  }, []);
+
+  async function saveManualEdits() {
+    if (!articleId || !article || !dirty) return;
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/articles/${articleId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: article.content }),
+      });
+      const data = await res.json();
+      if (res.ok && data.article) {
+        setArticle(data.article);
+        setDirty(false);
+        lastAiContent.current = data.article.content;
+      }
+    } catch {
+      // ignore — user can retry
+    } finally {
+      setSaving(false);
+    }
+  }
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -59,8 +90,31 @@ export default function WriteArticleClient({ initialArticle }: WriteArticleClien
     }
   }, [loading]);
 
+  // Warn before navigating away with unsaved edits
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (dirty) e.preventDefault();
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [dirty]);
+
+  // Sync editor content when AI updates the article
+  useEffect(() => {
+    if (article?.content && article.content !== lastAiContent.current && !dirty) {
+      editorRef.current?.setMarkdown(article.content);
+      lastAiContent.current = article.content;
+    }
+  }, [article?.content, dirty]);
+
   async function sendMessage(text: string) {
     if (!text.trim() || loading) return;
+    if (
+      dirty &&
+      !window.confirm("You have unsaved edits. Sending a message will overwrite them. Continue?")
+    ) {
+      return;
+    }
 
     setInput("");
     setMessages((prev) => [...prev, { role: "user", text }]);
@@ -95,6 +149,7 @@ export default function WriteArticleClient({ initialArticle }: WriteArticleClien
       if (data.responseId) setResponseId(data.responseId);
       if (data.article) {
         setArticle(data.article);
+        setDirty(false);
         // Update URL to reflect the current slug
         if (data.article.slug) {
           window.history.replaceState(null, "", `/admin/blog/write/${data.article.slug}`);
@@ -211,8 +266,19 @@ export default function WriteArticleClient({ initialArticle }: WriteArticleClien
           {article ? (
             <div className="rounded-xl border border-base-300 bg-base-100 overflow-hidden">
               <div className="flex items-center justify-between border-b border-base-300 px-4 py-3">
-                <h2 className="font-semibold text-sm">Article Preview</h2>
+                <h2 className="font-semibold text-sm">
+                  {published ? "Article Preview" : "Edit Article"}
+                </h2>
                 <div className="flex items-center gap-2">
+                  {!published && dirty && (
+                    <button
+                      onClick={saveManualEdits}
+                      disabled={saving}
+                      className="text-xs px-3 py-1.5 rounded-lg bg-primary text-primary-content hover:bg-primary/90 disabled:opacity-50 transition-colors"
+                    >
+                      {saving ? "Saving..." : "Save edits"}
+                    </button>
+                  )}
                   {!published && articleId && (
                     <button
                       onClick={handlePublish}
@@ -242,10 +308,13 @@ export default function WriteArticleClient({ initialArticle }: WriteArticleClien
               )}
 
               <div className="p-4 max-h-[520px] overflow-y-auto">
-                <div className="prose prose-sm max-w-none dark:prose-invert">
-                  <h1>{article.title}</h1>
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{article.content}</ReactMarkdown>
-                </div>
+                <h1 className="text-2xl font-bold mb-4">{article.title}</h1>
+                <MarkdownEditor
+                  ref={editorRef}
+                  markdown={article.content}
+                  onChange={handleEditorChange}
+                  readOnly={published}
+                />
               </div>
             </div>
           ) : (
