@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createDbClient } from "@/lib/db/client";
 import { insertArticle, getArticleById } from "@/lib/db/articles";
-import { captureDraftFromAI, reviseArticle } from "@/lib/core/article-tools";
+import { captureDraftFromAI, reviseArticle, buildArticleContext } from "@/lib/core/article-tools";
 import { log, timed, serializeError } from "@/lib/logger";
 
 const MAX_MESSAGE_LENGTH = 5000;
@@ -42,9 +42,7 @@ export async function POST(request: NextRequest) {
     }
 
     // When resuming without conversation history, give the AI the current article
-    const feedbackText = responseId
-      ? message
-      : `Here is the current draft article:\n\nTitle: ${existing.title}\nSlug: ${existing.slug}\nDescription: ${existing.description}\nTags: ${existing.tags.join(", ")}\n\nContent:\n${existing.content}\n\n---\n\nUser feedback: ${message}`;
+    const feedbackText = responseId ? message : buildArticleContext(existing, message);
 
     return await handleRevision(db, feedbackText, articleId, responseId || null, elapsed);
   } catch (err) {

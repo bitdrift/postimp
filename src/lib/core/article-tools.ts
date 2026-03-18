@@ -6,8 +6,10 @@ import {
   type SendArticleResult,
 } from "@/lib/openai/article-writer";
 import { log, serializeError } from "@/lib/logger";
+import type { MarketingArticle } from "@/lib/supabase/types";
 
 const MAX_TOOL_ROUNDS = 5;
+const MAX_CONTEXT_CONTENT_LENGTH = 3000;
 
 export interface ArticleUpdateFields {
   title: string;
@@ -23,6 +25,34 @@ export interface CaptureDraftResult {
   responseId: string;
   textResponse: string;
   articleFields: ArticleUpdateFields | null;
+}
+
+/**
+ * Builds an AI prompt that includes the current article as context,
+ * used when resuming a draft without prior conversation history.
+ * Truncates content to avoid inflating token cost.
+ */
+export function buildArticleContext(article: MarketingArticle, feedback: string): string {
+  const truncatedContent =
+    article.content.length > MAX_CONTEXT_CONTENT_LENGTH
+      ? article.content.slice(0, MAX_CONTEXT_CONTENT_LENGTH) + "\n\n[content truncated]"
+      : article.content;
+
+  return [
+    "Here is the current draft article:",
+    "",
+    `Title: ${article.title}`,
+    `Slug: ${article.slug}`,
+    `Description: ${article.description}`,
+    `Tags: ${article.tags.join(", ")}`,
+    "",
+    "Content:",
+    truncatedContent,
+    "",
+    "---",
+    "",
+    `User feedback: ${feedback}`,
+  ].join("\n");
 }
 
 /**

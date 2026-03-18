@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { captureDraftFromAI, reviseArticle } from "@/lib/core/article-tools";
+import { captureDraftFromAI, reviseArticle, buildArticleContext } from "@/lib/core/article-tools";
 import { sendArticleMessage, sendArticleToolResults } from "@/lib/openai/article-writer";
 import { createDbClient } from "@/lib/db/client";
 import { insertArticle, getArticleById } from "@/lib/db/articles";
@@ -29,6 +29,51 @@ async function cleanArticles() {
   await db.from("marketing_article_threads").delete().neq("id", NIL);
   await db.from("marketing_articles").delete().neq("id", NIL);
 }
+
+describe("buildArticleContext", () => {
+  const article = {
+    id: "00000000-0000-0000-0000-000000000001",
+    slug: "test-slug",
+    title: "Test Title",
+    description: "Test description",
+    content: "# Hello\n\nShort content.",
+    author: "Post Imp Team",
+    tags: ["test", "ai"],
+    published: false,
+    published_at: null,
+    og_title: null,
+    og_description: null,
+    og_image_url: null,
+    canonical_url: null,
+    created_at: "2026-01-01T00:00:00Z",
+    updated_at: "2026-01-01T00:00:00Z",
+  };
+
+  it("includes article fields and user feedback", () => {
+    const result = buildArticleContext(article, "make it longer");
+
+    expect(result).toContain("Title: Test Title");
+    expect(result).toContain("Slug: test-slug");
+    expect(result).toContain("Tags: test, ai");
+    expect(result).toContain("# Hello\n\nShort content.");
+    expect(result).toContain("User feedback: make it longer");
+  });
+
+  it("truncates long content", () => {
+    const longArticle = { ...article, content: "x".repeat(5000) };
+
+    const result = buildArticleContext(longArticle, "revise");
+
+    expect(result).toContain("[content truncated]");
+    expect(result).not.toContain("x".repeat(5000));
+  });
+
+  it("does not truncate short content", () => {
+    const result = buildArticleContext(article, "revise");
+
+    expect(result).not.toContain("[content truncated]");
+  });
+});
 
 describe("captureDraftFromAI", () => {
   beforeEach(() => {

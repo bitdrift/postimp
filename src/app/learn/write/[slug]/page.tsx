@@ -3,6 +3,9 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getArticleBySlugWithDrafts } from "@/lib/db/articles";
 import WriteArticleClient from "../write-article-client";
 
+// Draft content should never be cached — always fetch fresh
+export const dynamic = "force-dynamic";
+
 interface Props {
   params: Promise<{ slug: string }>;
 }
