@@ -180,7 +180,7 @@ async function handleNewArticle(event: {
         `*Tags:* ${saved.tags.join(", ")}`,
         ``,
         `Reply in this thread to give feedback and I'll revise. Say *publish it* when you're happy.`,
-        `Edit on web: ${baseUrl}/learn/write/${saved.slug}`,
+        `Edit on web: ${baseUrl}/admin/blog/write/${saved.slug}`,
         `Once published it will appear at: ${baseUrl}/learn/${saved.slug}`,
       ].join("\n"),
       event.ts,

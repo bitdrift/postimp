@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
 import { createDbClient } from "@/lib/db/client";
 import { getAllArticles } from "@/lib/db/articles";
 import { ArticleList } from "./article-list";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Article Dashboard - Post Imp",
@@ -11,6 +13,15 @@ export const metadata: Metadata = {
 };
 
 export default async function DashboardPage() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
   const db = createDbClient();
   const articles = await getAllArticles(db);
 

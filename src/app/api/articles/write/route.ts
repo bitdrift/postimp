@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { createClient } from "@/lib/supabase/server";
 import { createDbClient } from "@/lib/db/client";
 import { insertArticle, getArticleById } from "@/lib/db/articles";
 import { captureDraftFromAI, reviseArticle, buildArticleContext } from "@/lib/core/article-tools";
@@ -8,6 +9,15 @@ const MAX_MESSAGE_LENGTH = 5000;
 
 export async function POST(request: NextRequest) {
   const elapsed = timed();
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   let body: { message: string; articleId?: string; responseId?: string };
   try {
@@ -29,10 +39,11 @@ export async function POST(request: NextRequest) {
   }
 
   const db = createDbClient();
+  const authorName = user.user_metadata?.full_name || user.email || "Post Imp Team";
 
   try {
     if (!articleId) {
-      return await handleNewArticle(db, message, elapsed);
+      return await handleNewArticle(db, message, authorName, elapsed);
     }
 
     // Verify article exists
@@ -58,6 +69,7 @@ export async function POST(request: NextRequest) {
 async function handleNewArticle(
   db: ReturnType<typeof createDbClient>,
   idea: string,
+  author: string,
   elapsed: ReturnType<typeof timed>,
 ) {
   const draft = await captureDraftFromAI(idea);
@@ -81,7 +93,7 @@ async function handleNewArticle(
       tags: fields.tags,
       og_title: fields.og_title || null,
       og_description: fields.og_description || null,
-      author: "Post Imp Team",
+      author,
       published: false,
     });
   } catch (err: unknown) {

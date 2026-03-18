@@ -8,7 +8,7 @@ export default function WriteDraftNotFound() {
         This draft doesn&apos;t exist or may have been published under a different slug.
       </p>
       <Link
-        href="/learn/write"
+        href="/admin/blog/write"
         className="inline-block mt-8 text-sm text-primary hover:text-primary/80 transition-colors"
       >
         &larr; Write a new article
