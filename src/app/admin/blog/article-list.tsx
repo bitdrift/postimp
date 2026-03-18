@@ -67,7 +67,9 @@ export function ArticleList({ articles }: Props) {
                       {article.published ? "Published" : "Draft"}
                     </span>
                   </div>
-                  <p className="mt-1 text-sm text-base-content/50 truncate">{article.description}</p>
+                  <p className="mt-1 text-sm text-base-content/50 truncate">
+                    {article.description}
+                  </p>
                 </div>
               </div>
               <div className="mt-3 flex items-center gap-4 text-sm text-base-content/40">
@@ -105,7 +107,9 @@ function FilterButton({
     <button
       onClick={onClick}
       className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-        active ? "bg-primary text-primary-content" : "bg-base-200 text-base-content/60 hover:bg-base-300"
+        active
+          ? "bg-primary text-primary-content"
+          : "bg-base-200 text-base-content/60 hover:bg-base-300"
       }`}
     >
       {children}

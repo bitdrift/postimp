@@ -5,7 +5,10 @@ export default function AdminBlogLayout({ children }: { children: React.ReactNod
     <div className="min-h-screen bg-base-100 flex flex-col">
       <header className="border-b border-base-300 px-6 py-3 flex items-center justify-between">
         <nav className="flex items-center gap-6">
-          <Link href="/admin/blog" className="text-sm font-semibold hover:text-primary transition-colors">
+          <Link
+            href="/admin/blog"
+            className="text-sm font-semibold hover:text-primary transition-colors"
+          >
             Articles
           </Link>
           <Link
@@ -15,7 +18,10 @@ export default function AdminBlogLayout({ children }: { children: React.ReactNod
             Write New
           </Link>
         </nav>
-        <Link href="/posts" className="text-sm text-base-content/40 hover:text-base-content/60 transition-colors">
+        <Link
+          href="/posts"
+          className="text-sm text-base-content/40 hover:text-base-content/60 transition-colors"
+        >
           Back to app
         </Link>
       </header>
