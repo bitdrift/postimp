@@ -80,6 +80,10 @@ export default function WriteArticleClient({ initialArticle }: WriteArticleClien
       const data = await res.json();
 
       if (!res.ok) {
+        if (res.status === 401) {
+          window.location.href = "/login";
+          return;
+        }
         setMessages((prev) => [
           ...prev,
           { role: "assistant", text: data.error || "Something went wrong." },
@@ -93,7 +97,7 @@ export default function WriteArticleClient({ initialArticle }: WriteArticleClien
         setArticle(data.article);
         // Update URL to reflect the current slug
         if (data.article.slug) {
-          window.history.replaceState(null, "", `/learn/write/${data.article.slug}`);
+          window.history.replaceState(null, "", `/admin/blog/write/${data.article.slug}`);
         }
       }
 

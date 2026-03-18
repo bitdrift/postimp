@@ -39,7 +39,7 @@ export async function orchestrateArticle(
             `*Slug:* \`${fields.slug}\``,
             `*Description:* ${fields.description}`,
             `*Tags:* ${fields.tags.join(", ")}`,
-            `Edit on web: ${baseUrl}/learn/write/${fields.slug}`,
+            `Edit on web: ${baseUrl}/admin/blog/write/${fields.slug}`,
           ].join("\n"),
           threadTs,
         );

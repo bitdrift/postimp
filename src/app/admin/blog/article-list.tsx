@@ -44,7 +44,11 @@ export function ArticleList({ articles }: Props) {
           {filtered.map((article) => (
             <Link
               key={article.id}
-              href={article.published ? `/learn/${article.slug}` : `/learn/write?article=${article.id}`}
+              href={
+                article.published
+                  ? `/learn/${article.slug}`
+                  : `/admin/blog/write?article=${article.id}`
+              }
               className="block group rounded-xl border border-base-300 p-5 hover:bg-base-200 transition-colors"
             >
               <div className="flex items-start justify-between gap-4">
