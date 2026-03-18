@@ -3,6 +3,7 @@ import { createDbClient } from "@/lib/db/client";
 import {
   getPublishedArticles,
   getArticleBySlug,
+  getArticleBySlugWithDrafts,
   getAllPublishedSlugs,
   insertArticle,
   updateArticle,
@@ -124,6 +125,33 @@ describe("marketing_articles", () => {
       expect(article!.og_description).toBe("Custom OG Description");
       expect(article!.og_image_url).toBe("https://example.com/image.jpg");
       expect(article!.canonical_url).toBe("https://example.com/canonical");
+    });
+  });
+
+  describe("getArticleBySlugWithDrafts", () => {
+    it("returns a published article", async () => {
+      const { slug } = await seedArticle({ published: true });
+
+      const article = await getArticleBySlugWithDrafts(db, slug);
+
+      expect(article).not.toBeNull();
+      expect(article!.slug).toBe(slug);
+    });
+
+    it("returns an unpublished draft article", async () => {
+      const { slug } = await seedArticle({ published: false });
+
+      const article = await getArticleBySlugWithDrafts(db, slug);
+
+      expect(article).not.toBeNull();
+      expect(article!.slug).toBe(slug);
+      expect(article!.published).toBe(false);
+    });
+
+    it("returns null for non-existent slugs", async () => {
+      const article = await getArticleBySlugWithDrafts(db, "does-not-exist");
+
+      expect(article).toBeNull();
     });
   });
 

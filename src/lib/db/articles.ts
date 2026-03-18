@@ -87,6 +87,25 @@ export async function updateArticle(
   if (error) throw error;
 }
 
+/**
+ * Fetches an article by slug regardless of published status.
+ * Must be called with an admin client (service role) since RLS
+ * restricts browser/server clients to published articles only.
+ */
+export async function getArticleBySlugWithDrafts(
+  client: DbClient,
+  slug: string,
+): Promise<MarketingArticle | null> {
+  const { data, error } = await client
+    .from("marketing_articles")
+    .select("*")
+    .eq("slug", slug)
+    .single();
+
+  if (error) return null;
+  return data;
+}
+
 export async function getArticleById(
   client: DbClient,
   articleId: string,

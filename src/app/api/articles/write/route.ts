@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createDbClient } from "@/lib/db/client";
 import { insertArticle, getArticleById } from "@/lib/db/articles";
-import { captureDraftFromAI, reviseArticle } from "@/lib/core/article-tools";
+import { captureDraftFromAI, reviseArticle, buildArticleContext } from "@/lib/core/article-tools";
 import { log, timed, serializeError } from "@/lib/logger";
 
 const MAX_MESSAGE_LENGTH = 5000;
@@ -41,7 +41,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Article not found" }, { status: 404 });
     }
 
-    return await handleRevision(db, message, articleId, responseId || null, elapsed);
+    // When resuming without conversation history, give the AI the current article
+    const feedbackText = responseId ? message : buildArticleContext(existing, message);
+
+    return await handleRevision(db, feedbackText, articleId, responseId || null, elapsed);
   } catch (err) {
     log.error({
       operation: "api.articles.write",
