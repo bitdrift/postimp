@@ -20,6 +20,20 @@ export async function getPublishedArticles(
   return data;
 }
 
+export async function getAllArticles(
+  client: DbClient,
+): Promise<Omit<MarketingArticle, "content">[]> {
+  const { data, error } = await client
+    .from("marketing_articles")
+    .select(
+      "id, slug, title, description, author, tags, published, published_at, og_title, og_description, og_image_url, canonical_url, created_at, updated_at",
+    )
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+  return data;
+}
+
 export async function getArticleBySlug(
   client: DbClient,
   slug: string,

@@ -1,6 +1,7 @@
 import { describe, it, expect, afterEach } from "vitest";
 import { createDbClient } from "@/lib/db/client";
 import {
+  getAllArticles,
   getPublishedArticles,
   getArticleBySlug,
   getArticleBySlugWithDrafts,
@@ -44,6 +45,47 @@ async function cleanAll() {
 describe("marketing_articles", () => {
   afterEach(async () => {
     await cleanAll();
+  });
+
+  describe("getAllArticles", () => {
+    it("returns both published and unpublished articles", async () => {
+      await seedArticle({ slug: "pub", published: true });
+      await seedArticle({ slug: "draft", published: false });
+
+      const articles = await getAllArticles(db);
+
+      expect(articles).toHaveLength(2);
+      const slugs = articles.map((a) => a.slug);
+      expect(slugs).toContain("pub");
+      expect(slugs).toContain("draft");
+    });
+
+    it("orders by created_at descending", async () => {
+      await seedArticle({
+        slug: "older",
+        title: "Older",
+        created_at: "2026-01-01T00:00:00Z",
+      });
+      await seedArticle({
+        slug: "newer",
+        title: "Newer",
+        created_at: "2026-03-01T00:00:00Z",
+      });
+
+      const articles = await getAllArticles(db);
+
+      expect(articles[0].title).toBe("Newer");
+      expect(articles[1].title).toBe("Older");
+    });
+
+    it("does not include content field", async () => {
+      await seedArticle();
+
+      const articles = await getAllArticles(db);
+
+      expect(articles).toHaveLength(1);
+      expect(articles[0]).not.toHaveProperty("content");
+    });
   });
 
   describe("getPublishedArticles", () => {
