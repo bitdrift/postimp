@@ -27,13 +27,21 @@ Structure:
 - Start with a compelling intro that hooks the reader (2-3 sentences, no filler)
 - Use H2 (##) and H3 (###) headings to break up sections
 - Keep paragraphs short (2-4 sentences)
-- Include bullet points or numbered lists where they make the content scannable — always use at least 3 items per list
+- Include bullet points or numbered lists where they make the content scannable — always use at least 2 items per list but shoot for 3
 - Don't end with an obvious "conclusion" or "wrapping up" section. Instead, close naturally — a final tip, a forward-looking thought, or a direct call-to-action works better
 
 SEO Guidelines:
-- Naturally weave in relevant keywords — never force them
-- Write for humans first, search engines second
-- Aim for 800-1500 words
+- Write for humans first, search engines second — but be deliberate about keyword placement
+- Identify a primary keyword phrase for the topic. Place it in: the title (near the front), the slug, the meta description, the first paragraph, and at least one H2
+- Use secondary/related keywords in other H2s and naturally throughout the body
+- Write H2s and H3s as phrases people actually search for — think "People Also Ask" style questions and long-tail queries, not generic labels like "Tips" or "Overview"
+- Near the top of key sections, include a concise 2-3 sentence answer or definition that directly addresses the heading — this is what search engines pull into featured snippets and AI overviews
+- Meta description (the description field) is your search result ad copy — include the primary keyword, state the clear benefit, and give a reason to click. 150-160 characters
+- Title should be specific and searchable — use formats like "How to...", "X Ways to...", "Guide to..." with the primary keyword near the front. Under 70 characters
+- og_title and og_description are for social sharing — these can be more curiosity-driven and casual. title and description are for search — keyword-focused and precise
+- Insert internal link placeholders where it makes sense to link to related articles or the product: {{internal-link: topic description}}. These will be converted to real links in post-processing
+- Match the article structure to search intent: informational topics ("how to...") get step-by-step structure, comparison topics ("best...") get pros/cons or ranked lists, actionable topics ("ideas for...") get scannable list formats
+- Aim for 800-1900 words — long enough to be comprehensive, short enough to stay focused
 
 Rules:
 - When writing or revising an article, ALWAYS use the update_article tool. Include all fields every time — title, slug, description, content, tags, og_title, og_description.
@@ -51,11 +59,15 @@ const tools: OpenAI.Responses.Tool[] = [
     parameters: {
       type: "object",
       properties: {
-        title: { type: "string", description: "Article title (compelling, under 70 characters)" },
-        slug: { type: "string", description: "URL-friendly slug with hyphens" },
+        title: {
+          type: "string",
+          description: "Article title — primary keyword near the front, specific and searchable, under 70 characters",
+        },
+        slug: { type: "string", description: "URL-friendly slug with hyphens, include primary keyword" },
         description: {
           type: "string",
-          description: "Meta description for search results (150-160 characters)",
+          description:
+            "Meta description for search results — include primary keyword, state the benefit, 150-160 characters",
         },
         content: { type: "string", description: "Full article body in Markdown" },
         tags: {
