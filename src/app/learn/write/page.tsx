@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 interface ArticleData {
   title: string;
@@ -24,7 +25,6 @@ export default function WriteArticlePage() {
   const [articleId, setArticleId] = useState<string | null>(null);
   const [responseId, setResponseId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [showPreview, setShowPreview] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -105,7 +105,7 @@ export default function WriteArticlePage() {
     sendMessage("Publish it");
   }
 
-  const baseUrl = useMemo(() => (typeof window !== "undefined" ? window.location.origin : ""), []);
+  const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
 
   return (
     <section className="max-w-5xl mx-auto px-6 py-12">
@@ -184,12 +184,6 @@ export default function WriteArticlePage() {
               <div className="flex items-center justify-between border-b border-base-300 px-4 py-3">
                 <h2 className="font-semibold text-sm">Article Preview</h2>
                 <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setShowPreview(!showPreview)}
-                    className="text-xs px-3 py-1.5 rounded-lg bg-base-200 hover:bg-base-300 transition-colors"
-                  >
-                    {showPreview ? "Show Info" : "Show Content"}
-                  </button>
                   {!published && articleId && (
                     <button
                       onClick={handlePublish}
@@ -219,52 +213,10 @@ export default function WriteArticlePage() {
               )}
 
               <div className="p-4 max-h-[520px] overflow-y-auto">
-                {showPreview ? (
-                  <div className="prose prose-sm max-w-none dark:prose-invert">
-                    <h1>{article.title}</h1>
-                    <ReactMarkdown>{article.content}</ReactMarkdown>
-                  </div>
-                ) : (
-                  <div className="space-y-3 text-sm">
-                    <div>
-                      <span className="font-medium text-base-content/60">Title:</span>{" "}
-                      <span>{article.title}</span>
-                    </div>
-                    <div>
-                      <span className="font-medium text-base-content/60">Slug:</span>{" "}
-                      <code className="text-xs bg-base-200 px-1.5 py-0.5 rounded">
-                        {article.slug}
-                      </code>
-                    </div>
-                    <div>
-                      <span className="font-medium text-base-content/60">Description:</span>{" "}
-                      <span className="text-base-content/80">{article.description}</span>
-                    </div>
-                    {article.tags.length > 0 && (
-                      <div>
-                        <span className="font-medium text-base-content/60">Tags:</span>{" "}
-                        <span className="inline-flex gap-1.5 flex-wrap">
-                          {article.tags.map((tag) => (
-                            <span
-                              key={tag}
-                              className="bg-base-200 px-2 py-0.5 rounded-full text-xs"
-                            >
-                              {tag}
-                            </span>
-                          ))}
-                        </span>
-                      </div>
-                    )}
-                    <div>
-                      <span className="font-medium text-base-content/60">Status:</span>{" "}
-                      <span
-                        className={`text-xs font-medium ${published ? "text-green-600" : "text-yellow-600"}`}
-                      >
-                        {published ? "Published" : "Draft"}
-                      </span>
-                    </div>
-                  </div>
-                )}
+                <div className="prose prose-sm max-w-none dark:prose-invert">
+                  <h1>{article.title}</h1>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{article.content}</ReactMarkdown>
+                </div>
               </div>
             </div>
           ) : (

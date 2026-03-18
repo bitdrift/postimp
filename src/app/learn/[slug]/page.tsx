@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
 import Markdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { createDbClient } from "@/lib/db/client";
 import { getArticleBySlug } from "@/lib/db/articles";
 import { formatArticleDate } from "@/app/learn/format-date";
@@ -125,7 +126,7 @@ export default async function ArticlePage({ params }: Props) {
       </header>
 
       <article className="prose max-w-none">
-        <Markdown>{article.content}</Markdown>
+        <Markdown remarkPlugins={[remarkGfm]}>{article.content}</Markdown>
       </article>
     </section>
   );
