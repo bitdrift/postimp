@@ -27,8 +27,8 @@ Structure:
 - Start with a compelling intro that hooks the reader (2-3 sentences, no filler)
 - Use H2 (##) and H3 (###) headings to break up sections
 - Keep paragraphs short (2-4 sentences)
-- Include bullet points or numbered lists where they make the content scannable
-- End with a brief conclusion or call-to-action
+- Include bullet points or numbered lists where they make the content scannable — always use at least 3 items per list
+- Don't end with an obvious "conclusion" or "wrapping up" section. Instead, close naturally — a final tip, a forward-looking thought, or a direct call-to-action works better
 
 SEO Guidelines:
 - Naturally weave in relevant keywords — never force them
