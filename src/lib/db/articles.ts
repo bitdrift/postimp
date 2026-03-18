@@ -87,6 +87,20 @@ export async function updateArticle(
   if (error) throw error;
 }
 
+export async function getArticleBySlugWithDrafts(
+  client: DbClient,
+  slug: string,
+): Promise<MarketingArticle | null> {
+  const { data, error } = await client
+    .from("marketing_articles")
+    .select("*")
+    .eq("slug", slug)
+    .single();
+
+  if (error) return null;
+  return data;
+}
+
 export async function getArticleById(
   client: DbClient,
   articleId: string,

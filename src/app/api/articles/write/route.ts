@@ -41,7 +41,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Article not found" }, { status: 404 });
     }
 
-    return await handleRevision(db, message, articleId, responseId || null, elapsed);
+    // When resuming without conversation history, give the AI the current article
+    const feedbackText = responseId
+      ? message
+      : `Here is the current draft article:\n\nTitle: ${existing.title}\nSlug: ${existing.slug}\nDescription: ${existing.description}\nTags: ${existing.tags.join(", ")}\n\nContent:\n${existing.content}\n\n---\n\nUser feedback: ${message}`;
+
+    return await handleRevision(db, feedbackText, articleId, responseId || null, elapsed);
   } catch (err) {
     log.error({
       operation: "api.articles.write",
