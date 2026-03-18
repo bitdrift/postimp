@@ -67,12 +67,35 @@ export async function orchestrateArticle(
     return { published: false };
   }
 
-  // Update conversation pointer
-  await updateThreadResponseId(db, threadId, result.responseId);
+  try {
+    // Update conversation pointer
+    await updateThreadResponseId(db, threadId, result.responseId);
 
-  // Post AI's text response to thread
-  if (result.textResponse) {
-    await postSlackMessage(channel, result.textResponse, threadTs);
+    // Post AI's text response to thread
+    if (result.textResponse) {
+      await postSlackMessage(channel, result.textResponse, threadTs);
+    }
+  } catch (error) {
+    log.error({
+      operation: "slack.orchestrateArticle",
+      message: "Post-AI step failed",
+      articleId,
+      error: serializeError(error),
+    });
+    try {
+      await postSlackMessage(
+        channel,
+        "The article was updated, but I had trouble saving the conversation state. You may need to re-mention me to start a fresh thread.",
+        threadTs,
+      );
+    } catch (_) {
+      log.warn({
+        operation: "slack.orchestrateArticle",
+        message: "Failed to send post-AI error reply to Slack",
+        articleId,
+      });
+    }
+    return { published: result.published };
   }
 
   log.info({

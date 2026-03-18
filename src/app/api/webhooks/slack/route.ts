@@ -8,6 +8,8 @@ import { insertArticle, insertArticleThread, getThreadBySlack } from "@/lib/db/a
 import { captureDraftFromAI } from "@/lib/core/article-tools";
 import { log, timed, serializeError } from "@/lib/logger";
 
+const GENERIC_ERROR_REPLY = "Something went wrong. Please try again.";
+
 // Track recently processed event IDs to prevent duplicate handling from Slack retries
 const recentEventIds = new Set<string>();
 const MAX_EVENT_CACHE = 1000;
@@ -71,6 +73,15 @@ export async function POST(request: NextRequest) {
           message: "Background handleNewArticle failed",
           error: serializeError(err),
         });
+        try {
+          await postSlackMessage(event.channel, GENERIC_ERROR_REPLY, event.ts);
+        } catch (slackErr) {
+          log.warn({
+            operation: "api.webhooks.slack",
+            message: "Failed to send error reply to Slack",
+            error: serializeError(slackErr),
+          });
+        }
       }
     });
   } else if (event.type === "message" && event.thread_ts && !event.bot_id && !event.subtype) {
@@ -83,6 +94,15 @@ export async function POST(request: NextRequest) {
           message: "Background handleThreadReply failed",
           error: serializeError(err),
         });
+        try {
+          await postSlackMessage(event.channel, GENERIC_ERROR_REPLY, event.thread_ts);
+        } catch (slackErr) {
+          log.warn({
+            operation: "api.webhooks.slack",
+            message: "Failed to send error reply to Slack",
+            error: serializeError(slackErr),
+          });
+        }
       }
     });
   }
@@ -184,11 +204,19 @@ async function handleNewArticle(event: {
       error: serializeError(err),
     });
 
-    await postSlackMessage(
-      event.channel,
-      "Something went wrong generating that article. Please try again.",
-      event.ts,
-    );
+    try {
+      await postSlackMessage(
+        event.channel,
+        "Something went wrong generating that article. Please try again.",
+        event.ts,
+      );
+    } catch (slackErr) {
+      log.warn({
+        operation: "api.webhooks.slack.newArticle",
+        message: "Failed to send error reply to Slack",
+        error: serializeError(slackErr),
+      });
+    }
   }
 }
 
