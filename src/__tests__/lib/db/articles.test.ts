@@ -8,6 +8,7 @@ import {
   getAllPublishedSlugs,
   getPublishedArticlesByTag,
   getPublishedArticleSummaries,
+  getAllSlugs,
   insertArticle,
   updateArticle,
   insertArticleThread,
@@ -285,6 +286,24 @@ describe("marketing_articles", () => {
 
       expect(summaries[0].title).toBe("Newer");
       expect(summaries[1].title).toBe("Older");
+    });
+  });
+
+  describe("getAllSlugs", () => {
+    it("returns slugs for both published and unpublished articles", async () => {
+      await seedArticle({ slug: "published-slug", published: true });
+      await seedArticle({ slug: "draft-slug", published: false });
+
+      const slugs = await getAllSlugs(db);
+
+      expect(slugs).toContain("published-slug");
+      expect(slugs).toContain("draft-slug");
+    });
+
+    it("returns empty array when no articles exist", async () => {
+      const slugs = await getAllSlugs(db);
+
+      expect(slugs).toEqual([]);
     });
   });
 
