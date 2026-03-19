@@ -12,10 +12,7 @@ async function requireAuth() {
   return user;
 }
 
-export async function DELETE(
-  _req: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const user = await requireAuth();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -37,10 +34,7 @@ export async function DELETE(
   }
 }
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const user = await requireAuth();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -50,7 +44,7 @@ export async function PATCH(
   const body = await req.json();
   const db = createDbClient();
 
-  const allowed: (keyof typeof body)[] = ["published", "published_at"];
+  const allowed = ["published", "published_at"] as const;
   const sanitized: Record<string, unknown> = {};
   for (const key of allowed) {
     if (key in body) sanitized[key] = body[key];

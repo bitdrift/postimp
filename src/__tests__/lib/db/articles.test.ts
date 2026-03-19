@@ -461,7 +461,7 @@ describe("marketing_articles", () => {
 
       await deleteArticle(db, id);
 
-      const articles = await getAllArticles(db);
+      const { articles } = await getArticlePage(db);
       expect(articles.find((a) => a.slug === "to-delete")).toBeUndefined();
     });
 
