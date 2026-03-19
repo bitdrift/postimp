@@ -1,8 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createDbClient } from "@/lib/db/client";
-import { insertArticle, getArticleById } from "@/lib/db/articles";
-import { captureDraftFromAI, reviseArticle, buildArticleContext } from "@/lib/core/article-tools";
+import { insertArticle, getArticleById, getPublishedArticleSummaries } from "@/lib/db/articles";
+import { captureDraftFromAI, reviseArticle } from "@/lib/core/article-tools";
 import { log, timed, serializeError } from "@/lib/logger";
 
 const MAX_MESSAGE_LENGTH = 5000;
@@ -52,10 +52,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Article not found" }, { status: 404 });
     }
 
-    // When resuming without conversation history, give the AI the current article
-    const feedbackText = responseId ? message : buildArticleContext(existing, message);
-
-    return await handleRevision(db, feedbackText, articleId, responseId || null, elapsed);
+    return await handleRevision(db, message, articleId, responseId || null, elapsed);
   } catch (err) {
     log.error({
       operation: "api.articles.write",
@@ -72,7 +69,8 @@ async function handleNewArticle(
   author: string,
   elapsed: ReturnType<typeof timed>,
 ) {
-  const draft = await captureDraftFromAI(idea);
+  const summaries = await getPublishedArticleSummaries(db);
+  const draft = await captureDraftFromAI(idea, summaries);
 
   if (!draft.articleFields) {
     return NextResponse.json(

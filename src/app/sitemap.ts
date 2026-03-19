@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { createDbClient } from "@/lib/db/client";
-import { getAllPublishedSlugs } from "@/lib/db/articles";
+import { getPublishedArticles } from "@/lib/db/articles";
 
 export const revalidate = 300;
 
@@ -20,14 +20,36 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   const db = createDbClient();
-  const slugs = await getAllPublishedSlugs(db);
+  const articles = await getPublishedArticles(db);
 
-  const articlePages: MetadataRoute.Sitemap = slugs.map((article) => ({
+  const articlePages: MetadataRoute.Sitemap = articles.map((article) => ({
     url: `${baseUrl}/learn/${article.slug}`,
     lastModified: article.published_at ? new Date(article.published_at) : new Date(),
     changeFrequency: "monthly" as const,
     priority: 0.6,
   }));
 
-  return [...staticPages, ...articlePages];
+  const uniqueTags = new Set<string>();
+  for (const article of articles) {
+    for (const tag of article.tags) {
+      uniqueTags.add(tag);
+    }
+  }
+
+  const tagPages: MetadataRoute.Sitemap = [
+    {
+      url: `${baseUrl}/learn/tags`,
+      lastModified: new Date(),
+      changeFrequency: "weekly" as const,
+      priority: 0.5,
+    },
+    ...[...uniqueTags].map((tag) => ({
+      url: `${baseUrl}/learn/tags/${encodeURIComponent(tag)}`,
+      lastModified: new Date(),
+      changeFrequency: "weekly" as const,
+      priority: 0.5,
+    })),
+  ];
+
+  return [...staticPages, ...articlePages, ...tagPages];
 }

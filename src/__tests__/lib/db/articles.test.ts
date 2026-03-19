@@ -6,6 +6,8 @@ import {
   getArticleBySlug,
   getArticleBySlugWithDrafts,
   getAllPublishedSlugs,
+  getPublishedArticlesByTag,
+  getPublishedArticleSummaries,
   insertArticle,
   updateArticle,
   insertArticleThread,
@@ -209,6 +211,80 @@ describe("marketing_articles", () => {
       expect(slugs[0].slug).toBe("slug-two");
       expect(slugs[1].slug).toBe("slug-one");
       expect(slugs[0].published_at).toBeTruthy();
+    });
+  });
+
+  describe("getPublishedArticlesByTag", () => {
+    it("returns published articles matching the tag", async () => {
+      await seedArticle({ slug: "tagged-a", tags: ["instagram", "tips"] });
+      await seedArticle({ slug: "tagged-b", tags: ["instagram"] });
+      await seedArticle({ slug: "untagged", tags: ["facebook"] });
+
+      const articles = await getPublishedArticlesByTag(db, "instagram");
+
+      expect(articles).toHaveLength(2);
+      const slugs = articles.map((a) => a.slug);
+      expect(slugs).toContain("tagged-a");
+      expect(slugs).toContain("tagged-b");
+    });
+
+    it("excludes unpublished articles", async () => {
+      await seedArticle({ slug: "pub-tag", tags: ["seo"], published: true });
+      await seedArticle({ slug: "draft-tag", tags: ["seo"], published: false });
+
+      const articles = await getPublishedArticlesByTag(db, "seo");
+
+      expect(articles).toHaveLength(1);
+      expect(articles[0].slug).toBe("pub-tag");
+    });
+
+    it("returns empty array for non-existent tag", async () => {
+      const articles = await getPublishedArticlesByTag(db, "nonexistent");
+
+      expect(articles).toEqual([]);
+    });
+
+    it("does not include content field", async () => {
+      await seedArticle({ tags: ["check"] });
+
+      const articles = await getPublishedArticlesByTag(db, "check");
+
+      expect(articles).toHaveLength(1);
+      expect(articles[0]).not.toHaveProperty("content");
+    });
+  });
+
+  describe("getPublishedArticleSummaries", () => {
+    it("returns slug, title, and tags for published articles", async () => {
+      await seedArticle({ slug: "summary-a", title: "Article A", tags: ["a"] });
+      await seedArticle({ slug: "summary-b", title: "Article B", tags: ["b"], published: false });
+
+      const summaries = await getPublishedArticleSummaries(db);
+
+      expect(summaries).toHaveLength(1);
+      expect(summaries[0]).toEqual({
+        slug: "summary-a",
+        title: "Article A",
+        tags: ["a"],
+      });
+    });
+
+    it("orders by published_at descending", async () => {
+      await seedArticle({
+        slug: "older",
+        title: "Older",
+        published_at: "2026-01-01T00:00:00Z",
+      });
+      await seedArticle({
+        slug: "newer",
+        title: "Newer",
+        published_at: "2026-03-01T00:00:00Z",
+      });
+
+      const summaries = await getPublishedArticleSummaries(db);
+
+      expect(summaries[0].title).toBe("Newer");
+      expect(summaries[1].title).toBe("Older");
     });
   });
 

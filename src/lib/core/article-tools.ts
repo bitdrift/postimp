@@ -1,5 +1,10 @@
 import type { DbClient } from "@/lib/db/client";
-import { updateArticle, getArticleById } from "@/lib/db/articles";
+import {
+  updateArticle,
+  getArticleById,
+  getAllSlugs,
+  getPublishedArticleSummaries,
+} from "@/lib/db/articles";
 import {
   sendArticleMessage,
   sendArticleToolResults,
@@ -27,18 +32,25 @@ export interface CaptureDraftResult {
   articleFields: ArticleUpdateFields | null;
 }
 
+export type ArticleSummary = { slug: string; title: string; tags: string[] };
+
 /**
  * Builds an AI prompt that includes the current article as context,
  * used when resuming a draft without prior conversation history.
  * Truncates content to avoid inflating token cost.
+ * Filters out the current article from the catalog to prevent self-linking.
  */
-export function buildArticleContext(article: MarketingArticle, feedback: string): string {
+export function buildArticleContext(
+  article: MarketingArticle,
+  feedback: string,
+  existingArticles?: ArticleSummary[],
+): string {
   const truncatedContent =
     article.content.length > MAX_CONTEXT_CONTENT_LENGTH
       ? article.content.slice(0, MAX_CONTEXT_CONTENT_LENGTH) + "\n\n[content truncated]"
       : article.content;
 
-  return [
+  const parts = [
     "Here is the current draft article:",
     "",
     `Title: ${article.title}`,
@@ -48,11 +60,43 @@ export function buildArticleContext(article: MarketingArticle, feedback: string)
     "",
     "Content:",
     truncatedContent,
+  ];
+
+  const filtered = existingArticles?.filter((a) => a.slug !== article.slug);
+  if (filtered && filtered.length > 0) {
+    parts.push("", "---", "", ...formatArticleCatalog(filtered));
+  }
+
+  parts.push("", "---", "", `User feedback: ${feedback}`);
+
+  return parts.join("\n");
+}
+
+function formatArticleCatalog(articles: ArticleSummary[]): string[] {
+  return [
+    "Here are the existing published articles on the blog. Link to relevant ones inline using [anchor text](/learn/slug):",
     "",
-    "---",
-    "",
-    `User feedback: ${feedback}`,
-  ].join("\n");
+    ...articles.map((a) => `- "${a.title}" (/learn/${a.slug}) [tags: ${a.tags.join(", ")}]`),
+  ];
+}
+
+/**
+ * Extracts internal /learn/ links from article markdown content
+ * and checks that every linked slug exists in the database.
+ * Returns the list of broken slugs (empty if all valid).
+ */
+export async function validateArticleLinks(db: DbClient, content: string): Promise<string[]> {
+  const linkPattern = /\]\(\/learn\/([a-zA-Z0-9_-]+)\)/g;
+  const linkedSlugs = new Set<string>();
+  let match: RegExpExecArray | null;
+  while ((match = linkPattern.exec(content)) !== null) {
+    linkedSlugs.add(match[1]);
+  }
+
+  if (linkedSlugs.size === 0) return [];
+
+  const existingSlugs = new Set(await getAllSlugs(db));
+  return [...linkedSlugs].filter((slug) => !existingSlugs.has(slug));
 }
 
 /**
@@ -60,9 +104,20 @@ export function buildArticleContext(article: MarketingArticle, feedback: string)
  * without writing to the database. Used for initial draft creation
  * by both the Slack bot and the web UI.
  */
-export async function captureDraftFromAI(idea: string): Promise<CaptureDraftResult> {
+export async function captureDraftFromAI(
+  idea: string,
+  existingArticles?: ArticleSummary[],
+): Promise<CaptureDraftResult> {
+  const parts: string[] = [];
+
+  if (existingArticles && existingArticles.length > 0) {
+    parts.push(...formatArticleCatalog(existingArticles), "");
+  }
+
+  parts.push(`Write a blog article based on this idea:\n\n${idea}`);
+
   let result = await sendArticleMessage({
-    text: `Write a blog article based on this idea:\n\n${idea}`,
+    text: parts.join("\n"),
   });
 
   let articleFields: ArticleUpdateFields | null = null;
@@ -111,6 +166,9 @@ export interface ReviseArticleCallbacks {
  * Sends feedback to the AI and executes tool calls against the database.
  * Used for article revisions by both the Slack bot and the web UI.
  * Optional callbacks allow channel-specific side effects (e.g. Slack notifications).
+ *
+ * When previousResponseId is null (conversation history lost), automatically
+ * fetches the current article and existing article catalog to rebuild context.
  */
 export async function reviseArticle(
   db: DbClient,
@@ -119,9 +177,25 @@ export async function reviseArticle(
   previousResponseId: string | null,
   callbacks?: ReviseArticleCallbacks,
 ): Promise<ReviseArticleResult> {
+  // When conversation history is lost, rebuild context with article + catalog
+  let messageText = text;
+  if (!previousResponseId) {
+    const article = await getArticleById(db, articleId);
+    if (article) {
+      const summaries = await getPublishedArticleSummaries(db);
+      messageText = buildArticleContext(article, text, summaries);
+    } else {
+      log.warn({
+        operation: "core.reviseArticle",
+        message: "Article not found when rebuilding context",
+        articleId,
+      });
+    }
+  }
+
   let result: SendArticleResult;
   try {
-    result = await sendArticleMessage({ text, previousResponseId });
+    result = await sendArticleMessage({ text: messageText, previousResponseId });
   } catch (error) {
     log.error({
       operation: "core.reviseArticle",
@@ -155,12 +229,34 @@ export async function reviseArticle(
         if (callbacks?.onUpdate) await callbacks.onUpdate(fields);
         toolOutputs.push({ callId: toolCall.callId, output: "Article updated successfully." });
       } else if (toolCall.name === "publish_article") {
-        await updateArticle(db, articleId, {
+        const article = await getArticleById(db, articleId);
+        const publishFields: Record<string, unknown> = {
           published: true,
           published_at: new Date().toISOString(),
-        });
+        };
+
+        if (article) {
+          const brokenLinks = await validateArticleLinks(db, article.content);
+          if (brokenLinks.length > 0) {
+            log.warn({
+              operation: "core.reviseArticle.publish",
+              message: "Removing broken internal links before publish",
+              articleId,
+              brokenSlugs: brokenLinks,
+            });
+            let cleanedContent = article.content;
+            for (const slug of brokenLinks) {
+              cleanedContent = cleanedContent.replace(
+                new RegExp(`\\[([^\\]]+)\\]\\(/learn/${slug}\\)`, "g"),
+                "$1",
+              );
+            }
+            publishFields.content = cleanedContent;
+          }
+        }
+
+        await updateArticle(db, articleId, publishFields);
         published = true;
-        const article = await getArticleById(db, articleId);
         const slug = article?.slug || "unknown";
         if (callbacks?.onPublish) await callbacks.onPublish(slug);
         toolOutputs.push({ callId: toolCall.callId, output: "Article published successfully!" });
