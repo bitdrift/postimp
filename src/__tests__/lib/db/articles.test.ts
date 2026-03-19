@@ -12,6 +12,7 @@ import {
   getAllSlugs,
   insertArticle,
   updateArticle,
+  deleteArticle,
   insertArticleThread,
   getThreadBySlack,
   updateThreadResponseId,
@@ -424,6 +425,20 @@ describe("marketing_articles", () => {
       expect(article!.description).toBe("Updated desc");
     });
 
+    it("can unpublish an article", async () => {
+      const { id, slug } = await seedArticle({ published: true });
+
+      await updateArticle(db, id, { published: false, published_at: null });
+
+      const article = await getArticleBySlugWithDrafts(db, slug);
+      expect(article).not.toBeNull();
+      expect(article!.published).toBe(false);
+      expect(article!.published_at).toBeNull();
+
+      // Should no longer appear in published queries
+      expect(await getArticleBySlug(db, slug)).toBeNull();
+    });
+
     it("can publish an article", async () => {
       const { id, slug } = await seedArticle({ published: false });
 
@@ -437,6 +452,36 @@ describe("marketing_articles", () => {
       const article = await getArticleBySlug(db, slug);
       expect(article).not.toBeNull();
       expect(article!.published).toBe(true);
+    });
+  });
+
+  describe("deleteArticle", () => {
+    it("removes the article from the database", async () => {
+      const { id } = await seedArticle({ slug: "to-delete" });
+
+      await deleteArticle(db, id);
+
+      const { articles } = await getArticlePage(db);
+      expect(articles.find((a) => a.slug === "to-delete")).toBeUndefined();
+    });
+
+    it("cascades to delete associated threads", async () => {
+      const article = await insertArticle(db, {
+        slug: "cascade-test",
+        title: "Cascade",
+        description: "Desc",
+        content: "Content",
+      });
+      await insertArticleThread(db, {
+        article_id: article.id,
+        slack_channel_id: "C999",
+        slack_thread_ts: "8888888888.888888",
+      });
+
+      await deleteArticle(db, article.id);
+
+      const thread = await getThreadBySlack(db, "C999", "8888888888.888888");
+      expect(thread).toBeNull();
     });
   });
 });

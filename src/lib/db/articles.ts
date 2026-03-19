@@ -235,6 +235,11 @@ export async function getAllSlugs(client: DbClient): Promise<string[]> {
   return data.map((row) => row.slug);
 }
 
+export async function deleteArticle(client: DbClient, articleId: string): Promise<void> {
+  const { error } = await client.from("marketing_articles").delete().eq("id", articleId);
+  if (error) throw error;
+}
+
 // ── Thread queries ───────────────────────────────────────────
 
 export async function insertArticleThread(
