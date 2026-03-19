@@ -1,5 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { captureDraftFromAI, reviseArticle, buildArticleContext } from "@/lib/core/article-tools";
+import {
+  captureDraftFromAI,
+  reviseArticle,
+  buildArticleContext,
+  validateArticleLinks,
+} from "@/lib/core/article-tools";
 import { sendArticleMessage, sendArticleToolResults } from "@/lib/openai/article-writer";
 import { createDbClient } from "@/lib/db/client";
 import { insertArticle, getArticleById } from "@/lib/db/articles";
@@ -73,6 +78,38 @@ describe("buildArticleContext", () => {
 
     expect(result).not.toContain("[content truncated]");
   });
+
+  it("includes existing articles catalog when provided", () => {
+    const existingArticles = [
+      { slug: "tips-for-instagram", title: "Tips for Instagram", tags: ["instagram", "tips"] },
+      { slug: "best-times-to-post", title: "Best Times to Post", tags: ["scheduling"] },
+    ];
+
+    const result = buildArticleContext(article, "add links", existingArticles);
+
+    expect(result).toContain("existing published articles");
+    expect(result).toContain('"Tips for Instagram" (/learn/tips-for-instagram)');
+    expect(result).toContain('"Best Times to Post" (/learn/best-times-to-post)');
+    expect(result).toContain("User feedback: add links");
+  });
+
+  it("filters out the current article from the catalog to prevent self-linking", () => {
+    const existingArticles = [
+      { slug: "test-slug", title: "Test Title", tags: ["test"] },
+      { slug: "other-article", title: "Other Article", tags: ["other"] },
+    ];
+
+    const result = buildArticleContext(article, "revise", existingArticles);
+
+    expect(result).not.toContain('"Test Title" (/learn/test-slug)');
+    expect(result).toContain('"Other Article" (/learn/other-article)');
+  });
+
+  it("omits catalog section when existingArticles is empty", () => {
+    const result = buildArticleContext(article, "revise", []);
+
+    expect(result).not.toContain("existing published articles");
+  });
 });
 
 describe("captureDraftFromAI", () => {
@@ -117,6 +154,28 @@ describe("captureDraftFromAI", () => {
 
     expect(result.articleFields).toBeNull();
     expect(result.textResponse).toBe("I can't write that.");
+  });
+
+  it("includes existing articles catalog in the prompt when provided", async () => {
+    mockSendMessage.mockResolvedValue({
+      responseId: "resp_1",
+      textResponse: "",
+      toolCalls: [{ name: "update_article", callId: "call_1", args: sampleFields }],
+    });
+    mockSendToolResults.mockResolvedValue({
+      responseId: "resp_2",
+      textResponse: "Done!",
+      toolCalls: [],
+    });
+
+    const existingArticles = [{ slug: "existing-post", title: "Existing Post", tags: ["social"] }];
+
+    await captureDraftFromAI("write about testing", existingArticles);
+
+    const sentText = mockSendMessage.mock.calls[0][0].text;
+    expect(sentText).toContain("existing published articles");
+    expect(sentText).toContain('"Existing Post" (/learn/existing-post)');
+    expect(sentText).toContain("write about testing");
   });
 
   it("rejects publish_article during draft capture", async () => {
@@ -254,6 +313,48 @@ describe("reviseArticle", () => {
     expect(onPublish).toHaveBeenCalledWith(expect.stringContaining("revise-test-"));
   });
 
+  it("rebuilds article context when previousResponseId is null", async () => {
+    mockSendMessage.mockResolvedValue({
+      responseId: "resp_1",
+      textResponse: "Got it",
+      toolCalls: [],
+    });
+
+    await reviseArticle(db, articleId, "make it better", null);
+
+    const sentText = mockSendMessage.mock.calls[0][0].text;
+    // Should include the article context (title, slug, content)
+    expect(sentText).toContain("Title: Original Title");
+    expect(sentText).toContain("# Original");
+    expect(sentText).toContain("User feedback: make it better");
+    // Should NOT have a previousResponseId
+    expect(mockSendMessage.mock.calls[0][0].previousResponseId).toBeNull();
+  });
+
+  it("includes article catalog in rebuilt context when previousResponseId is null", async () => {
+    // Create a published article so the catalog is non-empty
+    await insertArticle(db, {
+      slug: "catalog-article",
+      title: "Catalog Article",
+      description: "Desc",
+      content: "# Catalog",
+      tags: ["tips"],
+      published: true,
+      published_at: new Date().toISOString(),
+    });
+
+    mockSendMessage.mockResolvedValue({
+      responseId: "resp_1",
+      textResponse: "Got it",
+      toolCalls: [],
+    });
+
+    await reviseArticle(db, articleId, "add links", null);
+
+    const sentText = mockSendMessage.mock.calls[0][0].text;
+    expect(sentText).toContain('"Catalog Article" (/learn/catalog-article)');
+  });
+
   it("passes previousResponseId to sendArticleMessage", async () => {
     mockSendMessage.mockResolvedValue({
       responseId: "resp_new",
@@ -273,5 +374,115 @@ describe("reviseArticle", () => {
     mockSendMessage.mockRejectedValue(new Error("OpenAI down"));
 
     await expect(reviseArticle(db, articleId, "revise", null)).rejects.toThrow("OpenAI down");
+  });
+
+  it("strips broken internal links on publish", async () => {
+    // Create a second article to link to validly
+    const validSlug = `valid-link-${crypto.randomUUID().slice(0, 8)}`;
+    await insertArticle(db, {
+      slug: validSlug,
+      title: "Valid Article",
+      description: "Desc",
+      content: "# Valid",
+      tags: [],
+    });
+
+    // Update article content to have one valid and one broken link
+    await db
+      .from("marketing_articles")
+      .update({
+        content: `Check out [valid](/learn/${validSlug}) and [broken](/learn/does-not-exist-ever).`,
+      })
+      .eq("id", articleId);
+
+    mockSendMessage.mockResolvedValue({
+      responseId: "resp_1",
+      textResponse: "",
+      toolCalls: [{ name: "publish_article", callId: "call_1", args: {} }],
+    });
+    mockSendToolResults.mockResolvedValue({
+      responseId: "resp_2",
+      textResponse: "Published!",
+      toolCalls: [],
+    });
+
+    await reviseArticle(db, articleId, "publish", "resp_prev");
+
+    const published = await getArticleById(db, articleId);
+    expect(published!.published).toBe(true);
+    // Valid link preserved, broken link stripped to plain text
+    expect(published!.content).toContain(`[valid](/learn/${validSlug})`);
+    expect(published!.content).not.toContain("/learn/does-not-exist-ever");
+    expect(published!.content).toContain("broken");
+  });
+});
+
+describe("validateArticleLinks", () => {
+  afterEach(async () => {
+    await cleanArticles();
+  });
+
+  it("returns empty array when no internal links", async () => {
+    const broken = await validateArticleLinks(db, "No links here.");
+    expect(broken).toEqual([]);
+  });
+
+  it("returns empty array when all links are valid", async () => {
+    const slug = `valid-${crypto.randomUUID().slice(0, 8)}`;
+    await insertArticle(db, {
+      slug,
+      title: "Valid",
+      description: "Desc",
+      content: "# Valid",
+      tags: [],
+    });
+
+    const broken = await validateArticleLinks(db, `Read [this article](/learn/${slug}) for more.`);
+    expect(broken).toEqual([]);
+  });
+
+  it("returns only non-existent slugs from a mix of valid and broken links", async () => {
+    const validSlug = `exists-${crypto.randomUUID().slice(0, 8)}`;
+    await insertArticle(db, {
+      slug: validSlug,
+      title: "Exists",
+      description: "Desc",
+      content: "# Exists",
+      tags: [],
+    });
+
+    const broken = await validateArticleLinks(
+      db,
+      `Check [this](/learn/${validSlug}) and [that](/learn/does-not-exist).`,
+    );
+    expect(broken).toEqual(["does-not-exist"]);
+  });
+
+  it("matches slugs with uppercase letters and underscores", async () => {
+    const broken = await validateArticleLinks(
+      db,
+      "Read [this](/learn/Instagram_Tips) and [that](/learn/Best-TIMES-to-Post).",
+    );
+    expect(broken).toContain("Instagram_Tips");
+    expect(broken).toContain("Best-TIMES-to-Post");
+  });
+
+  it("ignores links with fragments or query strings (not standard article links)", async () => {
+    // Links like /learn/slug#section or /learn/slug?foo are not standard
+    // article links — the regex requires ) immediately after the slug,
+    // so these are not captured or validated
+    const broken = await validateArticleLinks(
+      db,
+      "See [link](/learn/some-slug#section) and [link2](/learn/some-slug?utm=foo).",
+    );
+    expect(broken).toEqual([]);
+  });
+
+  it("deduplicates the same broken slug appearing multiple times", async () => {
+    const broken = await validateArticleLinks(
+      db,
+      "See [a](/learn/missing) and [b](/learn/missing) and [c](/learn/missing).",
+    );
+    expect(broken).toEqual(["missing"]);
   });
 });

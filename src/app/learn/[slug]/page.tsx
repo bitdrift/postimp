@@ -114,12 +114,13 @@ export default async function ArticlePage({ params }: Props) {
         {article.tags.length > 0 && (
           <div className="mt-3 flex gap-2">
             {article.tags.map((tag) => (
-              <span
+              <Link
                 key={tag}
-                className="bg-base-200 text-base-content/60 px-2.5 py-0.5 rounded-full text-xs"
+                href={`/learn/tags/${encodeURIComponent(tag)}`}
+                className="bg-base-200 text-base-content/60 hover:text-base-content/80 hover:bg-base-300 px-2.5 py-0.5 rounded-full text-xs transition-colors"
               >
                 {tag}
-              </span>
+              </Link>
             ))}
           </div>
         )}

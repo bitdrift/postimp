@@ -147,6 +147,44 @@ export async function getAllPublishedSlugs(
   return data;
 }
 
+export async function getPublishedArticlesByTag(
+  client: DbClient,
+  tag: string,
+): Promise<Omit<MarketingArticle, "content">[]> {
+  const { data, error } = await client
+    .from("marketing_articles")
+    .select(
+      "id, slug, title, description, author, tags, published, published_at, og_title, og_description, og_image_url, canonical_url, created_at, updated_at",
+    )
+    .eq("published", true)
+    .contains("tags", [tag])
+    .order("published_at", { ascending: false });
+
+  if (error) return [];
+  return data;
+}
+
+export async function getPublishedArticleSummaries(
+  client: DbClient,
+): Promise<{ slug: string; title: string; tags: string[] }[]> {
+  const { data, error } = await client
+    .from("marketing_articles")
+    .select("slug, title, tags")
+    .eq("published", true)
+    .order("published_at", { ascending: false })
+    .limit(50);
+
+  if (error) return [];
+  return data;
+}
+
+export async function getAllSlugs(client: DbClient): Promise<string[]> {
+  const { data, error } = await client.from("marketing_articles").select("slug");
+
+  if (error) return [];
+  return data.map((row) => row.slug);
+}
+
 // ── Thread queries ───────────────────────────────────────────
 
 export async function insertArticleThread(

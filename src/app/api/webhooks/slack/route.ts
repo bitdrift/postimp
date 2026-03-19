@@ -4,7 +4,12 @@ import { verifySlackRequest } from "@/lib/slack/verify";
 import { postSlackMessage } from "@/lib/slack/client";
 import { orchestrateArticle } from "@/lib/slack/orchestrate-article";
 import { createDbClient } from "@/lib/db/client";
-import { insertArticle, insertArticleThread, getThreadBySlack } from "@/lib/db/articles";
+import {
+  insertArticle,
+  insertArticleThread,
+  getThreadBySlack,
+  getPublishedArticleSummaries,
+} from "@/lib/db/articles";
 import { captureDraftFromAI } from "@/lib/core/article-tools";
 import { log, timed, serializeError } from "@/lib/logger";
 
@@ -135,7 +140,9 @@ async function handleNewArticle(event: {
   );
 
   try {
-    const draft = await captureDraftFromAI(idea);
+    const db = createDbClient();
+    const summaries = await getPublishedArticleSummaries(db);
+    const draft = await captureDraftFromAI(idea, summaries);
 
     if (!draft.articleFields) {
       await postSlackMessage(
@@ -146,7 +153,6 @@ async function handleNewArticle(event: {
       return;
     }
 
-    const db = createDbClient();
     const fields = draft.articleFields;
     const saved = await insertArticle(db, {
       slug: fields.slug,
