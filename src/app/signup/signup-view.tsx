@@ -83,6 +83,7 @@ function SignupFlow() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const token = searchParams.get("token");
+  const next = searchParams.get("next");
 
   useEffect(() => {
     if (!password) {
@@ -340,7 +341,10 @@ function SignupFlow() {
               {confirmedMessage && (
                 <div className="bg-info/10 text-info rounded-lg p-3 text-sm">
                   You already have an account.{" "}
-                  <Link href="/login" className="font-medium underline">
+                  <Link
+                    href={next ? `/login?next=${encodeURIComponent(next)}` : "/login"}
+                    className="font-medium underline"
+                  >
                     Log in instead
                   </Link>
                 </div>
@@ -465,7 +469,10 @@ function SignupFlow() {
 
           <p className="text-center text-sm text-base-content/50 mt-6">
             Already have an account?{" "}
-            <Link href="/login" className="text-primary font-medium hover:underline">
+            <Link
+              href={next ? `/login?next=${encodeURIComponent(next)}` : "/login"}
+              className="text-primary font-medium hover:underline"
+            >
               Log in
             </Link>
           </p>
