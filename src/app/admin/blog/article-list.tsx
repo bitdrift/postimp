@@ -1,6 +1,3 @@
-"use client";
-
-import { useState } from "react";
 import Link from "next/link";
 import type { MarketingArticle } from "@/lib/db/articles";
 import { formatArticleDate } from "@/app/learn/format-date";
@@ -9,39 +6,43 @@ type Filter = "all" | "published" | "drafts";
 
 interface Props {
   articles: Omit<MarketingArticle, "content">[];
+  nextCursor: string | null;
+  filter: Filter;
+  counts: { total: number; published: number; drafts: number };
 }
 
-export function ArticleList({ articles }: Props) {
-  const [filter, setFilter] = useState<Filter>("all");
+function filterHref(filter: Filter): string {
+  if (filter === "all") return "/admin/blog";
+  return `/admin/blog?filter=${filter}`;
+}
 
-  const filtered = articles.filter((a) => {
-    if (filter === "published") return a.published;
-    if (filter === "drafts") return !a.published;
-    return true;
-  });
+function nextHref(filter: Filter, cursor: string): string {
+  const params = new URLSearchParams();
+  if (filter !== "all") params.set("filter", filter);
+  params.set("cursor", cursor);
+  return `/admin/blog?${params.toString()}`;
+}
 
-  const publishedCount = articles.filter((a) => a.published).length;
-  const draftCount = articles.length - publishedCount;
-
+export function ArticleList({ articles, nextCursor, filter, counts }: Props) {
   return (
     <>
       <div className="mt-8 flex gap-2">
-        <FilterButton active={filter === "all"} onClick={() => setFilter("all")}>
-          All ({articles.length})
+        <FilterButton href={filterHref("all")} active={filter === "all"}>
+          All ({counts.total})
         </FilterButton>
-        <FilterButton active={filter === "published"} onClick={() => setFilter("published")}>
-          Published ({publishedCount})
+        <FilterButton href={filterHref("published")} active={filter === "published"}>
+          Published ({counts.published})
         </FilterButton>
-        <FilterButton active={filter === "drafts"} onClick={() => setFilter("drafts")}>
-          Drafts ({draftCount})
+        <FilterButton href={filterHref("drafts")} active={filter === "drafts"}>
+          Drafts ({counts.drafts})
         </FilterButton>
       </div>
 
-      {filtered.length === 0 ? (
+      {articles.length === 0 ? (
         <p className="mt-12 text-base-content/40">No articles match this filter.</p>
       ) : (
         <div className="mt-8 space-y-4">
-          {filtered.map((article) => (
+          {articles.map((article) => (
             <Link
               key={article.id}
               href={
@@ -90,22 +91,33 @@ export function ArticleList({ articles }: Props) {
           ))}
         </div>
       )}
+
+      {nextCursor && (
+        <div className="mt-8 flex justify-end">
+          <Link
+            href={nextHref(filter, nextCursor)}
+            className="px-5 py-2.5 rounded-lg bg-primary text-primary-content text-sm font-medium hover:bg-primary/80 transition-colors"
+          >
+            Next page
+          </Link>
+        </div>
+      )}
     </>
   );
 }
 
 function FilterButton({
+  href,
   active,
-  onClick,
   children,
 }: {
+  href: string;
   active: boolean;
-  onClick: () => void;
   children: React.ReactNode;
 }) {
   return (
-    <button
-      onClick={onClick}
+    <Link
+      href={href}
       className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
         active
           ? "bg-primary text-primary-content"
@@ -113,6 +125,6 @@ function FilterButton({
       }`}
     >
       {children}
-    </button>
+    </Link>
   );
 }

@@ -1,7 +1,8 @@
 import { describe, it, expect, afterEach } from "vitest";
 import { createDbClient } from "@/lib/db/client";
 import {
-  getAllArticles,
+  getArticlePage,
+  getArticleCounts,
   getPublishedArticles,
   getArticleBySlug,
   getArticleBySlugWithDrafts,
@@ -50,44 +51,115 @@ describe("marketing_articles", () => {
     await cleanAll();
   });
 
-  describe("getAllArticles", () => {
-    it("returns both published and unpublished articles", async () => {
+  describe("getArticlePage", () => {
+    it("returns first page of articles ordered by created_at desc", async () => {
+      await seedArticle({ slug: "older", created_at: "2026-01-01T00:00:00Z" });
+      await seedArticle({ slug: "newer", created_at: "2026-03-01T00:00:00Z" });
+
+      const { articles, nextCursor } = await getArticlePage(db);
+
+      expect(articles).toHaveLength(2);
+      expect(articles[0].slug).toBe("newer");
+      expect(articles[1].slug).toBe("older");
+      expect(nextCursor).toBeNull();
+    });
+
+    it("filters by published status", async () => {
       await seedArticle({ slug: "pub", published: true });
       await seedArticle({ slug: "draft", published: false });
 
-      const articles = await getAllArticles(db);
+      const pubResult = await getArticlePage(db, { filter: "published" });
+      expect(pubResult.articles).toHaveLength(1);
+      expect(pubResult.articles[0].slug).toBe("pub");
 
-      expect(articles).toHaveLength(2);
-      const slugs = articles.map((a) => a.slug);
-      expect(slugs).toContain("pub");
-      expect(slugs).toContain("draft");
+      const draftResult = await getArticlePage(db, { filter: "drafts" });
+      expect(draftResult.articles).toHaveLength(1);
+      expect(draftResult.articles[0].slug).toBe("draft");
     });
 
-    it("orders by created_at descending", async () => {
-      await seedArticle({
-        slug: "older",
-        title: "Older",
-        created_at: "2026-01-01T00:00:00Z",
-      });
-      await seedArticle({
-        slug: "newer",
-        title: "Newer",
-        created_at: "2026-03-01T00:00:00Z",
-      });
+    it("returns nextCursor when more pages exist and advances with cursor", async () => {
+      // Seed 22 articles (page size is 20)
+      const promises = [];
+      for (let i = 0; i < 22; i++) {
+        promises.push(
+          seedArticle({
+            slug: `page-${String(i).padStart(2, "0")}`,
+            created_at: new Date(Date.UTC(2026, 0, 1 + i)).toISOString(),
+          }),
+        );
+      }
+      await Promise.all(promises);
 
-      const articles = await getAllArticles(db);
+      const page1 = await getArticlePage(db);
 
-      expect(articles[0].title).toBe("Newer");
-      expect(articles[1].title).toBe("Older");
+      expect(page1.articles).toHaveLength(20);
+      expect(page1.nextCursor).not.toBeNull();
+      // First article should be the newest (i=21 → Jan 22)
+      expect(page1.articles[0].slug).toBe("page-21");
+
+      const page2 = await getArticlePage(db, { cursor: page1.nextCursor! });
+
+      expect(page2.articles).toHaveLength(2);
+      expect(page2.nextCursor).toBeNull();
+      // Last two should be the oldest
+      expect(page2.articles[0].slug).toBe("page-01");
+      expect(page2.articles[1].slug).toBe("page-00");
+    });
+
+    it("paginates within a filter", async () => {
+      // Seed 22 drafts + 1 published
+      const promises = [];
+      for (let i = 0; i < 22; i++) {
+        promises.push(
+          seedArticle({
+            slug: `draft-${String(i).padStart(2, "0")}`,
+            published: false,
+            created_at: new Date(Date.UTC(2026, 0, 1 + i)).toISOString(),
+          }),
+        );
+      }
+      promises.push(seedArticle({ slug: "published-one", published: true }));
+      await Promise.all(promises);
+
+      const page1 = await getArticlePage(db, { filter: "drafts" });
+
+      expect(page1.articles).toHaveLength(20);
+      expect(page1.nextCursor).not.toBeNull();
+      expect(page1.articles.every((a) => !a.published)).toBe(true);
+
+      const page2 = await getArticlePage(db, { filter: "drafts", cursor: page1.nextCursor! });
+
+      expect(page2.articles).toHaveLength(2);
+      expect(page2.nextCursor).toBeNull();
+      expect(page2.articles.every((a) => !a.published)).toBe(true);
     });
 
     it("does not include content field", async () => {
       await seedArticle();
 
-      const articles = await getAllArticles(db);
+      const { articles } = await getArticlePage(db);
 
-      expect(articles).toHaveLength(1);
       expect(articles[0]).not.toHaveProperty("content");
+    });
+  });
+
+  describe("getArticleCounts", () => {
+    it("returns total, published, and draft counts", async () => {
+      await seedArticle({ slug: "pub-1", published: true });
+      await seedArticle({ slug: "pub-2", published: true });
+      await seedArticle({ slug: "draft-1", published: false });
+
+      const counts = await getArticleCounts(db);
+
+      expect(counts.total).toBe(3);
+      expect(counts.published).toBe(2);
+      expect(counts.drafts).toBe(1);
+    });
+
+    it("returns zeros when no articles exist", async () => {
+      const counts = await getArticleCounts(db);
+
+      expect(counts).toEqual({ total: 0, published: 0, drafts: 0 });
     });
   });
 
