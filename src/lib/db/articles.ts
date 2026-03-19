@@ -5,32 +5,84 @@ export type { MarketingArticle, MarketingArticleThread };
 
 // ── Article queries ──────────────────────────────────────────
 
+const ARTICLE_COLS =
+  "id, slug, title, description, author, tags, published, published_at, og_title, og_description, og_image_url, canonical_url, created_at, updated_at" as const;
+
+const DASHBOARD_PAGE_SIZE = 20;
+
+export async function getArticlePage(
+  client: DbClient,
+  options?: { cursor?: string; filter?: "published" | "drafts" },
+): Promise<{ articles: Omit<MarketingArticle, "content">[]; nextCursor: string | null }> {
+  let query = client
+    .from("marketing_articles")
+    .select(ARTICLE_COLS)
+    .order("created_at", { ascending: false })
+    .order("id", { ascending: false })
+    .limit(DASHBOARD_PAGE_SIZE + 1);
+
+  if (options?.filter === "published") query = query.eq("published", true);
+  if (options?.filter === "drafts") query = query.eq("published", false);
+
+  if (options?.cursor) {
+    const sep = options.cursor.indexOf("|");
+    const cursorDate = options.cursor.slice(0, sep);
+    const cursorId = options.cursor.slice(sep + 1);
+    if (
+      !cursorDate ||
+      !cursorId ||
+      !/^\d{4}-\d{2}-\d{2}T[\d:.Z+-]+$/.test(cursorDate) ||
+      !/^[0-9a-f-]{36}$/.test(cursorId)
+    ) {
+      throw new Error("Invalid cursor");
+    }
+    query = query.or(
+      `created_at.lt.${cursorDate},and(created_at.eq.${cursorDate},id.lt.${cursorId})`,
+    );
+  }
+
+  const { data, error } = await query;
+  if (error) throw error;
+
+  const hasMore = data.length > DASHBOARD_PAGE_SIZE;
+  const articles = hasMore ? data.slice(0, DASHBOARD_PAGE_SIZE) : data;
+  const last = articles[articles.length - 1];
+  const nextCursor = hasMore && last ? `${last.created_at}|${last.id}` : null;
+
+  return { articles, nextCursor };
+}
+
+export async function getArticleCounts(
+  client: DbClient,
+): Promise<{ total: number; published: number; drafts: number }> {
+  const [{ count: total, error: e1 }, { count: published, error: e2 }] = await Promise.all([
+    client.from("marketing_articles").select("*", { count: "exact", head: true }),
+    client
+      .from("marketing_articles")
+      .select("*", { count: "exact", head: true })
+      .eq("published", true),
+  ]);
+
+  if (e1) throw e1;
+  if (e2) throw e2;
+
+  return {
+    total: total ?? 0,
+    published: published ?? 0,
+    drafts: (total ?? 0) - (published ?? 0),
+  };
+}
+
 export async function getPublishedArticles(
   client: DbClient,
 ): Promise<Omit<MarketingArticle, "content">[]> {
   const { data, error } = await client
     .from("marketing_articles")
-    .select(
-      "id, slug, title, description, author, tags, published, published_at, og_title, og_description, og_image_url, canonical_url, created_at, updated_at",
-    )
+    .select(ARTICLE_COLS)
     .eq("published", true)
     .order("published_at", { ascending: false });
 
   if (error) return [];
-  return data;
-}
-
-export async function getAllArticles(
-  client: DbClient,
-): Promise<Omit<MarketingArticle, "content">[]> {
-  const { data, error } = await client
-    .from("marketing_articles")
-    .select(
-      "id, slug, title, description, author, tags, published, published_at, og_title, og_description, og_image_url, canonical_url, created_at, updated_at",
-    )
-    .order("created_at", { ascending: false });
-
-  if (error) throw error;
   return data;
 }
 
@@ -153,9 +205,7 @@ export async function getPublishedArticlesByTag(
 ): Promise<Omit<MarketingArticle, "content">[]> {
   const { data, error } = await client
     .from("marketing_articles")
-    .select(
-      "id, slug, title, description, author, tags, published, published_at, og_title, og_description, og_image_url, canonical_url, created_at, updated_at",
-    )
+    .select(ARTICLE_COLS)
     .eq("published", true)
     .contains("tags", [tag])
     .order("published_at", { ascending: false });
