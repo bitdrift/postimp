@@ -89,3 +89,4 @@ Required in `.env.local`:
 - External services (OpenAI, Twilio, Instagram) mocked via `vi.mock()` in `src/__tests__/setup.ts`
 - `npm test` runs locally (requires local Supabase or Docker)
 - `npm run test:docker` runs everything in an isolated container with no network access
+- **All code in `src/lib/` must have tests.** When adding or modifying files under `src/lib/`, always add or update the corresponding test file in `src/__tests__/lib/`. Implement via TDD red/green when possible. Code in `src/lib/` should be written to be easily testable — prefer pure functions, explicit dependencies, and minimal side effects.
