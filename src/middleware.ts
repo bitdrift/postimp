@@ -51,13 +51,22 @@ export async function middleware(request: NextRequest) {
   if (!user && !isPublicRoute) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
+    const fullPath = pathname + request.nextUrl.search;
+    url.searchParams.set("next", fullPath);
     return NextResponse.redirect(url);
   }
 
   // Redirect authenticated users away from public landing pages
   if (user && (pathname === "/" || pathname === "/login" || pathname === "/signup")) {
+    const next = request.nextUrl.searchParams.get("next");
     const url = request.nextUrl.clone();
-    url.pathname = "/posts";
+    const safeNext =
+      next && next.startsWith("/") && !next.startsWith("//") && !next.startsWith("/api/") && !next.startsWith("/auth/");
+    const target = safeNext ? next : "/posts";
+    const [targetPath, targetSearch] = target.split("?");
+    url.pathname = targetPath;
+    url.search = targetSearch ? `?${targetSearch}` : "";
+    url.searchParams.delete("next");
     return NextResponse.redirect(url);
   }
 

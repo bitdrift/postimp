@@ -1,17 +1,40 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 import ImpLoader from "@/app/components/imp-loader";
 
 export default function LoginView() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-base-200">
+          <p className="text-base-content/50">Loading...</p>
+        </div>
+      }
+    >
+      <LoginFlow />
+    </Suspense>
+  );
+}
+
+function LoginFlow() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const next = searchParams.get("next");
+  const safeNext =
+    next &&
+    next.startsWith("/") &&
+    !next.startsWith("//") &&
+    !next.startsWith("/api/") &&
+    !next.startsWith("/auth/");
+  const redirectTo = safeNext ? next : "/posts";
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -30,7 +53,13 @@ export default function LoginView() {
       return;
     }
 
-    router.push("/posts");
+    // Check onboarding before honoring `next` — incomplete users must onboard first
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("onboarding_completed")
+      .single();
+
+    router.push(profile?.onboarding_completed ? redirectTo : "/onboarding");
     router.refresh();
   }
 
@@ -97,7 +126,10 @@ export default function LoginView() {
 
           <p className="text-center text-sm text-base-content/50 mt-6">
             Don&apos;t have an account?{" "}
-            <Link href="/signup" className="text-base-content font-medium hover:underline">
+            <Link
+              href={next ? `/signup?next=${encodeURIComponent(next)}` : "/signup"}
+              className="text-base-content font-medium hover:underline"
+            >
               Sign up
             </Link>
           </p>
